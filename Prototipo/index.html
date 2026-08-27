@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#16231E">
+<title>ContadorIA — Prototipo</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#EFF1EC;--paper-raise:#FFFFFF;--ink:#16231E;--ink-soft:#3C463F;
+    --line:#DCDED6;--line-strong:#C7CAC0;--emerald:#256B4E;--emerald-soft:#E4EFE9;
+    --brick:#9A3B3C;--brick-soft:#F3E4E2;--gold:#B4841A;--gold-soft:#F4E9D2;--radius:10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+    color:var(--ink);background:var(--paper);min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Fraunces','Georgia',serif;font-weight:600;letter-spacing:-0.01em;margin:0;}
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+  input,select,button,textarea{outline:none;font-family:inherit;}
+  input:focus-visible,select:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--emerald);outline-offset:1px;}
+  .mono{font-family:'IBM Plex Mono','SFMono-Regular',ui-monospace,monospace;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---- layout ---- */
+  .shell{display:flex;min-height:100vh;}
+  .sidebar{width:232px;flex-shrink:0;background:var(--ink);color:#DDE6E0;padding:22px 16px;display:flex;flex-direction:column;gap:26px;}
+  .brand{display:flex;align-items:center;gap:10px;padding:0 6px;}
+  .brand-badge{width:30px;height:30px;border-radius:7px;background:linear-gradient(155deg,var(--gold),#8C6314);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;color:#1B1404;font-size:15px;flex-shrink:0;}
+  .brand-name{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:#F3F5F1;}
+  nav.side-nav{display:flex;flex-direction:column;gap:2px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13.5px;color:#C7D2CA;background:transparent;border:none;text-align:left;width:100%;}
+  .nav-item:hover{background:rgba(255,255,255,.06);color:#fff;}
+  .nav-item.active{background:rgba(255,255,255,.10);color:#fff;font-weight:500;}
+  .nav-item .dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.55;flex-shrink:0;}
+  .nav-section{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:#7C8B81;padding:0 12px;margin:12px 0 4px;}
+  .side-foot{margin-top:auto;border-top:1px solid rgba(255,255,255,.10);padding-top:14px;display:flex;flex-direction:column;gap:10px;}
+  .side-foot label{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:#7C8B81;margin-bottom:6px;display:block;}
+  .side-foot select{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#F3F5F1;padding:8px 10px;border-radius:8px;font-size:12.5px;}
+  .side-user{display:flex;align-items:center;gap:9px;padding:8px 6px;font-size:12.5px;color:#B7C2BB;}
+  .side-user .av{width:26px;height:26px;border-radius:50%;background:#3B4B41;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0;}
+  .btn-ghost-dark{width:100%;background:transparent;border:1px solid rgba(255,255,255,.14);color:#C7D2CA;padding:8px;border-radius:8px;font-size:12px;}
+  .btn-ghost-dark:hover{background:rgba(255,255,255,.06);color:#fff;}
+
+  main.content{flex:1;min-width:0;padding:26px 34px 50px;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;gap:16px;flex-wrap:wrap;}
+  .company-pill{display:flex;align-items:center;gap:10px;background:var(--paper-raise);border:1px solid var(--line);padding:8px 14px;border-radius:9px;font-size:13.5px;font-family:inherit;color:var(--ink);cursor:pointer;}
+  .company-pill:hover{background:var(--paper);}
+  .company-pill .ci{width:22px;height:22px;border-radius:6px;background:var(--emerald-soft);color:var(--emerald);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;}
+  .role-tag{font-size:11px;text-transform:uppercase;letter-spacing:.08em;background:var(--emerald-soft);color:var(--emerald);padding:5px 10px;border-radius:999px;font-weight:600;}
+
+  .page-head{margin-bottom:22px;}
+  .page-head h1{font-size:23px;margin-bottom:4px;}
+  .page-head p{margin:0;color:var(--ink-soft);font-size:13.5px;}
+  .head-row{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+
+  .card{background:var(--paper-raise);border:1px solid var(--line);border-radius:var(--radius);box-sizing:border-box;}
+  .card-pad{padding:18px 20px;}
+  .kpi-grid{display:grid;gap:14px;margin-bottom:22px;}
+  .kpi{background:var(--paper-raise);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;min-width:0;overflow:hidden;}
+  .kpi .l{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:10px;}
+  .kpi .v{font-size:22px;font-weight:600;font-family:'IBM Plex Mono',monospace;overflow-wrap:break-word;}
+  .kpi .d{font-size:11.5px;margin-top:6px;color:var(--ink-soft);}
+  .two-col{display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px;min-width:0;}
+  .sect-title{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px;gap:6px;flex-wrap:wrap;}
+  .sect-title h3{font-size:15px;}
+  .sect-title span{font-size:11.5px;color:var(--ink-soft);}
+
+  .bar-row{display:grid;grid-template-columns:110px 1fr 78px;align-items:center;gap:10px;}
+  .bar-row .cat{font-size:12.5px;color:var(--ink-soft);}
+  .bar-track{height:9px;background:#EAEAE3;border-radius:5px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:5px;}
+  .bar-row .amt{font-size:12px;text-align:right;font-family:'IBM Plex Mono',monospace;}
+
+  .stack{display:flex;flex-direction:column;}
+  .act-item{display:flex;gap:11px;align-items:flex-start;}
+  .act-item .txt{font-size:12.5px;line-height:1.45;}
+  .act-item .when{display:block;color:var(--ink-soft);font-size:11px;margin-top:2px;}
+
+  table.tbl{width:100%;border-collapse:collapse;min-width:640px;}
+  .tbl th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-soft);padding:10px 20px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);font-weight:500;white-space:nowrap;}
+  .tbl th.r,.tbl td.r{text-align:right;}
+  .tbl td{padding:13px 20px;font-size:13px;border-bottom:1px solid var(--line);}
+  .tbl tbody tr:last-child td{border-bottom:none;}
+  .table-scroll{overflow-x:auto;}
+  .chip{font-size:11px;padding:3px 9px;border-radius:999px;background:#EDEEE8;color:var(--ink-soft);white-space:nowrap;}
+  .stamp{display:inline-flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:9.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:3px 7px;border-radius:4px;border:1.2px solid currentColor;white-space:nowrap;}
+  .stamp.foto{color:var(--emerald);background:var(--emerald-soft);}
+  .stamp.pdf{color:var(--gold);background:var(--gold-soft);}
+  .stamp.csv{color:#4A5568;background:#EBEDE7;}
+  .stamp.manual{color:var(--brick);background:var(--brick-soft);}
+
+  .btn{border:none;padding:10px 18px;border-radius:8px;font-weight:600;font-size:13px;}
+  .btn-pri{background:var(--emerald);color:#fff;}
+  .btn-pri:hover{background:#1E5A41;}
+  .btn-sec{background:var(--paper-raise);border:1px solid var(--line-strong);color:var(--ink);font-weight:500;}
+  .btn-sec:hover{background:var(--paper);}
+  .btn-sm{padding:8px 14px;font-size:12.5px;}
+  .btn-xs{padding:5px 10px;font-size:11.5px;font-weight:500;border-radius:6px;background:transparent;border:1px solid var(--line-strong);color:var(--ink-soft);}
+  .btn-xs:hover{background:var(--paper);}
+  .btn-link{background:transparent;border:none;color:var(--ink-soft);text-decoration:underline;font-size:13px;padding:10px 6px;}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  select.filter,input.filter{padding:8px 12px;border-radius:8px;border:1px solid var(--line-strong);font-size:12.5px;background:var(--paper-raise);color:var(--ink);}
+
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:6px;}
+  .field input,.field select,.field textarea{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line-strong);font-size:13.5px;background:var(--paper);color:var(--ink);}
+  .field .err{color:var(--brick);font-size:11.5px;margin-top:4px;}
+
+  .dropzone{border:1.5px dashed var(--line-strong);border-radius:var(--radius);padding:48px 24px;text-align:center;background:var(--paper-raise);transition:background .15s,border-color .15s;}
+  .dropzone.drag{border-color:var(--emerald);background:var(--emerald-soft);}
+  .dropzone .big{font-size:34px;margin-bottom:12px;color:var(--ink-soft);}
+  .spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--emerald);animation:spin .8s linear infinite;}
+
+  .empty{padding:44px 20px;text-align:center;color:var(--ink-soft);font-size:13px;}
+  .empty h3{font-size:16px;color:var(--ink);margin-bottom:6px;}
+
+  .modal-back{position:fixed;inset:0;background:rgba(22,35,30,.45);display:flex;align-items:center;justify-content:center;z-index:70;padding:20px;}
+  .modal{background:var(--paper-raise);border-radius:14px;padding:28px;width:100%;max-width:400px;max-height:90vh;overflow:auto;}
+  .modal h3{font-size:17px;margin-bottom:4px;}
+  .modal .sub{margin:0 0 18px;font-size:12.5px;color:var(--ink-soft);}
+  .modal-actions{display:flex;gap:10px;margin-top:6px;}
+  .modal-actions .btn{flex:1;}
+
+  .toast{position:fixed;background:var(--ink);color:#F3F5F1;padding:12px 18px;border-radius:9px;font-size:13px;box-shadow:0 12px 30px rgba(22,35,30,.3);z-index:90;max-width:320px;bottom:24px;right:24px;}
+
+  /* ---- login ---- */
+  .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .login-card{background:var(--paper-raise);border:1px solid var(--line);border-radius:14px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 20px 60px -20px rgba(22,35,30,.18);}
+  .login-card .badge{width:34px;height:34px;border-radius:8px;background:linear-gradient(155deg,var(--gold),#8C6314);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;color:#1B1404;font-size:16px;}
+
+  /* ---- mobile ---- */
+  .bottom-nav{display:none;}
+  @media (max-width:919px){
+    .sidebar{display:none;}
+    main.content{padding:18px 16px 96px;}
+    .two-col{grid-template-columns:1fr;}
+    .kpi-grid{grid-template-columns:repeat(2,1fr)!important;}
+    .bottom-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--paper-raise);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));z-index:40;}
+    .bn-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;flex:1;padding:8px 0;font-size:10.5px;color:var(--ink-soft);background:none;border:none;}
+    .bn-item.on{color:var(--emerald);}
+    .bn-item .ic{font-size:19px;line-height:1;}
+    .sheet-back{position:fixed;inset:0;background:rgba(22,35,30,.4);z-index:49;}
+    .sheet{position:fixed;left:0;right:0;bottom:0;background:var(--paper-raise);border-radius:16px 16px 0 0;padding:18px 20px calc(28px + env(safe-area-inset-bottom));z-index:50;box-shadow:0 -10px 40px rgba(22,35,30,.2);}
+    .sheet .grip{width:36px;height:4px;background:var(--line-strong);border-radius:2px;margin:0 auto 16px;}
+    .sheet .row{padding:13px 4px;font-size:14.5px;border-bottom:1px solid var(--line);background:none;border-left:none;border-right:none;border-top:none;width:100%;text-align:left;}
+    .toast{bottom:84px;left:16px;right:16px;max-width:none;}
+    .modal{max-width:none;}
+  }
+  @media (max-width:520px){
+    .kpi-grid{grid-template-columns:1fr!important;}
+    .bar-row{grid-template-columns:84px 1fr 66px;}
+  }
+
+  @media print{
+    .sidebar,.bottom-nav,.topbar,.no-print{display:none!important;}
+    main.content{padding:0;}
+    body{background:#fff;}
+    .card{border-color:#bbb;}
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+"use strict";
+(function(){
+
+/* ============================ constants ============================ */
+var STORE = "contadoria_proto_v2";   // v2: arranca en blanco (sin empresa ni datos)
+var MES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+var MES_LARGO = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+var CATS_SUGERIDAS = ["Insumos","Arriendo","Sueldos","Servicios","Marketing","Ventas","Impuestos","Transporte","Varios"];
+var ROLE_LABEL = {admin:"Admin", contador:"Contador", empleado:"Empleado"};
+var NAV = [
+  {key:"dashboard",  label:"Dashboard",        roles:["admin","contador","empleado"]},
+  {key:"movimientos",label:"Movimientos",      roles:["admin","contador","empleado"]},
+  {key:"importar",   label:"Importar archivo", roles:["admin","contador"]},
+  {key:"reportes",   label:"Reportes",         roles:["admin","contador"]},
+  {key:"usuarios",   label:"Usuarios y roles", roles:["admin"], section:"Empresa"}
+];
+
+/* ============================ seed data ============================ */
+function seedMovimientos(){
+  var raw = [
+    ["2026-08-26","Distribuidora Ñuble","Insumos","foto",84200,"gasto","Carla M."],
+    ["2026-08-25","Harinas del Sur Ltda.","Insumos","pdf",412000,"gasto","Felipe Q."],
+    ["2026-08-25","Mantención horno","Servicios","manual",65000,"gasto","Carla M."],
+    ["2026-08-24","Venta mostrador — resumen semanal","Ventas","manual",980500,"ingreso","Vicente H."],
+    ["2026-08-23","Insumos varios panadería","Insumos","foto",45300,"gasto","Carla M."],
+    ["2026-08-22","Arriendo local agosto","Arriendo","manual",850000,"gasto","Felipe Q."],
+    ["2026-08-21","Sueldos quincena","Sueldos","manual",620000,"gasto","Felipe Q."],
+    ["2026-08-20","Publicidad Instagram","Marketing","pdf",90000,"gasto","Felipe Q."],
+    ["2026-08-18","Venta mostrador — resumen semanal","Ventas","manual",875200,"ingreso","Vicente H."],
+    ["2026-08-17","Cuenta luz","Servicios","csv",58200,"gasto","Felipe Q."],
+    ["2026-08-15","Venta mostrador — resumen semanal","Ventas","manual",910300,"ingreso","Vicente H."],
+    ["2026-07-28","Venta mostrador — resumen mensual","Ventas","manual",3980000,"ingreso","Vicente H."],
+    ["2026-07-22","Arriendo local julio","Arriendo","manual",850000,"gasto","Felipe Q."],
+    ["2026-07-20","Sueldos julio","Sueldos","manual",1180000,"gasto","Felipe Q."],
+    ["2026-07-12","Harinas del Sur Ltda.","Insumos","pdf",690000,"gasto","Felipe Q."],
+    ["2026-07-05","Cuenta agua","Servicios","csv",42000,"gasto","Felipe Q."],
+    ["2026-06-28","Venta mostrador — resumen mensual","Ventas","manual",3890000,"ingreso","Vicente H."],
+    ["2026-06-24","Arriendo local junio","Arriendo","manual",820000,"gasto","Felipe Q."],
+    ["2026-06-18","Insumos panadería","Insumos","foto",720000,"gasto","Carla M."],
+    ["2026-06-10","Publicidad redes","Marketing","pdf",55000,"gasto","Felipe Q."]
+  ];
+  return raw.map(function(r,i){
+    return {id:"seed-"+i, fecha:r[0], proveedor:r[1], categoria:r[2], origen:r[3], monto:r[4], tipo:r[5], usuario:r[6], descripcion:""};
+  });
+}
+
+var SAMPLE_COMPANY = "Panadería Sur SpA";
+
+// Estado inicial COMPLETAMENTE en blanco: sin empresa, sin movimientos, sin usuarios.
+// El cliente arma todo desde cero (o carga "Datos de ejemplo" para una demo rápida).
+function defaultState(){
+  return {
+    loggedIn:false,
+    role:"admin",
+    screen:"dashboard",
+    companyName:"",
+    movimientos:[],
+    users:[],
+    importaciones:[]
+  };
+}
+
+/* ============================ state ============================ */
+var state = load();
+var ui = {                    // volatile view state (not persisted)
+  moreOpen:false,
+  toast:null, toastT:null,
+  modal:null,                 // 'movimiento' | 'invitar'
+  formErr:{},
+  form:{},                    // sticky values while a modal is open
+  import:{step:"idle", fileName:"", rows:[], validCount:0, errorCount:0},
+  filterCat:"todas",
+  filterUser:"todos",
+  reportPeriod:"__auto__"
+};
+
+function load(){
+  try{
+    var raw = localStorage.getItem(STORE);
+    if(!raw) return defaultState();
+    var s = JSON.parse(raw);
+    var d = defaultState();
+    // shallow-merge to survive schema changes
+    for(var k in d){ if(!(k in s)) s[k] = d[k]; }
+    if(!Array.isArray(s.movimientos)) s.movimientos = d.movimientos;
+    if(!Array.isArray(s.users)) s.users = [];
+    return s;
+  }catch(e){ return defaultState(); }
+}
+function save(){
+  try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){}
+}
+
+/* ============================ helpers ============================ */
+function $(sel, el){ return (el||document).querySelector(sel); }
+function $all(sel, el){ return Array.prototype.slice.call((el||document).querySelectorAll(sel)); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function money(n){ return "$" + Math.round(Math.abs(Number(n)||0)).toLocaleString("es-CL"); }
+function signed(m){ return (m.tipo==="gasto" ? "−" : "+") + money(m.monto); }
+function amtColor(m){ return m.tipo==="gasto" ? "var(--brick)" : "var(--emerald)"; }
+function todayISO(){ return "2026-08-27"; }
+function fmtDate(iso){
+  var p = String(iso||"").split("-");
+  if(p.length!==3) return iso||"—";
+  var d = parseInt(p[2],10), mi = parseInt(p[1],10)-1;
+  if(isNaN(d)||mi<0||mi>11) return iso;
+  return d + " " + MES[mi];
+}
+function periodKey(iso){ return String(iso||"").slice(0,7); }        // "2026-08"
+function periodLabel(key){
+  var p = key.split("-"); if(p.length!==2) return key;
+  return MES_LARGO[parseInt(p[1],10)-1] + " " + p[0];
+}
+function initials(name){
+  var clean = String(name||"?").replace(/\([^)]*\)/g, "").trim();
+  var parts = clean.split(/\s+/).filter(Boolean);
+  return (parts.map(function(w){ return w.charAt(0); }).slice(0,2).join("") || "?").toUpperCase();
+}
+function currentUser(){ return "Tú (" + ROLE_LABEL[state.role] + ")"; }
+function isMobile(){ return window.innerWidth < 920; }
+function canImport(){ return state.role==="admin" || state.role==="contador"; }
+function canReport(){ return state.role==="admin" || state.role==="contador"; }
+function canUsers(){ return state.role==="admin"; }
+function isEmployee(){ return state.role==="empleado"; }
+function uid(pfx){ return (pfx||"id") + "-" + Date.now().toString(36) + "-" + Math.floor(Math.random()*1e5).toString(36); }
+
+function showToast(msg){
+  ui.toast = msg;
+  clearTimeout(ui.toastT);
+  ui.toastT = setTimeout(function(){ ui.toast=null; renderToast(); }, 2800);
+  renderToast();
+}
+function download(filename, text, mime){
+  var blob = new Blob(["﻿"+text], {type:(mime||"text/csv")+";charset=utf-8;"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 500);
+}
+
+/* movimientos visible for the current role */
+function visibleMovs(){
+  var list = state.movimientos.slice();
+  if(isEmployee()) list = list.filter(function(m){ return m.usuario === currentUser(); });
+  return list.sort(function(a,b){ return a.fecha < b.fecha ? 1 : a.fecha > b.fecha ? -1 : 0; });
+}
+function filteredMovs(){
+  var list = visibleMovs();
+  if(ui.filterCat !== "todas") list = list.filter(function(m){ return m.categoria === ui.filterCat; });
+  if(!isEmployee() && ui.filterUser !== "todos") list = list.filter(function(m){ return m.usuario === ui.filterUser; });
+  return list;
+}
+function distinctCats(){
+  var set = {};
+  state.movimientos.forEach(function(m){ if(m.categoria) set[m.categoria]=1; });
+  return Object.keys(set).sort();
+}
+function distinctUsers(){
+  var set = {};
+  state.movimientos.forEach(function(m){ if(m.usuario) set[m.usuario]=1; });
+  return Object.keys(set).sort();
+}
+function distinctPeriods(){
+  var set = {};
+  visibleMovs().forEach(function(m){ var k=periodKey(m.fecha); if(k) set[k]=1; });
+  return Object.keys(set).sort().reverse();
+}
+function activePeriod(){
+  var ps = distinctPeriods();
+  if(ui.reportPeriod === "__all__") return "__all__";
+  if(ui.reportPeriod === "__auto__" || ps.indexOf(ui.reportPeriod) === -1) return ps[0] || null;
+  return ui.reportPeriod;
+}
+
+/* ============================ CSV parsing ============================ */
+function parseCSV(text){
+  text = String(text).replace(/^﻿/, "");
+  var head = text.slice(0, (text.indexOf("\n")+1 || text.length));
+  var delim = (head.split(";").length > head.split(",").length) ? ";" : ",";
+  var rows=[], row=[], field="", inQ=false;
+  for(var i=0;i<text.length;i++){
+    var c = text[i];
+    if(inQ){
+      if(c === '"'){ if(text[i+1] === '"'){ field+='"'; i++; } else inQ=false; }
+      else field += c;
+    }else{
+      if(c === '"') inQ = true;
+      else if(c === delim){ row.push(field); field=""; }
+      else if(c === "\n"){ row.push(field); rows.push(row); row=[]; field=""; }
+      else if(c === "\r"){ /* skip */ }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(function(r){ return r.length && r.some(function(x){ return String(x).trim() !== ""; }); });
+}
+function norm(s){ return String(s||"").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); }
+function mapHeaders(headerRow){
+  var syn = {
+    fecha:["fecha","date","dia"],
+    monto:["monto","amount","valor","importe","total","cargo"],
+    tipo:["tipo","type","movimiento"],
+    categoria:["categoria","category","rubro","clasificacion"],
+    proveedor:["proveedor","comercio","glosa","detalle","vendor","razon social","descripcion corta"],
+    descripcion:["descripcion","description","nota","notas","observacion","comentario"]
+  };
+  var map = {};
+  headerRow.forEach(function(h, idx){
+    var n = norm(h);
+    for(var key in syn){ if(syn[key].indexOf(n) !== -1 && !(key in map)) map[key] = idx; }
+  });
+  return map;
+}
+function parseMonto(v){
+  var s = String(v==null?"":v).trim();
+  var neg = /^\(.*\)$/.test(s) || /-/.test(s);
+  s = s.replace(/[^\d]/g, "");
+  if(s === "") return null;
+  var n = parseInt(s, 10);
+  if(isNaN(n)) return null;
+  return neg ? -n : n;
+}
+function parseFecha(v){
+  var s = String(v==null?"":v).trim();
+  var m;
+  if((m = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(s))){
+    return iso(m[1], m[2], m[3]);
+  }
+  if((m = /^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/.exec(s))){
+    var y = m[3].length === 2 ? "20"+m[3] : m[3];
+    return iso(y, m[2], m[1]);
+  }
+  return null;
+  function iso(y, mo, d){
+    mo = parseInt(mo,10); d = parseInt(d,10);
+    if(mo<1||mo>12||d<1||d>31) return null;
+    return y + "-" + String(mo).padStart(2,"0") + "-" + String(d).padStart(2,"0");
+  }
+}
+function handleFile(file){
+  if(!file) return;
+  var name = file.name || "archivo.csv";
+  var ext = name.split(".").pop().toLowerCase();
+  if(ext === "xlsx" || ext === "xls"){
+    showToast("El prototipo procesa CSV. Exporta tu XLSX como CSV y vuelve a arrastrarlo.");
+    return;
+  }
+  ui.import = {step:"uploading", fileName:name, rows:[], validCount:0, errorCount:0};
+  render();
+  var reader = new FileReader();
+  reader.onload = function(){
+    setTimeout(function(){ ingestCSV(name, String(reader.result || "")); }, 500);
+  };
+  reader.onerror = function(){
+    ui.import.step = "idle";
+    showToast("No se pudo leer el archivo.");
+    render();
+  };
+  reader.readAsText(file, "utf-8");
+}
+function ingestCSV(name, text){
+  var grid = parseCSV(text);
+  if(grid.length < 2){
+    ui.import = {step:"idle", fileName:"", rows:[], validCount:0, errorCount:0};
+    showToast("El archivo no tiene filas de datos.");
+    render();
+    return;
+  }
+  var map = mapHeaders(grid[0]);
+  var rows = [];
+  for(var i=1;i<grid.length;i++){
+    var cells = grid[i];
+    var rawFecha = map.fecha!=null ? cells[map.fecha] : cells[0];
+    var rawMonto = map.monto!=null ? cells[map.monto] : cells[1];
+    var rawTipo  = map.tipo!=null  ? cells[map.tipo]  : "";
+    var rawCat   = map.categoria!=null ? cells[map.categoria] : "";
+    var rawProv  = map.proveedor!=null ? cells[map.proveedor] : "";
+    var rawDesc  = map.descripcion!=null ? cells[map.descripcion] : "";
+
+    var fecha = parseFecha(rawFecha);
+    var montoN = parseMonto(rawMonto);
+    var tipo = norm(rawTipo);
+    if(tipo === "egreso" || tipo === "expense") tipo = "gasto";
+    if(tipo === "income" || tipo === "abono") tipo = "ingreso";
+    if(tipo !== "gasto" && tipo !== "ingreso"){
+      tipo = (montoN != null && montoN < 0) ? "gasto" : "ingreso";
+    }
+    var cat = String(rawCat||"").trim();
+    var prov = String(rawProv||"").trim();
+
+    var errs = [];
+    if(!fecha) errs.push("Fecha no reconocida");
+    if(montoN == null || montoN === 0) errs.push("Monto no numérico");
+    if(!cat) errs.push("Categoría vacía");
+    if(!prov) prov = "(sin proveedor)";
+
+    rows.push({
+      raw:{fecha:rawFecha, monto:rawMonto, tipo:rawTipo, categoria:rawCat, proveedor:rawProv, descripcion:rawDesc},
+      fecha:fecha, monto: montoN==null?0:Math.abs(montoN), tipo:tipo,
+      categoria:cat || "—", proveedor:prov, descripcion:String(rawDesc||"").trim(),
+      valid: errs.length === 0,
+      error: errs.join(" · ")
+    });
+  }
+  var validCount = rows.filter(function(r){ return r.valid; }).length;
+  ui.import = {step:"preview", fileName:name, rows:rows, validCount:validCount, errorCount:rows.length-validCount};
+  render();
+}
+function confirmImport(){
+  ui.import.step = "importing";
+  render();
+  setTimeout(function(){
+    var user = currentUser();
+    var added = ui.import.rows.filter(function(r){ return r.valid; }).map(function(r){
+      return {id:uid("imp"), fecha:r.fecha, proveedor:r.proveedor, categoria:r.categoria,
+              origen:"csv", monto:r.monto, tipo:r.tipo, usuario:user, descripcion:r.descripcion};
+    });
+    state.movimientos = added.concat(state.movimientos);
+    state.importaciones.unshift({
+      id:uid("import"), archivo:ui.import.fileName, usuario:user, fecha:todayISO(),
+      total:ui.import.rows.length, importadas:added.length, conError:ui.import.errorCount
+    });
+    save();
+    ui.import.step = "done";
+    render();
+    showToast("Importación completada: " + added.length + " movimientos agregados");
+  }, 800);
+}
+function downloadTemplate(){
+  var tpl =
+    "fecha,monto,tipo,categoria,proveedor,descripcion\n" +
+    "2026-08-01,-52300,gasto,Insumos,Distribuidora Ñuble,Harina y levadura\n" +
+    "2026-08-03,-850000,gasto,Arriendo,Inmobiliaria Centro,Arriendo mensual\n" +
+    "2026-08-05,920100,ingreso,Ventas,Venta mostrador,Resumen semanal\n" +
+    "2026-08-07,-61200,gasto,Servicios,CGE,Cuenta de luz agosto\n";
+  download("plantilla_movimientos.csv", tpl);
+  showToast("Plantilla descargada");
+}
+function downloadImportErrors(){
+  var bad = ui.import.rows.filter(function(r){ return !r.valid; });
+  if(!bad.length){ showToast("No hay filas con error"); return; }
+  var out = "fecha,monto,tipo,categoria,proveedor,descripcion,error\n" +
+    bad.map(function(r){
+      return [csvCell(r.raw.fecha), csvCell(r.raw.monto), csvCell(r.raw.tipo),
+              csvCell(r.raw.categoria), csvCell(r.raw.proveedor), csvCell(r.raw.descripcion),
+              csvCell(r.error)].join(",");
+    }).join("\n");
+  download("filas_con_error.csv", out);
+}
+function csvCell(v){
+  var s = String(v==null?"":v);
+  return /[",;\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+}
+
+/* ============================ reports ============================ */
+function reportData(){
+  var period = activePeriod();
+  var all = period === "__all__" || period == null;
+  var rows = visibleMovs().filter(function(m){ return all || periodKey(m.fecha) === period; });
+  var ingresos = 0, gastos = 0;
+  var byCat = {};
+  rows.forEach(function(m){
+    if(m.tipo === "gasto"){ gastos += m.monto; byCat[m.categoria] = (byCat[m.categoria]||0) + m.monto; }
+    else ingresos += m.monto;
+  });
+  var balance = ingresos - gastos;
+  var margen = ingresos > 0 ? Math.round((balance / ingresos) * 100) : 0;
+  var bars = Object.keys(byCat).map(function(c){ return {cat:c, amt:byCat[c]}; })
+                  .sort(function(a,b){ return b.amt - a.amt; });
+  var max = bars.length ? bars[0].amt : 1;
+  var palette = ["var(--emerald)","var(--gold)","var(--brick)","var(--ink-soft)","var(--emerald)","var(--gold)"];
+  bars = bars.map(function(b,i){ return {cat:b.cat, amt:b.amt, pct: Math.round(b.amt/max*100), color:palette[i%palette.length]}; });
+  return {period: all ? null : period, rows:rows, ingresos:ingresos, gastos:gastos, balance:balance, margen:margen, bars:bars};
+}
+function exportReportCSV(){
+  var d = reportData();
+  var header = "fecha,proveedor,categoria,tipo,origen,usuario,monto\n";
+  var body = d.rows.map(function(m){
+    return [m.fecha, csvCell(m.proveedor), csvCell(m.categoria), m.tipo, m.origen, csvCell(m.usuario),
+            (m.tipo === "gasto" ? -m.monto : m.monto)].join(",");
+  }).join("\n");
+  var name = "reporte_" + (d.period || "todos") + ".csv";
+  download(name, header + body);
+  showToast("Reporte exportado (" + d.rows.length + " filas)");
+}
+
+/* ============================ mutations ============================ */
+function addMovimiento(data){
+  state.movimientos.unshift({
+    id:uid("mov"), fecha:data.fecha, proveedor:data.proveedor, categoria:data.categoria,
+    origen:"manual", monto:data.monto, tipo:data.tipo, usuario:currentUser(), descripcion:data.descripcion||""
+  });
+  save();
+}
+function deleteMovimiento(id){
+  state.movimientos = state.movimientos.filter(function(m){ return m.id !== id; });
+  save(); render();
+}
+function inviteUser(email, role){
+  var name = email.split("@")[0].replace(/[._-]+/g, " ").replace(/\b\w/g, function(c){ return c.toUpperCase(); });
+  state.users.push({id:uid("u"), name:name, email:email, role:role, active:true});
+  save();
+}
+function setUserRole(id, role){ state.users = state.users.map(function(u){ return u.id===id ? Object.assign({},u,{role:role}) : u; }); save(); }
+function toggleUser(id){ state.users = state.users.map(function(u){ return u.id===id ? Object.assign({},u,{active:!u.active}) : u; }); save(); render(); }
+function removeUser(id){ state.users = state.users.filter(function(u){ return u.id !== id; }); save(); render(); }
+
+function go(screen){
+  var allowed = NAV.filter(function(n){ return n.roles.indexOf(state.role) !== -1; }).map(function(n){ return n.key; });
+  state.screen = allowed.indexOf(screen) !== -1 ? screen : "dashboard";
+  ui.moreOpen = false;
+  save(); render();
+  window.scrollTo(0,0);
+}
+function setRole(r){
+  state.role = r;
+  ui.filterUser = "todos";
+  var allowed = NAV.filter(function(n){ return n.roles.indexOf(r) !== -1; }).map(function(n){ return n.key; });
+  if(allowed.indexOf(state.screen) === -1) state.screen = "dashboard";
+  save(); render();
+}
+function login(){ state.loggedIn = true; state.screen = "dashboard"; save(); render(); }
+function logout(){ state.loggedIn = false; ui.moreOpen = false; save(); render(); }
+
+function saveEmpresaFromForm(){
+  var name = (($("#cName")||{}).value || "").trim();
+  if(!name){ ui.formErr = {cName:"Ingresa un nombre."}; ui.form = {cName:name}; render(); return; }
+  var isNew = !state.companyName;
+  state.companyName = name;
+  if(isNew) state.screen = "dashboard";
+  ui.modal = null; ui.formErr = {}; ui.form = {};
+  save(); render();
+  showToast(isNew ? ("Empresa creada: " + name) : "Nombre actualizado");
+}
+function loadSample(){
+  state.companyName = SAMPLE_COMPANY;
+  state.movimientos = seedMovimientos();
+  state.importaciones = [];
+  state.screen = "dashboard";
+  ui.modal = null; ui.formErr = {}; ui.form = {};
+  ui.import = {step:"idle", fileName:"", rows:[], validCount:0, errorCount:0};
+  ui.filterCat = "todas"; ui.filterUser = "todos"; ui.reportPeriod = "__auto__";
+  save(); render();
+  showToast("Datos de ejemplo cargados");
+}
+function wipeAll(){
+  if(!confirm("Esto deja la app en blanco: sin empresa, sin movimientos y sin usuarios. ¿Continuar?")) return;
+  state = defaultState();
+  state.loggedIn = true;               // mantiene la sesión: va directo a 'Crea tu empresa'
+  ui.import = {step:"idle", fileName:"", rows:[], validCount:0, errorCount:0};
+  ui.filterCat = "todas"; ui.filterUser = "todos"; ui.reportPeriod = "__auto__";
+  ui.modal = null; ui.formErr = {}; ui.form = {};
+  save(); render();
+}
+
+/* ============================ views ============================ */
+function viewLogin(){
+  return '' +
+  '<div class="login-wrap"><div class="login-card">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">' +
+      '<div class="badge">C</div>' +
+      '<div style="font-family:\'Fraunces\',serif;font-size:19px;font-weight:600;">ContadorIA</div>' +
+    '</div>' +
+    '<h1 style="font-size:22px;margin-bottom:6px;">Iniciar sesión</h1>' +
+    '<p style="margin:0 0 22px;color:var(--ink-soft);font-size:13.5px;">Gestión financiera para tu PYME</p>' +
+    '<div class="field"><label>Correo</label><input id="loginEmail" type="email" placeholder="felipe@panaderiasur.cl" autocomplete="username"></div>' +
+    '<div class="field"><label>Contraseña</label><input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password"></div>' +
+    '<button class="btn btn-pri" style="width:100%;margin-bottom:10px;" data-act="login">Iniciar sesión</button>' +
+    '<button class="btn btn-sec" style="width:100%;" data-act="login">Continuar con Azure AD (SSO)</button>' +
+    '<p style="margin:20px 0 0;text-align:center;font-size:12px;color:var(--ink-soft);">Prototipo — cualquier correo y contraseña funcionan</p>' +
+  '</div></div>';
+}
+
+function viewSetup(){
+  return '' +
+  '<div class="login-wrap"><div class="login-card">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:22px;">' +
+      '<div class="badge">C</div>' +
+      '<div style="font-family:\'Fraunces\',serif;font-size:19px;font-weight:600;">ContadorIA</div>' +
+    '</div>' +
+    '<h1 style="font-size:22px;margin-bottom:6px;">Crea tu empresa</h1>' +
+    '<p style="margin:0 0 22px;color:var(--ink-soft);font-size:13.5px;">Partes desde cero. Ponle el nombre del emprendimiento de tu cliente; luego cargas movimientos, importas un CSV e invitas usuarios según lo que necesite.</p>' +
+    '<div class="field"><label>Nombre del emprendimiento</label><input id="cName" placeholder="Ej: Panadería Sur SpA" value="'+esc(fval("cName"))+'">'+fieldErr("cName")+'</div>' +
+    '<button class="btn btn-pri" style="width:100%;margin-bottom:10px;" data-act="saveEmpresa">Crear y empezar</button>' +
+    '<button class="btn btn-sec" style="width:100%;" data-act="loadSample">Usar datos de ejemplo</button>' +
+    '<p style="margin:16px 0 0;text-align:center;font-size:12px;color:var(--ink-soft);">Podrás renombrarla después desde la barra superior.</p>' +
+  '</div></div>';
+}
+
+function sidebar(){
+  var items = NAV.filter(function(n){ return n.roles.indexOf(state.role) !== -1; });
+  var html = '<aside class="sidebar">' +
+    '<div class="brand"><div class="brand-badge">C</div><div class="brand-name">ContadorIA</div></div>' +
+    '<nav class="side-nav">';
+  var lastSection = null;
+  items.forEach(function(n){
+    if(n.section && n.section !== lastSection){ html += '<div class="nav-section">'+esc(n.section)+'</div>'; lastSection = n.section; }
+    html += '<button class="nav-item '+(state.screen===n.key?"active":"")+'" data-act="go" data-screen="'+n.key+'"><span class="dot"></span>'+esc(n.label)+'</button>';
+  });
+  html += '</nav>' +
+    '<div class="side-foot">' +
+      '<div><label>Ver como</label>' + roleSelect() + '</div>' +
+      '<div class="side-user"><div class="av">'+esc(initials(currentUser()))+'</div><div>'+esc(currentUser())+'<br><span style="opacity:.7">'+ROLE_LABEL[state.role]+'</span></div></div>' +
+      '<button class="btn-ghost-dark" data-act="logout">Cerrar sesión</button>' +
+      '<button class="btn-ghost-dark" data-act="loadSample">Datos de ejemplo</button>' +
+      '<button class="btn-ghost-dark" data-act="wipeAll">Vaciar todo</button>' +
+    '</div>' +
+  '</aside>';
+  return html;
+}
+function roleSelect(){
+  return '<select data-act="role">' +
+    ['admin','contador','empleado'].map(function(r){
+      return '<option value="'+r+'"'+(state.role===r?" selected":"")+'>'+ROLE_LABEL[r]+'</option>';
+    }).join("") + '</select>';
+}
+
+function topbar(){
+  return '<div class="topbar no-print">' +
+    '<button class="company-pill" data-act="openEmpresa" title="Renombrar empresa"><div class="ci">'+esc(initials(state.companyName))+'</div>'+esc(state.companyName)+' <span style="color:var(--ink-soft);font-size:11px;opacity:.55;">✎</span></button>' +
+    '<div style="display:flex;align-items:center;gap:10px;">' +
+      '<span class="role-tag">'+ROLE_LABEL[state.role]+'</span>' +
+      (isMobile() ? '<select class="filter" data-act="role">' + ['admin','contador','empleado'].map(function(r){ return '<option value="'+r+'"'+(state.role===r?" selected":"")+'>'+ROLE_LABEL[r]+'</option>'; }).join("") + '</select>' : '') +
+    '</div>' +
+  '</div>';
+}
+
+function stampHTML(origen){
+  var o = ["foto","pdf","csv","manual"].indexOf(origen) !== -1 ? origen : "csv";
+  return '<span class="stamp '+o+'">'+esc(origen)+'</span>';
+}
+function movRows(list, opts){
+  opts = opts || {};
+  if(!list.length){
+    return '<tr><td colspan="'+(opts.showUser?6:5)+'"><div class="empty" style="padding:28px;">'+esc(opts.emptyMsg || "Sin movimientos.")+'</div></td></tr>';
+  }
+  return list.map(function(m){
+    return '<tr>' +
+      '<td class="mono">'+esc(fmtDate(m.fecha))+'</td>' +
+      '<td style="font-weight:500;">'+esc(m.proveedor)+'</td>' +
+      '<td><span class="chip">'+esc(m.categoria)+'</span></td>' +
+      '<td>'+stampHTML(m.origen)+'</td>' +
+      (opts.showUser ? '<td>'+esc(m.usuario)+'</td>' : '') +
+      '<td class="r mono" style="font-weight:500;color:'+amtColor(m)+';">'+esc(signed(m)) +
+        (opts.del ? ' <button class="btn-xs" data-act="delMov" data-id="'+m.id+'" title="Eliminar" style="margin-left:8px;">✕</button>' : '') +
+      '</td>' +
+    '</tr>';
+  }).join("");
+}
+
+function viewDashboard(){
+  var period = distinctPeriods()[0];
+  var monthMovs = visibleMovs().filter(function(m){ return periodKey(m.fecha) === period; });
+  var ingresos = 0, gastos = 0, byCat = {};
+  monthMovs.forEach(function(m){
+    if(m.tipo === "gasto"){ gastos += m.monto; byCat[m.categoria]=(byCat[m.categoria]||0)+m.monto; }
+    else ingresos += m.monto;
+  });
+  var balance = ingresos - gastos;
+  var margen = ingresos>0 ? Math.round(balance/ingresos*100) : 0;
+
+  var kpis, cols;
+  if(isEmployee()){
+    var total = monthMovs.reduce(function(a,m){ return a + m.monto; }, 0);
+    cols = 2;
+    kpis = [
+      {l:"Movimientos cargados", v:String(monthMovs.length), d:"en "+(period?periodLabel(period):"—"), c:"var(--ink)"},
+      {l:"Total cargado", v:money(total), d:"suma de tus cargas", c:"var(--ink)"}
+    ];
+  }else{
+    cols = 4;
+    kpis = [
+      {l:"Ingresos del mes", v:money(ingresos), d:period?periodLabel(period):"—", c:"var(--emerald)"},
+      {l:"Gastos del mes", v:money(gastos), d:period?periodLabel(period):"—", c:"var(--brick)"},
+      {l:"Balance", v:money(balance), d:margen+"% de margen", c: balance>=0?"var(--emerald)":"var(--brick)"},
+      {l:"Movimientos", v:String(monthMovs.length), d:"registrados este mes", c:"var(--ink)"}
+    ];
+  }
+
+  var bars = Object.keys(byCat).map(function(c){ return {cat:c, amt:byCat[c]}; }).sort(function(a,b){ return b.amt-a.amt; }).slice(0,5);
+  var maxBar = bars.length ? bars[0].amt : 1;
+  var barColors = ["var(--emerald)","var(--gold)","var(--brick)","var(--emerald)","var(--gold)"];
+
+  var recent = visibleMovs().slice(0,6);
+  var activity = visibleMovs().slice(0,4);
+
+  var html = '<div>' +
+    '<div class="page-head"><h1>'+(isEmployee()?"Tus cargas":"Resumen")+(period?" — "+periodLabel(period):"")+'</h1>' +
+      '<p>'+(isEmployee() ? "Movimientos registrados por ti en "+esc(state.companyName) : "Estado financiero de "+esc(state.companyName))+'</p></div>' +
+    '<div class="kpi-grid" style="grid-template-columns:repeat('+cols+',1fr);">' +
+      kpis.map(function(k){
+        return '<div class="kpi"><div class="l">'+esc(k.l)+'</div><div class="v" style="color:'+k.c+';">'+esc(k.v)+'</div><div class="d">'+esc(k.d)+'</div></div>';
+      }).join("") +
+    '</div>' +
+    (state.movimientos.length === 0
+      ? '<div class="card card-pad" style="margin-bottom:14px;">' +
+          '<div class="sect-title"><h3>Primeros pasos</h3><span>'+esc(state.companyName)+'</span></div>' +
+          '<div class="stack" style="gap:10px;font-size:13px;color:var(--ink-soft);">' +
+            '<div>1 · Carga un movimiento a mano en <strong>Movimientos → “+ Nuevo movimiento”</strong>.</div>' +
+            (canImport() ? '<div>2 · O importa tu historial: <strong>Importar → arrastra un CSV</strong> (hay plantilla descargable).</div>' : '') +
+            (canUsers() ? '<div>3 · Invita a tu cliente y su equipo en <strong>Usuarios y roles</strong>.</div>' : '') +
+          '</div>' +
+          '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">' +
+            '<button class="btn btn-pri btn-sm" data-act="go" data-screen="movimientos">Nuevo movimiento</button>' +
+            (canImport() ? '<button class="btn btn-sec btn-sm" data-act="go" data-screen="importar">Importar CSV</button>' : '') +
+          '</div>' +
+        '</div>'
+      : '') +
+    '<div class="two-col">' +
+      '<div class="card card-pad">' +
+        (isEmployee()
+          ? '<div class="sect-title"><h3>Tus movimientos</h3></div><div class="stack" style="gap:12px;">' +
+              (recent.length ? recent.map(function(m){ return '<div style="display:flex;justify-content:space-between;font-size:12.5px;"><span>'+esc(m.proveedor)+'</span><span class="mono" style="color:'+amtColor(m)+';">'+esc(signed(m))+'</span></div>'; }).join("") : '<div class="empty">Aún no cargas movimientos.</div>') +
+            '</div>'
+          : '<div class="sect-title"><h3>Gasto por categoría</h3><span>'+(period?periodLabel(period):"")+'</span></div><div class="stack" style="gap:12px;">' +
+              (bars.length ? bars.map(function(b,i){
+                return '<div class="bar-row"><span class="cat">'+esc(b.cat)+'</span>' +
+                  '<div class="bar-track"><div class="bar-fill" style="width:'+Math.round(b.amt/maxBar*100)+'%;background:'+barColors[i%barColors.length]+';"></div></div>' +
+                  '<span class="amt">'+esc(money(b.amt))+'</span></div>';
+              }).join("") : '<div class="empty">Sin gastos este mes.</div>') +
+            '</div>'
+        ) +
+      '</div>' +
+      '<div class="card card-pad">' +
+        '<div class="sect-title"><h3>Actividad reciente</h3></div>' +
+        '<div class="stack" style="gap:14px;">' +
+          (activity.length ? activity.map(function(m){
+            return '<div class="act-item">'+stampHTML(m.origen) +
+              '<div class="txt">'+esc((m.tipo==="gasto"?"Gasto — ":"Ingreso — ")+m.proveedor) +
+              '<span class="when">'+esc(fmtDate(m.fecha)+" · "+m.usuario+" · "+money(m.monto))+'</span></div></div>';
+          }).join("") : '<div class="empty">Sin actividad.</div>') +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="card" style="overflow:hidden;margin-bottom:14px;">' +
+      '<div class="card-pad" style="padding-bottom:0;"><div class="sect-title"><h3>Movimientos recientes</h3><span>Últimos '+recent.length+' registros</span></div></div>' +
+      '<div class="table-scroll"><table class="tbl">' +
+        '<thead><tr><th>Fecha</th><th>Proveedor</th><th>Categoría</th><th>Origen</th>'+(!isEmployee()?'<th>Usuario</th>':'')+'<th class="r">Monto</th></tr></thead>' +
+        '<tbody>'+movRows(recent, {showUser:!isEmployee()})+'</tbody>' +
+      '</table></div>' +
+    '</div>' +
+    (canImport() && state.movimientos.length > 0
+      ? '<div style="border:1.5px dashed var(--line-strong);border-radius:var(--radius);padding:22px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:repeating-linear-gradient(135deg,#F5F6F2 0 10px,#EFF1EC 10px 20px);">' +
+          '<div><h3 style="font-size:14.5px;margin-bottom:4px;">¿Llevas tus gastos en Excel?</h3><p style="margin:0;font-size:12.5px;color:var(--ink-soft);max-width:420px;">Importa tu historial desde un CSV — arrástralo y confirma antes de guardar.</p></div>' +
+          '<button class="btn btn-sec btn-sm" data-act="go" data-screen="importar">Importar archivo →</button>' +
+        '</div>'
+      : '') +
+  '</div>';
+  return html;
+}
+
+function viewMovimientos(){
+  var list = filteredMovs();
+  var cats = distinctCats();
+  var users = distinctUsers();
+  return '<div>' +
+    '<div class="head-row">' +
+      '<div><h1 style="font-size:23px;">Movimientos</h1><p style="margin:4px 0 0;color:var(--ink-soft);font-size:13.5px;">'+(isEmployee()?"Tus movimientos cargados":"Todos los movimientos de "+esc(state.companyName))+'</p></div>' +
+      '<button class="btn btn-pri btn-sm" data-act="openMov">+ Nuevo movimiento</button>' +
+    '</div>' +
+    '<div class="toolbar">' +
+      '<select class="filter" data-act="filterCat"><option value="todas">Todas las categorías</option>' +
+        cats.map(function(c){ return '<option value="'+esc(c)+'"'+(ui.filterCat===c?" selected":"")+'>'+esc(c)+'</option>'; }).join("") +
+      '</select>' +
+      (!isEmployee() ? '<select class="filter" data-act="filterUser"><option value="todos">Todos los usuarios</option>' +
+        users.map(function(u){ return '<option value="'+esc(u)+'"'+(ui.filterUser===u?" selected":"")+'>'+esc(u)+'</option>'; }).join("") +
+      '</select>' : '') +
+      '<span style="font-size:12px;color:var(--ink-soft);align-self:center;">'+list.length+' movimiento'+(list.length===1?"":"s")+'</span>' +
+    '</div>' +
+    '<div class="card" style="overflow:hidden;">' +
+      '<div class="table-scroll"><table class="tbl">' +
+        '<thead><tr><th>Fecha</th><th>Proveedor</th><th>Categoría</th><th>Origen</th>'+(!isEmployee()?'<th>Usuario</th>':'')+'<th class="r">Monto</th></tr></thead>' +
+        '<tbody>'+movRows(list, {showUser:!isEmployee(), del:true, emptyMsg:(visibleMovs().length===0 ? "Aún no hay movimientos. Crea uno con “+ Nuevo movimiento” o importa un CSV desde Importar." : "Ningún movimiento coincide con estos filtros.")})+'</tbody>' +
+      '</table></div>' +
+    '</div>' +
+  '</div>';
+}
+
+function viewImportar(){
+  var im = ui.import;
+  var inner;
+  if(im.step === "uploading" || im.step === "importing"){
+    inner = '<div class="card" style="padding:48px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px;">' +
+      '<div class="spinner"></div><div style="font-size:13.5px;color:var(--ink-soft);">'+(im.step==="uploading"?("Leyendo y validando "+esc(im.fileName)+"…"):"Importando movimientos…")+'</div></div>';
+  }else if(im.step === "preview"){
+    inner = '<div class="card card-pad" style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">' +
+        '<div style="font-size:13.5px;">Archivo: <strong>'+esc(im.fileName)+'</strong></div>' +
+        '<div style="display:flex;gap:14px;font-size:12.5px;flex-wrap:wrap;">' +
+          '<span>Total: <strong>'+im.rows.length+'</strong></span>' +
+          '<span style="color:var(--emerald);">Válidas: <strong>'+im.validCount+'</strong></span>' +
+          '<span style="color:var(--brick);">Con error: <strong>'+im.errorCount+'</strong></span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="card" style="overflow:hidden;margin-bottom:16px;"><div class="table-scroll"><table class="tbl" style="min-width:600px;">' +
+        '<thead><tr><th>Fecha</th><th>Proveedor</th><th>Categoría</th><th>Monto</th><th>Estado</th></tr></thead><tbody>' +
+        im.rows.map(function(r){
+          return '<tr>' +
+            '<td class="mono">'+esc(r.valid?fmtDate(r.fecha):(r.raw.fecha||"—"))+'</td>' +
+            '<td>'+esc(r.proveedor)+'</td>' +
+            '<td>'+esc(r.categoria)+'</td>' +
+            '<td class="mono">'+esc(r.valid?((r.tipo==="gasto"?"−":"+")+money(r.monto)):"—")+'</td>' +
+            '<td style="color:'+(r.valid?"var(--emerald)":"var(--brick)")+';font-weight:600;">'+(r.valid?"✓ Válida":("✗ "+esc(r.error)))+'</td>' +
+          '</tr>';
+        }).join("") +
+        '</tbody></table></div></div>' +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;">' +
+        '<button class="btn btn-pri" data-act="confirmImport"'+(im.validCount?"":" disabled style=\"opacity:.5;cursor:not-allowed;\"")+'>Confirmar importación ('+im.validCount+')</button>' +
+        (im.errorCount ? '<button class="btn btn-sec" data-act="dlErrors">Descargar filas con error</button>' : '') +
+        '<button class="btn btn-link" data-act="cancelImport">Cancelar</button>' +
+      '</div>';
+  }else if(im.step === "done"){
+    var last = state.importaciones[0];
+    inner = '<div class="card" style="padding:40px 24px;text-align:center;">' +
+      '<div style="width:48px;height:48px;border-radius:50%;background:var(--emerald-soft);color:var(--emerald);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 16px;">✓</div>' +
+      '<h3 style="font-size:17px;margin-bottom:6px;">Importación completada</h3>' +
+      '<p style="margin:0 0 20px;font-size:13.5px;color:var(--ink-soft);">'+(last?last.importadas:0)+' de '+(last?last.total:0)+' filas se importaron correctamente.</p>' +
+      '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">' +
+        '<button class="btn btn-pri" data-act="go" data-screen="movimientos">Ver movimientos</button>' +
+        ((last && last.conError) ? '<button class="btn btn-sec" data-act="dlErrors">Descargar filas con error</button>' : '') +
+        '<button class="btn btn-link" data-act="resetImport">Importar otro archivo</button>' +
+      '</div></div>';
+  }else{
+    inner = '<div class="dropzone" id="dropzone">' +
+      '<div class="big">⇪</div>' +
+      '<h3 style="font-size:16px;margin-bottom:6px;">Arrastra tu archivo CSV aquí</h3>' +
+      '<p style="margin:0 0 18px;font-size:13px;color:var(--ink-soft);">Formato aceptado: CSV. Usa la plantilla para evitar errores de formato.</p>' +
+      '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">' +
+        '<button class="btn btn-pri" data-act="pickFile">Seleccionar archivo</button>' +
+        '<button class="btn btn-sec" data-act="dlTemplate">Descargar plantilla</button>' +
+      '</div>' +
+      '<input type="file" id="fileInput" accept=".csv,text/csv,text/plain" style="display:none;">' +
+    '</div>' +
+    (state.importaciones.length
+      ? '<div class="card card-pad" style="margin-top:16px;"><div class="sect-title"><h3>Importaciones anteriores</h3></div>' +
+        '<div class="stack" style="gap:10px;">' + state.importaciones.slice(0,5).map(function(x){
+          return '<div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft);flex-wrap:wrap;gap:6px;">' +
+            '<span>'+esc(x.archivo)+' · '+esc(x.usuario)+'</span>' +
+            '<span class="mono">'+x.importadas+'/'+x.total+' filas'+(x.conError?(" · "+x.conError+" con error"):"")+'</span></div>';
+        }).join("") + '</div></div>'
+      : '');
+  }
+  return '<div>' +
+    '<div class="page-head"><h1>Importar archivo</h1><p>Sube un CSV con tu historial de movimientos. Se valida y previsualiza antes de guardar nada.</p></div>' +
+    inner +
+  '</div>';
+}
+
+function viewReportes(){
+  var d = reportData();
+  var periods = distinctPeriods();
+  var kpis = [
+    {l:"Ingresos", v:money(d.ingresos), c:"var(--emerald)"},
+    {l:"Gastos", v:money(d.gastos), c:"var(--brick)"},
+    {l:"Balance", v:money(d.balance), c: d.balance>=0?"var(--emerald)":"var(--brick)"},
+    {l:"Margen", v:d.margen+"%", c:"var(--ink)"}
+  ];
+  return '<div id="printArea">' +
+    '<div class="head-row">' +
+      '<div><h1 style="font-size:23px;">Reportes</h1><p style="margin:4px 0 0;color:var(--ink-soft);font-size:13.5px;">'+(d.period?periodLabel(d.period):"Todos los períodos")+' — '+esc(state.companyName)+'</p></div>' +
+      '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;" class="no-print">' +
+        '<select class="filter" data-act="reportPeriod">' +
+          '<option value="__all__"'+(ui.reportPeriod==="__all__"?" selected":"")+'>Todos los períodos</option>' +
+          periods.map(function(p){ return '<option value="'+p+'"'+(d.period===p?" selected":"")+'>'+periodLabel(p)+'</option>'; }).join("") +
+        '</select>' +
+        '<button class="btn btn-sec btn-sm" data-act="exportReport">⤓ Exportar CSV</button>' +
+        '<button class="btn btn-sec btn-sm" data-act="printReport">Imprimir / PDF</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">' +
+      kpis.map(function(k){ return '<div class="kpi"><div class="l">'+esc(k.l)+'</div><div class="v" style="color:'+k.c+';">'+esc(k.v)+'</div></div>'; }).join("") +
+    '</div>' +
+    '<div class="card card-pad" style="margin-bottom:14px;">' +
+      '<div class="sect-title"><h3>Gasto por categoría</h3><span>'+d.rows.length+' movimientos en el período</span></div>' +
+      '<div class="stack" style="gap:12px;">' +
+        (d.bars.length ? d.bars.map(function(b){
+          return '<div class="bar-row"><span class="cat">'+esc(b.cat)+'</span>' +
+            '<div class="bar-track"><div class="bar-fill" style="width:'+b.pct+'%;background:'+b.color+';"></div></div>' +
+            '<span class="amt">'+esc(money(b.amt))+'</span></div>';
+        }).join("") : '<div class="empty">No hay gastos en este período.</div>') +
+      '</div>' +
+    '</div>' +
+    '<div class="card" style="overflow:hidden;">' +
+      '<div class="card-pad" style="padding-bottom:0;"><div class="sect-title"><h3>Detalle del período</h3></div></div>' +
+      '<div class="table-scroll"><table class="tbl">' +
+        '<thead><tr><th>Fecha</th><th>Proveedor</th><th>Categoría</th><th>Origen</th><th>Usuario</th><th class="r">Monto</th></tr></thead>' +
+        '<tbody>'+movRows(d.rows, {showUser:true, emptyMsg:"Sin movimientos en este período."})+'</tbody>' +
+      '</table></div>' +
+    '</div>' +
+  '</div>';
+}
+
+function viewUsuarios(){
+  var rows;
+  if(!state.users.length){
+    rows = '<div class="empty"><h3>Aún no hay usuarios</h3><p>Invita al dueño, a tu contador o a los empleados que cargan gastos. Cada invitación aparece aquí con su rol.</p><button class="btn btn-pri btn-sm" data-act="openInvite" style="margin-top:14px;">+ Invitar al primero</button></div>';
+  }else{
+    rows = '<div class="table-scroll"><table class="tbl" style="min-width:600px;">' +
+      '<thead><tr><th>Usuario</th><th>Correo</th><th>Rol</th><th>Estado</th><th class="r"></th></tr></thead><tbody>' +
+      state.users.map(function(u){
+        return '<tr>' +
+          '<td><div style="display:flex;align-items:center;gap:10px;"><span style="width:26px;height:26px;border-radius:50%;background:var(--emerald-soft);color:var(--emerald);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;">'+esc(initials(u.name))+'</span>'+esc(u.name)+'</div></td>' +
+          '<td style="color:var(--ink-soft);">'+esc(u.email)+'</td>' +
+          '<td><select class="filter" data-act="userRole" data-id="'+u.id+'">' +
+            ['admin','contador','empleado'].map(function(r){ return '<option value="'+r+'"'+(u.role===r?" selected":"")+'>'+ROLE_LABEL[r]+'</option>'; }).join("") +
+          '</select></td>' +
+          '<td style="color:'+(u.active?"var(--emerald)":"var(--ink-soft)")+';">'+(u.active?"Activo":"Inactivo")+'</td>' +
+          '<td class="r" style="white-space:nowrap;">' +
+            '<button class="btn-xs" data-act="userToggle" data-id="'+u.id+'">'+(u.active?"Desactivar":"Activar")+'</button> ' +
+            '<button class="btn-xs" data-act="userRemove" data-id="'+u.id+'">Quitar</button>' +
+          '</td>' +
+        '</tr>';
+      }).join("") + '</tbody></table></div>';
+  }
+  return '<div>' +
+    '<div class="head-row">' +
+      '<div><h1 style="font-size:23px;">Usuarios y roles</h1><p style="margin:4px 0 0;color:var(--ink-soft);font-size:13.5px;">Gestiona quién tiene acceso a '+esc(state.companyName)+'.</p></div>' +
+      '<button class="btn btn-pri btn-sm" data-act="openInvite">+ Invitar usuario</button>' +
+    '</div>' +
+    '<div class="card" style="overflow:hidden;">'+rows+'</div>' +
+  '</div>';
+}
+
+function bottomNav(){
+  if(!isMobile()) return "";
+  var items = [
+    {key:"dashboard", label:"Inicio", ic:"⌂"},
+    {key:"movimientos", label:"Movs.", ic:"≣"}
+  ];
+  var extra = NAV.filter(function(n){ return ["importar","reportes","usuarios"].indexOf(n.key) !== -1 && n.roles.indexOf(state.role) !== -1; });
+  var html = '<div class="bottom-nav no-print">' +
+    items.map(function(n){
+      var on = state.screen===n.key && !ui.moreOpen;
+      return '<button class="bn-item '+(on?"on":"")+'" data-act="go" data-screen="'+n.key+'"><span class="ic">'+n.ic+'</span>'+n.label+'</button>';
+    }).join("") +
+    '<button class="bn-item '+(ui.moreOpen?"on":"")+'" data-act="toggleMore"><span class="ic">⋯</span>Más</button>' +
+  '</div>';
+  if(ui.moreOpen){
+    html += '<div class="sheet-back" data-act="toggleMore"></div><div class="sheet">' +
+      '<div class="grip"></div>' +
+      extra.map(function(n){ return '<button class="row" data-act="go" data-screen="'+n.key+'">'+esc(n.label)+'</button>'; }).join("") +
+      '<button class="row" data-act="openEmpresa">Renombrar empresa</button>' +
+      '<button class="row" data-act="loadSample">Datos de ejemplo</button>' +
+      '<button class="row" data-act="wipeAll">Vaciar todo</button>' +
+      '<button class="row" data-act="logout" style="color:var(--brick);">Cerrar sesión</button>' +
+    '</div>';
+  }
+  return html;
+}
+
+function fval(k, def){ return ui.form[k] != null ? ui.form[k] : (def == null ? "" : def); }
+function optSel(k, v, def){ return fval(k, def) === v ? " selected" : ""; }
+
+function modalHTML(){
+  if(ui.modal === "empresa"){
+    return '<div class="modal-back"><div class="modal">' +
+      '<h3>Nombre del emprendimiento</h3><p class="sub">Cámbialo cuando quieras — no afecta los movimientos ni usuarios ya cargados.</p>' +
+      '<div class="field"><label>Nombre</label><input id="cName" placeholder="Ej: Panadería Sur SpA" value="'+esc(fval("cName", state.companyName))+'">'+fieldErr("cName")+'</div>' +
+      '<div class="modal-actions"><button class="btn btn-pri" data-act="saveEmpresa">Guardar</button><button class="btn btn-sec" data-act="closeModal">Cancelar</button></div>' +
+    '</div></div>';
+  }
+  if(ui.modal === "movimiento"){
+    var cats = distinctCats().concat(CATS_SUGERIDAS).filter(function(v,i,a){ return a.indexOf(v)===i; });
+    return '<div class="modal-back"><div class="modal">' +
+      '<h3>Nuevo movimiento</h3><p class="sub">Carga manual — se registra a tu nombre ('+esc(currentUser())+').</p>' +
+      '<div class="field"><label>Fecha</label><input id="mFecha" type="date" value="'+esc(fval("fecha", todayISO()))+'">'+fieldErr("fecha")+'</div>' +
+      '<div class="field"><label>Tipo</label><select id="mTipo"><option value="gasto"'+optSel("tipo","gasto","gasto")+'>Gasto</option><option value="ingreso"'+optSel("tipo","ingreso","gasto")+'>Ingreso</option></select></div>' +
+      '<div class="field"><label>Monto (CLP)</label><input id="mMonto" type="number" min="1" step="1" inputmode="numeric" placeholder="52300" value="'+esc(fval("monto"))+'">'+fieldErr("monto")+'</div>' +
+      '<div class="field"><label>Categoría</label><input id="mCat" list="catList" placeholder="Insumos" value="'+esc(fval("categoria"))+'"><datalist id="catList">'+cats.map(function(c){ return '<option value="'+esc(c)+'">'; }).join("")+'</datalist>'+fieldErr("categoria")+'</div>' +
+      '<div class="field"><label>Proveedor</label><input id="mProv" placeholder="Distribuidora Ñuble" value="'+esc(fval("proveedor"))+'">'+fieldErr("proveedor")+'</div>' +
+      '<div class="field"><label>Descripción <span style="opacity:.6;">(opcional)</span></label><input id="mDesc" placeholder="Detalle del movimiento" value="'+esc(fval("descripcion"))+'"></div>' +
+      '<div class="modal-actions"><button class="btn btn-pri" data-act="saveMov">Guardar movimiento</button><button class="btn btn-sec" data-act="closeModal">Cancelar</button></div>' +
+    '</div></div>';
+  }
+  if(ui.modal === "invitar"){
+    return '<div class="modal-back"><div class="modal">' +
+      '<h3>Invitar usuario</h3><p class="sub">Se enviaría un correo de invitación (prototipo — no se envía).</p>' +
+      '<div class="field"><label>Correo</label><input id="iEmail" type="email" placeholder="nombre@empresa.cl" value="'+esc(fval("email"))+'">'+fieldErr("email")+'</div>' +
+      '<div class="field"><label>Rol</label><select id="iRole"><option value="empleado"'+optSel("role","empleado","empleado")+'>Empleado</option><option value="contador"'+optSel("role","contador","empleado")+'>Contador</option><option value="admin"'+optSel("role","admin","empleado")+'>Admin</option></select></div>' +
+      '<div class="modal-actions"><button class="btn btn-pri" data-act="sendInvite">Enviar invitación</button><button class="btn btn-sec" data-act="closeModal">Cancelar</button></div>' +
+    '</div></div>';
+  }
+  return "";
+}
+function fieldErr(k){ return ui.formErr[k] ? '<div class="err">'+esc(ui.formErr[k])+'</div>' : ''; }
+
+function renderToast(){
+  var old = $("#toast");
+  if(old) old.remove();
+  if(ui.toast){
+    var t = document.createElement("div");
+    t.className = "toast"; t.id = "toast"; t.textContent = ui.toast;
+    document.body.appendChild(t);
+  }
+}
+
+/* ============================ render ============================ */
+function render(){
+  var root = $("#root");
+  if(!state.loggedIn){
+    root.innerHTML = viewLogin();
+    bind();
+    renderToast();
+    return;
+  }
+  if(!state.companyName){
+    root.innerHTML = viewSetup();
+    bind();
+    renderToast();
+    return;
+  }
+  var screen =
+    state.screen === "movimientos" ? viewMovimientos() :
+    state.screen === "importar"    ? viewImportar() :
+    state.screen === "reportes"    ? viewReportes() :
+    state.screen === "usuarios"    ? viewUsuarios() :
+                                     viewDashboard();
+
+  root.innerHTML =
+    '<div class="shell">' +
+      sidebar() +
+      '<main class="content">' + topbar() + '<div id="screen">' + screen + '</div></main>' +
+    '</div>' +
+    bottomNav() +
+    modalHTML();
+
+  bind();
+  renderToast();
+}
+
+/* ============================ event wiring ============================ */
+function bind(){
+  // one delegated click handler for everything inside #root (shell, bottom nav, sheet, modal)
+  $("#root").onclick = onClick;
+
+  // click on the dimmed backdrop (but not the dialog itself) closes the modal
+  var mb = $(".modal-back");
+  if(mb) mb.addEventListener("click", function(e){
+    if(e.target === mb){ ui.modal = null; ui.formErr = {}; render(); }
+  });
+
+  // change events
+  $all("[data-act='role']").forEach(function(s){ s.onchange = function(){ setRole(this.value); }; });
+  var fc = $("[data-act='filterCat']"); if(fc) fc.onchange = function(){ ui.filterCat = this.value; render(); };
+  var fu = $("[data-act='filterUser']"); if(fu) fu.onchange = function(){ ui.filterUser = this.value; render(); };
+  var rp = $("[data-act='reportPeriod']"); if(rp) rp.onchange = function(){ ui.reportPeriod = this.value === "__all__" ? "__all__" : this.value; render(); };
+  $all("[data-act='userRole']").forEach(function(s){ s.onchange = function(){ setUserRole(this.getAttribute("data-id"), this.value); render(); }; });
+
+  // enter-key shortcuts
+  var lp = $("#loginPass"); if(lp) lp.onkeydown = function(e){ if(e.key === "Enter") login(); };
+  var cn = $("#cName"); if(cn) cn.onkeydown = function(e){ if(e.key === "Enter") saveEmpresaFromForm(); };
+
+  // file input + dropzone
+  var fi = $("#fileInput");
+  if(fi) fi.onchange = function(){ var f = this.files && this.files[0]; this.value = ""; if(f) handleFile(f); };
+  var dz = $("#dropzone");
+  if(dz){
+    ["dragenter","dragover"].forEach(function(ev){
+      dz.addEventListener(ev, function(e){ e.preventDefault(); e.stopPropagation(); dz.classList.add("drag"); });
+    });
+    ["dragleave","dragend"].forEach(function(ev){
+      dz.addEventListener(ev, function(e){ e.preventDefault(); e.stopPropagation(); dz.classList.remove("drag"); });
+    });
+    dz.addEventListener("drop", function(e){
+      e.preventDefault(); e.stopPropagation(); dz.classList.remove("drag");
+      var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      if(f) handleFile(f);
+    });
+  }
+}
+
+function onClick(e){
+  var t = e.target.closest ? e.target.closest("[data-act]") : null;
+  if(!t) return;
+  handleAct(t.getAttribute("data-act"), t, e);
+}
+
+function handleAct(act, t, e){
+  switch(act){
+    case "login": login(); break;
+    case "logout": logout(); break;
+    case "loadSample": loadSample(); break;
+    case "wipeAll": wipeAll(); break;
+    case "go": go(t.getAttribute("data-screen")); break;
+    case "toggleMore": ui.moreOpen = !ui.moreOpen; render(); break;
+
+    case "openMov": ui.modal = "movimiento"; ui.formErr = {}; ui.form = {}; ui.moreOpen = false; render(); break;
+    case "openInvite": ui.modal = "invitar"; ui.formErr = {}; ui.form = {}; ui.moreOpen = false; render(); break;
+    case "openEmpresa": ui.modal = "empresa"; ui.formErr = {}; ui.form = {cName:state.companyName}; ui.moreOpen = false; render(); break;
+    case "closeModal": ui.modal = null; ui.formErr = {}; ui.form = {}; render(); break;
+    case "saveMov": saveMovFromForm(); break;
+    case "saveEmpresa": saveEmpresaFromForm(); break;
+    case "sendInvite": sendInviteFromForm(); break;
+    case "delMov": deleteMovimiento(t.getAttribute("data-id")); break;
+
+    case "userToggle": toggleUser(t.getAttribute("data-id")); break;
+    case "userRemove": removeUser(t.getAttribute("data-id")); break;
+
+    case "pickFile": { var fi = $("#fileInput"); if(fi) fi.click(); break; }
+    case "dlTemplate": downloadTemplate(); break;
+    case "dlErrors": downloadImportErrors(); break;
+    case "confirmImport": confirmImport(); break;
+    case "cancelImport": ui.import = {step:"idle", fileName:"", rows:[], validCount:0, errorCount:0}; render(); break;
+    case "resetImport": ui.import = {step:"idle", fileName:"", rows:[], validCount:0, errorCount:0}; render(); break;
+
+    case "exportReport": exportReportCSV(); break;
+    case "printReport": window.print(); break;
+  }
+}
+
+function saveMovFromForm(){
+  var fecha = ($("#mFecha")||{}).value || "";
+  var tipo  = ($("#mTipo")||{}).value || "gasto";
+  var monto = parseInt((($("#mMonto")||{}).value || "").replace(/[^\d]/g,""), 10);
+  var cat   = (($("#mCat")||{}).value || "").trim();
+  var prov  = (($("#mProv")||{}).value || "").trim();
+  var desc  = (($("#mDesc")||{}).value || "").trim();
+  var err = {};
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) err.fecha = "Ingresa una fecha válida.";
+  if(!monto || monto <= 0 || isNaN(monto)) err.monto = "Ingresa un monto mayor a 0.";
+  if(!cat) err.categoria = "Indica una categoría.";
+  if(!prov) err.proveedor = "Indica el proveedor.";
+  ui.formErr = err;
+  if(Object.keys(err).length){
+    ui.form = {fecha:fecha, tipo:tipo, monto:(($("#mMonto")||{}).value||""), categoria:cat, proveedor:prov, descripcion:desc};
+    render(); return;
+  }
+  addMovimiento({fecha:fecha, tipo:tipo, monto:monto, categoria:cat, proveedor:prov, descripcion:desc});
+  ui.modal = null; ui.formErr = {}; ui.form = {};
+  render();
+  showToast("Movimiento registrado");
+}
+function sendInviteFromForm(){
+  var email = (($("#iEmail")||{}).value || "").trim();
+  var role  = ($("#iRole")||{}).value || "empleado";
+  var err = {};
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) err.email = "Ingresa un correo válido.";
+  else if(state.users.some(function(u){ return u.email.toLowerCase() === email.toLowerCase(); })) err.email = "Ese correo ya está invitado.";
+  ui.formErr = err;
+  if(Object.keys(err).length){ ui.form = {email:email, role:role}; render(); return; }
+  inviteUser(email, role);
+  ui.modal = null; ui.formErr = {}; ui.form = {};
+  render();
+  showToast("Invitación enviada a " + email);
+}
+
+/* ============================ boot ============================ */
+var lastMobile = isMobile();
+window.addEventListener("resize", function(){
+  if(isMobile() !== lastMobile){ lastMobile = isMobile(); render(); }
+});
+// prevent the browser from opening a file dropped outside the zone
+["dragover","drop"].forEach(function(ev){
+  window.addEventListener(ev, function(e){
+    if(e.target && e.target.closest && e.target.closest("#dropzone")) return;
+    e.preventDefault();
+  });
+});
+if("serviceWorker" in navigator && (location.protocol === "http:" || location.protocol === "https:")){
+  navigator.serviceWorker.register("sw.js").catch(function(){});
+}
+
+render();
+
+})();
+</script>
+</body>
+</html>
