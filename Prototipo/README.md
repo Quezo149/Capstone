@@ -67,6 +67,8 @@ npx serve .        # o:  npx http-server -p 8000
 | Archivo | Qué es |
 |---|---|
 | `index.html` | La app completa: markup, estilos y lógica (JS vanilla, sin dependencias ni build). |
+| `logo.svg` | Logo principal de ContadorIA (marca completa sobre el badge verde). |
+| `favicon.svg` | Versión cuadrada del logo — favicon del navegador, ícono PWA y badge de la interfaz. |
 | `manifest.webmanifest` | Metadatos PWA (nombre, colores, íconos). |
 | `sw.js` | Service worker: cachea la app para uso offline. Solo se registra en `http/https`. |
 

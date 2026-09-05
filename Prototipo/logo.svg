@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1400" height="1200" viewBox="0 0 1400 1200" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <g transform="matrix(1.11268,0,0,1.547637,-10.982461,-221.009849)">
+        <path d="M1268.094,336.649L1268.094,724.337C1268.094,831.322 1147.281,918.181 998.474,918.181L279.49,918.181C130.683,918.181 9.87,831.322 9.87,724.337L9.87,336.649C9.87,229.663 130.683,142.805 279.49,142.805L998.474,142.805C1147.281,142.805 1268.094,229.663 1268.094,336.649Z" style="fill:rgb(37,107,78);stroke:rgb(37,107,78);stroke-width:1.55px;"/>
+    </g>
+    <g transform="matrix(1.567333,0,0,1.567333,-946.82385,-397.007473)">
+        <text x="1071.715px" y="833.272px" style="font-family:'BaskOldFace','Baskerville Old Face','Georgia',serif;font-size:335.396px;fill:white;">iA</text>
+    </g>
+    <g transform="matrix(1,0,0,1,-104.591654,-5.658025)">
+        <text x="201.493px" y="912.763px" style="font-family:'BaskOldFace','Baskerville Old Face','Georgia',serif;font-size:949.19px;fill:white;">C</text>
+    </g>
+    <g transform="matrix(0.382573,0,0,0.382573,796.328344,573.194898)">
+        <g transform="matrix(1,0,0,1,-208.333333,-208.333333)">
+            <g transform="matrix(4.166667,0,0,4.166667,0,0)">
+                <path d="M50,0C50,25 75,50 100,50C75,50 50,75 50,100C50,75 25,50 0,50C25,50 50,25 50,0Z" style="fill:white;fill-rule:nonzero;"/>
+            </g>
+        </g>
+    </g>
+</svg>

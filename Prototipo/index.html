@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#16231E">
 <title>ContadorIA — Prototipo</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="apple-touch-icon" href="favicon.svg">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -34,7 +36,7 @@
   .shell{display:flex;min-height:100vh;}
   .sidebar{width:232px;flex-shrink:0;background:var(--ink);color:#DDE6E0;padding:22px 16px;display:flex;flex-direction:column;gap:26px;}
   .brand{display:flex;align-items:center;gap:10px;padding:0 6px;}
-  .brand-badge{width:30px;height:30px;border-radius:7px;background:linear-gradient(155deg,var(--gold),#8C6314);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;color:#1B1404;font-size:15px;flex-shrink:0;}
+  .brand-badge{width:30px;height:30px;border-radius:7px;flex-shrink:0;display:block;object-fit:contain;}
   .brand-name{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:#F3F5F1;}
   nav.side-nav{display:flex;flex-direction:column;gap:2px;}
   .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13.5px;color:#C7D2CA;background:transparent;border:none;text-align:left;width:100%;}
@@ -135,7 +137,7 @@
   /* ---- login ---- */
   .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
   .login-card{background:var(--paper-raise);border:1px solid var(--line);border-radius:14px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 20px 60px -20px rgba(22,35,30,.18);}
-  .login-card .badge{width:34px;height:34px;border-radius:8px;background:linear-gradient(155deg,var(--gold),#8C6314);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;color:#1B1404;font-size:16px;}
+  .login-card .badge{width:34px;height:34px;border-radius:8px;display:block;object-fit:contain;}
 
   /* ---- mobile ---- */
   .bottom-nav{display:none;}
@@ -633,7 +635,7 @@ function viewLogin(){
   return '' +
   '<div class="login-wrap"><div class="login-card">' +
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:28px;">' +
-      '<div class="badge">C</div>' +
+      '<img class="badge" src="favicon.svg" alt="ContadorIA" width="34" height="34">' +
       '<div style="font-family:\'Fraunces\',serif;font-size:19px;font-weight:600;">ContadorIA</div>' +
     '</div>' +
     '<h1 style="font-size:22px;margin-bottom:6px;">Iniciar sesión</h1>' +
@@ -650,7 +652,7 @@ function viewSetup(){
   return '' +
   '<div class="login-wrap"><div class="login-card">' +
     '<div style="display:flex;align-items:center;gap:10px;margin-bottom:22px;">' +
-      '<div class="badge">C</div>' +
+      '<img class="badge" src="favicon.svg" alt="ContadorIA" width="34" height="34">' +
       '<div style="font-family:\'Fraunces\',serif;font-size:19px;font-weight:600;">ContadorIA</div>' +
     '</div>' +
     '<h1 style="font-size:22px;margin-bottom:6px;">Crea tu empresa</h1>' +
@@ -665,7 +667,7 @@ function viewSetup(){
 function sidebar(){
   var items = NAV.filter(function(n){ return n.roles.indexOf(state.role) !== -1; });
   var html = '<aside class="sidebar">' +
-    '<div class="brand"><div class="brand-badge">C</div><div class="brand-name">ContadorIA</div></div>' +
+    '<div class="brand"><img class="brand-badge" src="favicon.svg" alt="" width="30" height="30"><div class="brand-name">ContadorIA</div></div>' +
     '<nav class="side-nav">';
   var lastSection = null;
   items.forEach(function(n){
