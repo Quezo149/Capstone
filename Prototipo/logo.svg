@@ -1,17 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1400" height="1200" viewBox="0 0 1400 1200" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:1.5;">
-    <g transform="matrix(1.11268,0,0,1.547637,-10.982461,-221.009849)">
-        <path d="M1268.094,336.649L1268.094,724.337C1268.094,831.322 1147.281,918.181 998.474,918.181L279.49,918.181C130.683,918.181 9.87,831.322 9.87,724.337L9.87,336.649C9.87,229.663 130.683,142.805 279.49,142.805L998.474,142.805C1147.281,142.805 1268.094,229.663 1268.094,336.649Z" style="fill:rgb(37,107,78);stroke:rgb(37,107,78);stroke-width:1.55px;"/>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1400" height="570" viewBox="0 315 1400 570" xml:space="preserve" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1.008538,0,0,0.608454,-11.953042,209.687905)">
+        <path d="M1400,418.519L1400,864.444C1400,987.501 1339.726,1087.407 1265.486,1087.407L146.366,1087.407C72.126,1087.407 11.852,987.501 11.852,864.444L11.852,418.519C11.852,295.462 72.126,195.556 146.366,195.556L1265.486,195.556C1339.726,195.556 1400,295.462 1400,418.519Z" style="fill:rgb(37,107,78);"/>
     </g>
-    <g transform="matrix(1.567333,0,0,1.567333,-946.82385,-397.007473)">
-        <text x="1071.715px" y="833.272px" style="font-family:'BaskOldFace','Baskerville Old Face','Georgia',serif;font-size:335.396px;fill:white;">iA</text>
+    <g transform="matrix(5.002197,0,0,5.399335,-974.521537,-1209.30863)">
+        <text x="211.852px" y="355.556px" style="font-family:'BaskOldFace','Baskerville Old Face','Georgia',serif;font-size:50px;fill:rgb(235,235,235);">Contador</text>
     </g>
-    <g transform="matrix(1,0,0,1,-104.591654,-5.658025)">
-        <text x="201.493px" y="912.763px" style="font-family:'BaskOldFace','Baskerville Old Face','Georgia',serif;font-size:949.19px;fill:white;">C</text>
+    <g transform="matrix(5.002197,0,0,5.399335,6.793955,-1204.82676)">
+        <text x="211.852px" y="355.556px" style="font-family:'BaskOldFace','Baskerville Old Face','Georgia',serif;font-size:50px;fill:rgb(180,132,26);">iA</text>
     </g>
-    <g transform="matrix(0.382573,0,0,0.382573,796.328344,573.194898)">
+    <g transform="matrix(0.249778,0,0,0.269608,1097.243052,541.23153)">
+        <g transform="matrix(1,0,0,1,-208.333333,-208.333333)">
+            <clipPath id="_clip1">
+                <rect x="0" y="0" width="416.667" height="416.667"/>
+            </clipPath>
+            <g clip-path="url(#_clip1)">
+                <g transform="matrix(4.166667,0,0,4.166667,0,0)">
+                    <path d="M50,0C50,25 75,50 100,50C75,50 50,75 50,100C50,75 25,50 0,50C25,50 50,25 50,0Z" style="fill:white;fill-rule:nonzero;"/>
+                </g>
+            </g>
+        </g>
+    </g>
+    <g transform="matrix(0.198635,0,0,0.214405,1097.243052,541.23153)">
         <g transform="matrix(1,0,0,1,-208.333333,-208.333333)">
             <g transform="matrix(4.166667,0,0,4.166667,0,0)">
-                <path d="M50,0C50,25 75,50 100,50C75,50 50,75 50,100C50,75 25,50 0,50C25,50 50,25 50,0Z" style="fill:white;fill-rule:nonzero;"/>
+                <path d="M50,0C50,25 75,50 100,50C75,50 50,75 50,100C50,75 25,50 0,50C25,50 50,25 50,0Z" style="fill:rgb(180,132,26);fill-rule:nonzero;"/>
             </g>
         </g>
     </g>

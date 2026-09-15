@@ -1,6 +1,6 @@
 /* Service worker minimo — cache offline del prototipo.
    Solo se registra cuando se sirve por http/https (localhost incluido). */
-const CACHE = "contadoria-proto-v3";
+const CACHE = "contadoria-proto-v6";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./favicon.svg", "./logo.svg"];
 
 self.addEventListener("install", (e) => {
