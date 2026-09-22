@@ -1,0 +1,20 @@
+# Runtime de Azure Functions
+azure-functions
+
+# API
+fastapi
+python-multipart          # necesario para recibir uploads (foto/PDF de comprobantes)
+
+# Base de datos (Azure SQL)
+pyodbc
+sqlalchemy
+
+# Validación de tokens (Microsoft Entra External ID / MSAL)
+python-jose[cryptography]
+
+# Storage y AI Document Intelligence
+azure-storage-blob
+azure-ai-documentintelligence
+
+# Config vía variables de entorno
+pydantic-settings

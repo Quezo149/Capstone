@@ -1,0 +1,27 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+
+    "SQL_SERVER": "sql-kontadoria.database.windows.net",
+    "SQL_DATABASE": "sqldb-kontadoria",
+    "SQL_USER": "kadmin",
+    "SQL_PASSWORD": "reemplazar-en-local-settings-json-real",
+
+    "STORAGE_ACCOUNT_NAME": "stkontadoria",
+    "STORAGE_ACCOUNT_KEY": "reemplazar-en-local-settings-json-real",
+    "STORAGE_CONTAINER_COMPROBANTES": "comprobantes",
+
+    "ENTRA_TENANT_ID": "0ef9f2a8-27f4-4a7f-b4d5-eaf8fce93dd7",
+    "ENTRA_CLIENT_ID": "8e6327c7-97ab-48c4-9a08-dfdbc91986b9",
+    "ENTRA_ISSUER": "https://kontadoria.ciamlogin.com/0ef9f2a8-27f4-4a7f-b4d5-eaf8fce93dd7/v2.0",
+
+    "DOCUMENT_INTELLIGENCE_ENDPOINT": "reemplazar-en-local-settings-json-real",
+    "DOCUMENT_INTELLIGENCE_KEY": "reemplazar-en-local-settings-json-real"
+  },
+  "Host": {
+    "CORS": "http://localhost:5173,https://kontadoria.netlify.app",
+    "CORSCredentials": true
+  }
+}
