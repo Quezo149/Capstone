@@ -9,7 +9,7 @@ app = FastAPI(title="KontadorIA API")
 # TODO: mover esta lista a Settings (app.core.config) para no hardcodearla.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://kontadoria.netlify.app"],
+    allow_origins=["http://localhost:5173", "https://kontadoria.netlify.app", "https://app.kontadoria.cl"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
