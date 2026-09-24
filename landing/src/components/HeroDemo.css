@@ -1,0 +1,308 @@
+.demo {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 220px) minmax(260px, 1fr);
+  gap: 0;
+  align-items: center;
+}
+
+/* Boleta */
+.receipt-wrap {
+  filter: var(--receipt-shadow);
+  transform: rotate(-3deg);
+  position: relative;
+  z-index: 1;
+}
+
+.receipt {
+  position: relative;
+  background: var(--surface);
+  padding: 22px 18px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink);
+  overflow: hidden;
+}
+
+/* Borde inferior dentado */
+.receipt-tail {
+  height: 10px;
+  background:
+    linear-gradient(135deg, var(--surface) 50%, transparent 50%) 0 0 / 14px 10px repeat-x,
+    linear-gradient(-135deg, var(--surface) 50%, transparent 50%) 0 0 / 14px 10px repeat-x;
+}
+
+.receipt .r-center {
+  text-align: center;
+}
+
+.receipt .r-name {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.receipt .r-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.receipt hr {
+  border: 0;
+  border-top: 1px dashed var(--line);
+  margin: 8px 0;
+}
+
+.receipt .r-total {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.receipt .r-small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+/* Resaltado de los datos que "lee" la IA */
+.hl {
+  background: linear-gradient(var(--highlight), var(--highlight)) no-repeat 0 55% / 100% 86%;
+  color: var(--hl-ink);
+  border-radius: 2px;
+  padding-inline: 2px;
+  margin-inline: -2px;
+}
+
+/* Línea de escaneo */
+.scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 36px;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--brand) 22%, transparent), transparent);
+  border-bottom: 2px solid var(--brand);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.arrow {
+  position: absolute;
+  left: 198px;
+  top: 50%;
+  width: 60px;
+  height: 24px;
+  z-index: 2;
+  color: var(--brand);
+}
+
+/* Tarjeta "Nuevo movimiento" */
+.mv-card {
+  position: relative;
+  z-index: 0;
+  margin-left: -8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  padding: 20px 20px 18px 34px;
+  box-shadow: var(--shadow-card);
+}
+
+.mv-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 10px;
+  margin-bottom: 14px;
+}
+
+.mv-head strong {
+  font-size: 15px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--r-pill);
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--brand-tint);
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.badge i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand);
+}
+
+.fields {
+  display: grid;
+  gap: 8px;
+}
+
+.field {
+  display: grid;
+  grid-template-columns: 78px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--r-s);
+  border: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.field span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.field b {
+  font-weight: 700;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.field .mono {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field .sug {
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--brand);
+  margin-left: 6px;
+}
+
+.mv-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.mv-actions .btn {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 14px;
+  flex: 1;
+}
+
+.replay {
+  position: absolute;
+  right: 0;
+  bottom: -40px;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: 600 13px var(--font-sans);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+}
+
+.replay:hover {
+  color: var(--ink);
+}
+
+.replay svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Secuencia de animación: escaneo -> resaltados -> campos que se llenan */
+.demo.play .scan {
+  animation: scan 1.3s ease-in-out 0.2s both;
+}
+
+.demo.play .receipt .hl {
+  animation: mark 0.45s ease-out both;
+}
+
+.demo.play .receipt .hl.d1 {
+  animation-delay: 0.45s;
+}
+
+.demo.play .receipt .hl.d2 {
+  animation-delay: 0.75s;
+}
+
+.demo.play .receipt .hl.d3 {
+  animation-delay: 1.25s;
+}
+
+.demo.play .field {
+  animation: fill 0.5s ease-out both;
+}
+
+.demo.play .field:nth-child(1) {
+  animation-delay: 1.55s;
+}
+
+.demo.play .field:nth-child(2) {
+  animation-delay: 1.7s;
+}
+
+.demo.play .field:nth-child(3) {
+  animation-delay: 1.85s;
+}
+
+.demo.play .field:nth-child(4) {
+  animation-delay: 2s;
+}
+
+.demo.play .field:nth-child(5) {
+  animation-delay: 2.15s;
+}
+
+@media (max-width: 560px) {
+  .demo {
+    grid-template-columns: 1fr;
+  }
+
+  .receipt-wrap {
+    max-width: 240px;
+    margin-inline: auto;
+    transform: rotate(-2deg);
+  }
+
+  .arrow {
+    position: static;
+    margin: 6px auto;
+    transform: rotate(90deg);
+  }
+
+  .mv-card {
+    margin-left: 0;
+    padding-left: 20px;
+  }
+
+  .replay {
+    position: static;
+    margin: 10px auto 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .demo.play * {
+    animation: none !important;
+  }
+
+  .replay {
+    display: none;
+  }
+}
+
+/* Al terminar de llenarse la tarjeta, "Confirmar" pulsa para invitar a la acción */
+.demo.play .mv-actions .btn-primary {
+  animation: pulseBrand 1.4s ease-out 2.9s 3;
+}

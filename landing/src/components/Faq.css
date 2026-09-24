@@ -1,0 +1,97 @@
+.faq-grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: clamp(24px, 5vw, 72px);
+  align-items: start;
+}
+
+.faq-grid .sec-head {
+  margin-bottom: 0;
+}
+
+.faq {
+  display: grid;
+  gap: 0;
+  border-top: 1px solid var(--line);
+}
+
+.faq details {
+  border-bottom: 1px solid var(--line);
+}
+
+/* Apertura suave sin JS (Chrome/Edge; en otros navegadores abre de golpe, sin problema) */
+.faq details::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition:
+    block-size 0.35s ease,
+    content-visibility 0.35s ease allow-discrete;
+}
+
+.faq details[open]::details-content {
+  block-size: auto;
+}
+
+.faq summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 0;
+  font-weight: 700;
+  font-size: 17px;
+  transition: color 0.2s;
+}
+
+.faq summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq summary:hover,
+.faq details[open] summary {
+  color: var(--brand);
+}
+
+.faq summary .pm {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  display: grid;
+  place-items: center;
+  transition:
+    transform 0.35s cubic-bezier(0.3, 1.6, 0.5, 1),
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.faq summary:hover .pm {
+  border-color: var(--brand);
+}
+
+.faq summary .pm svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* El "+" gira 45° y se vuelve "×" cuando está abierto */
+.faq details[open] summary .pm {
+  transform: rotate(135deg);
+  background: var(--brand-tint);
+  border-color: var(--brand-tint);
+}
+
+.faq .ans {
+  padding: 0 44px 22px 0;
+  color: var(--muted);
+  max-width: 62ch;
+}
+
+@media (max-width: 860px) {
+  .faq-grid {
+    grid-template-columns: 1fr;
+  }
+}

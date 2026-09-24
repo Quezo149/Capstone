@@ -1,0 +1,70 @@
+.mark {
+  color: inherit;
+  background-repeat: no-repeat;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  transition:
+    background-size 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) var(--md, 350ms),
+    color 0.4s ease var(--md, 350ms);
+}
+
+/* Subrayado amarillo bajo el texto */
+.mark-underline {
+  background-image: linear-gradient(var(--highlight), var(--highlight));
+  background-position: 0 96%;
+  background-size: 0% 0.14em;
+  padding-bottom: 0.04em;
+}
+
+.mark-underline.in {
+  background-size: 100% 0.14em;
+}
+
+/* Marcador completo detrás del texto */
+.mark-hl {
+  background-image: linear-gradient(var(--highlight), var(--highlight));
+  background-position: 0 62%;
+  background-size: 0% 86%;
+  /* El relleno sobresale a la izquierda (queda alineado con el texto) y empuja lo que sigue,
+     para que el punto final no quede tapado por el borde del marcador */
+  padding-inline: 0.14em;
+  margin-inline: -0.14em 0;
+  border-radius: 0.12em;
+}
+
+.mark-hl.in {
+  background-size: 100% 86%;
+  color: var(--hl-ink);
+}
+
+/* Solo cambia de color */
+.mark-brand.in {
+  color: var(--brand);
+}
+
+.deep .mark-brand.in {
+  color: var(--highlight);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark {
+    transition: none;
+  }
+
+  .mark-underline {
+    background-size: 100% 0.14em;
+  }
+
+  .mark-hl {
+    background-size: 100% 86%;
+    color: var(--hl-ink);
+  }
+
+  .mark-brand {
+    color: var(--brand);
+  }
+
+  .deep .mark-brand {
+    color: var(--highlight);
+  }
+}

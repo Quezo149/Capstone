@@ -1,0 +1,117 @@
+.plans {
+  display: grid;
+  grid-template-columns: 1fr 1.08fr 1fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.plan {
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  padding: 28px 24px;
+  display: grid;
+  grid-template-rows: auto auto auto 1fr auto;
+  gap: 14px;
+  background: var(--surface);
+  transition:
+    transform 0.35s cubic-bezier(0.3, 1.5, 0.5, 1),
+    box-shadow 0.3s,
+    border-color 0.3s;
+}
+
+.plan:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-card);
+}
+
+/* Plan destacado: degradado verde suave + halo */
+.plan.featured {
+  border: 2px solid var(--brand);
+  background: linear-gradient(180deg, var(--brand-tint) 0, var(--surface) 60%);
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--brand) 12%, transparent),
+    var(--shadow-card);
+  position: relative;
+}
+
+.plan.featured:hover {
+  transform: translateY(-9px);
+}
+
+/* Plan que aún no está disponible: borde punteado y más apagado */
+.plan.soon {
+  border-style: dashed;
+  background: transparent;
+}
+
+.plan .tagtop {
+  position: absolute;
+  top: -13px;
+  left: 24px;
+  background: var(--highlight);
+  color: var(--hl-ink);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  letter-spacing: 0.02em;
+  animation: float 3s ease-in-out infinite;
+}
+
+.plan h3 {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.plan .for {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.price b {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.plan.featured .price b {
+  color: var(--brand);
+}
+
+.price small {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.plan .can {
+  align-content: start;
+}
+
+.plan .btn {
+  width: 100%;
+}
+
+.plans-note {
+  margin-top: 20px;
+  font-size: 14px;
+  color: var(--muted);
+  max-width: 70ch;
+}
+
+@media (max-width: 900px) {
+  .plans {
+    grid-template-columns: 1fr;
+  }
+
+  .plan.featured {
+    order: -1;
+  }
+}

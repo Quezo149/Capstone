@@ -1,0 +1,88 @@
+/* Design tokens: colores, tipografías, radios y sombras.
+   El modo oscuro se activa de dos formas:
+   - automático, según prefers-color-scheme (si el usuario no eligió tema)
+   - manual, con data-theme="dark" en <html> (botón de tema) */
+
+:root {
+  --paper: #f2f5f3;
+  --surface: #ffffff;
+  --ink: #0b2620;
+  --muted: #4d625b;
+  --line: #d5ded9;
+
+  --brand: #0f6e55;
+  --brand-hover: #0b5a45;
+  --brand-ink: #ffffff;
+  --brand-tint: #d7ece3;
+
+  --highlight: #f5c535;
+  --hl-ink: #0b2620;
+
+  --deep: #0b2620;
+  --on-deep: #e9f3ee;
+  --on-deep-muted: #a9c2b8;
+  --deep-line: #1e4038;
+
+  --ingreso: #17804f;
+  --gasto: #b8382a;
+  --sand: #f6eed6;
+  --mint: #e3f0ea;
+
+  --shadow-card: 0 1px 2px rgba(11, 38, 32, 0.06), 0 10px 30px rgba(11, 38, 32, 0.08);
+  --receipt-shadow: drop-shadow(0 18px 30px rgba(11, 38, 32, 0.16)) drop-shadow(0 2px 3px rgba(11, 38, 32, 0.08));
+
+  --font-display: 'Bricolage Grotesque', 'Manrope', system-ui, sans-serif;
+  --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  --r-s: 6px;
+  --r-m: 12px;
+  --r-l: 22px;
+  --r-pill: 999px;
+
+  --wrap: 1160px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --paper: #0c1512;
+    --surface: #13201c;
+    --ink: #e6efe9;
+    --muted: #9db1a9;
+    --line: #24352f;
+    --brand: #3fbf8f;
+    --brand-hover: #5fd3a6;
+    --brand-ink: #06201a;
+    --brand-tint: #143a2f;
+    --deep: #07110e;
+    --deep-line: #1b2e28;
+    --ingreso: #4cc98c;
+    --gasto: #f07a6a;
+    --sand: #17160c;
+    --mint: #0f231c;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.35);
+    --receipt-shadow: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.5));
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --paper: #0c1512;
+  --surface: #13201c;
+  --ink: #e6efe9;
+  --muted: #9db1a9;
+  --line: #24352f;
+  --brand: #3fbf8f;
+  --brand-hover: #5fd3a6;
+  --brand-ink: #06201a;
+  --brand-tint: #143a2f;
+  --deep: #07110e;
+  --deep-line: #1b2e28;
+  --ingreso: #4cc98c;
+  --gasto: #f07a6a;
+  --sand: #17160c;
+  --mint: #0f231c;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 30px rgba(0, 0, 0, 0.35);
+  --receipt-shadow: drop-shadow(0 18px 30px rgba(0, 0, 0, 0.5));
+}

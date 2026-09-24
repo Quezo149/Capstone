@@ -1,0 +1,88 @@
+.hero {
+  padding-block: clamp(40px, 7vw, 88px) clamp(56px, 8vw, 104px);
+}
+
+.hero .wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+}
+
+.hero h1 {
+  font-size: clamp(40px, 6.2vw, 74px);
+  line-height: 0.98;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-block: 18px 22px;
+}
+
+.hero .lead {
+  margin-bottom: 32px;
+}
+
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.reassure {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 22px;
+  padding: 0;
+  font-size: 14px;
+  color: var(--muted);
+  list-style: none;
+}
+
+.reassure li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.reassure svg {
+  width: 16px;
+  height: 16px;
+  color: var(--brand);
+  flex: none;
+}
+
+@media (max-width: 900px) {
+  .hero .wrap {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Fondo: dos brillos suaves (amarillo y verde) que derivan despacio */
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: -10%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(520px 380px at 88% 8%, color-mix(in srgb, var(--highlight) 28%, transparent), transparent 70%),
+    radial-gradient(560px 380px at 0% 70%, color-mix(in srgb, var(--brand) 16%, transparent), transparent 70%);
+  animation: drift 18s ease-in-out infinite;
+}
+
+.hero .wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.reassure li svg {
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--brand-tint);
+}

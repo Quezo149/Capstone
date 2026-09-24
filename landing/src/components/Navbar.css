@@ -1,0 +1,146 @@
+.nav {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 20;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  -webkit-backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.nav.scrolled {
+  border-bottom-color: var(--line);
+}
+
+.nav .wrap {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2.5vw, 32px);
+  height: 68px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 26px;
+  margin-left: auto;
+  margin-block: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nav-links a {
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--muted);
+}
+
+.nav-links a:hover {
+  color: var(--ink);
+}
+
+.nav .btn {
+  min-height: 42px;
+  padding: 0 18px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.theme-toggle {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-m);
+  border: 1.5px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.theme-toggle:hover {
+  border-color: var(--ink);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.theme-toggle .sun {
+  display: none;
+}
+
+.theme-toggle[aria-pressed='true'] .sun {
+  display: block;
+}
+
+.theme-toggle[aria-pressed='true'] .moon {
+  display: none;
+}
+
+@media (max-width: 860px) {
+  .nav-links {
+    display: none;
+  }
+
+  .theme-toggle {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .nav .btn {
+    padding: 0 14px;
+    font-size: 14px;
+  }
+}
+
+/* Barra de progreso de lectura (--progress la actualiza Navbar.jsx al hacer scroll) */
+.nav::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 3px;
+  background: linear-gradient(90deg, var(--brand), var(--highlight));
+  transform: scaleX(var(--progress, 0));
+  transform-origin: left;
+  pointer-events: none;
+}
+
+/* Subrayado amarillo que aparece al pasar el mouse por los links */
+.nav-links a {
+  position: relative;
+  padding-block: 4px;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--highlight);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.nav-links a:hover::after {
+  transform: scaleX(1);
+}
+
+.theme-toggle svg {
+  transition: transform 0.4s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+.theme-toggle:hover svg {
+  transform: rotate(25deg) scale(1.15);
+}

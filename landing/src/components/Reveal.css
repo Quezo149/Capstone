@@ -1,0 +1,23 @@
+/* Usa `animation` (no `transition`) y las propiedades `translate`/`scale`, para no pelearse
+   con los efectos hover de las tarjetas, que usan `transform` y `transition`. */
+.reveal {
+  opacity: 0;
+}
+
+.reveal.in {
+  animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d, 0ms) both;
+}
+
+.reveal[data-from='left'] {
+  --tx: -36px;
+  --ty: 0px;
+}
+
+.reveal[data-from='right'] {
+  --tx: 36px;
+  --ty: 0px;
+}
+
+.reveal[data-from='scale'].in {
+  animation-name: zoom;
+}

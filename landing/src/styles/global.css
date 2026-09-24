@@ -1,0 +1,278 @@
+/* Estilos compartidos por todas las secciones */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  /* Permite animar hacia `height: auto` (apertura suave del FAQ) */
+  interpolate-size: allow-keywords;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Sin esto, .panel { display: grid } le gana al atributo hidden */
+[hidden] {
+  display: none !important;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  margin: 0;
+  text-wrap: balance;
+  letter-spacing: -0.015em;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 3px solid var(--highlight);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Layout */
+.wrap {
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: clamp(16px, 4vw, 40px);
+}
+
+section {
+  scroll-margin-top: 80px;
+}
+
+.sec {
+  padding-block: clamp(64px, 9vw, 112px);
+}
+
+.sec-head {
+  display: grid;
+  gap: 14px;
+  max-width: 720px;
+  margin-bottom: clamp(36px, 5vw, 60px);
+}
+
+.sec-head h2 {
+  font-size: clamp(32px, 4.2vw, 48px);
+  line-height: 1.04;
+  font-weight: 800;
+}
+
+/* Sección pegada a la anterior (evita el doble espacio entre secciones consecutivas) */
+.sec-flush {
+  padding-top: 0;
+}
+
+/* Lista de permisos / características con ✓ y ✗ (Roles y Planes) */
+.can {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  font-size: 15px;
+}
+
+.can li {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+}
+
+.can svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+  margin-top: 3px;
+}
+
+.can .y {
+  color: var(--ingreso);
+}
+
+.can .n {
+  color: var(--muted);
+}
+
+.can li.no {
+  color: var(--muted);
+}
+
+/* Tipografía utilitaria */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.eyebrow::before {
+  content: '';
+  flex: none;
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+}
+
+.lead {
+  font-size: clamp(17px, 1.6vw, 19px);
+  color: var(--muted);
+  max-width: 58ch;
+}
+
+/* Botones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 24px;
+  border-radius: var(--r-m);
+  font: 700 16px/1 var(--font-sans);
+  text-decoration: none;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  /* La curva con overshoot da el "rebote" al levantarse */
+  transition:
+    background 0.15s,
+    transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1),
+    border-color 0.15s,
+    box-shadow 0.25s;
+}
+
+.btn svg {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.btn:hover svg {
+  transform: translateX(4px);
+}
+
+.btn-primary {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+.btn-primary:hover {
+  background: var(--brand-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--brand) 38%, transparent);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+}
+
+.btn-ghost:hover {
+  border-color: var(--ink);
+  transform: translateY(-2px);
+}
+
+.btn:not(:disabled):active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: none;
+}
+
+/* Botón aún no disponible */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.btn:disabled:hover svg {
+  transform: none;
+}
+
+.btn-ghost:disabled:hover {
+  border-color: var(--line);
+}
+
+/* Sección oscura (Seguridad y CTA final) */
+.deep {
+  position: relative;
+  overflow: hidden;
+  background: var(--deep);
+  color: var(--on-deep);
+}
+
+/* Brillo suave de fondo para que la sección no sea un bloque plano */
+.deep::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(700px 420px at 12% 0%, color-mix(in srgb, var(--brand) 32%, transparent), transparent 70%);
+}
+
+.deep > .wrap {
+  position: relative;
+}
+
+.deep .eyebrow {
+  color: var(--highlight);
+}
+
+.deep .lead {
+  color: var(--on-deep-muted);
+}
+
+/* Movimiento reducido: las animaciones saltan directo a su estado final y los hover no se animan */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+  }
+}
