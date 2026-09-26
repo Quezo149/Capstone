@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Azure Functions — configuración local con secretos (usar local.settings.json.example como plantilla)
+local.settings.json
+.python_packages/
+bin/
+obj/
+
+# Azurite (emulador de Storage) — datos locales generados al correrlo
+__azurite_db_*__.json
+__blobstorage__/
+__queuestorage__/
+AzuriteConfig
