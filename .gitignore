@@ -1,0 +1,20 @@
+# Secretos y variables de entorno (cualquier carpeta)
+.env
+.env.*
+!.env.example
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+*:Zone.Identifier
+
+# Editores
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+
+# Copias de conflicto de sincronización (OneDrive / Syncthing)
+*.sync-conflict-*

@@ -67,9 +67,23 @@
   margin-top: 4px;
 }
 
+.signup .btn:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
 .signup .fine {
   font-size: 12px;
   color: var(--muted);
+}
+
+/* Honeypot: fuera de pantalla en vez de display:none, que algunos bots detectan y saltan. */
+.hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 .err-msg {

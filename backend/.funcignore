@@ -1,0 +1,14 @@
+.git*
+.vscode
+.venv
+venv
+__pycache__
+.pytest_cache
+.ruff_cache
+tests
+local.settings.json
+local.settings.json.example
+__azurite_db_*__.json
+__blobstorage__
+__queuestorage__
+AzuriteConfig

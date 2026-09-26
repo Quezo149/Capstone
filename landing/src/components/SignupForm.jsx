@@ -4,9 +4,26 @@ import Mark from './Mark'
 import Reveal from './Reveal'
 import './SignupForm.css'
 
-const TEAM_SIZES = ['Solo yo', '2 a 5', '6 a 10', '11 a 20', 'Más de 20']
-const TODAY = ['Excel o Google Sheets', 'WhatsApp y fotos', 'Papel y boletas sueltas', 'Otro sistema']
+// value = código que se guarda en la base (debe calzar con los CHECK de 0001_piloto_interesados.sql);
+// label = texto visible, se puede cambiar libremente.
+const TEAM_SIZES = [
+  { value: '1', label: 'Solo yo' },
+  { value: '2-5', label: '2 a 5' },
+  { value: '6-10', label: '6 a 10' },
+  { value: '11-20', label: '11 a 20' },
+  { value: '21+', label: 'Más de 20' },
+]
+const TODAY = [
+  { value: 'excel', label: 'Excel o Google Sheets' },
+  { value: 'whatsapp', label: 'WhatsApp y fotos' },
+  { value: 'papel', label: 'Papel y boletas sueltas' },
+  { value: 'otro', label: 'Otro sistema' },
+]
 const EMAIL_RE = /^\S+@\S+\.\S+$/
+
+// Backend (Azure Functions + FastAPI). En producción se define VITE_API_URL en Netlify;
+// en desarrollo, si no está definida, apunta a `func start` local.
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:7071' : '')
 
 // Confeti del mensaje de éxito: 14 piezas repartidas en círculo (valores fijos, sin aleatoriedad en el render).
 const CONFETTI = Array.from({ length: 14 }, (_, i) => {
@@ -21,9 +38,10 @@ const CONFETTI = Array.from({ length: 14 }, (_, i) => {
 })
 
 export default function SignupForm() {
-  const [values, setValues] = useState({ nombre: '', email: '', empresa: '', equipo: '2 a 5', hoy: TODAY[0] })
+  const [values, setValues] = useState({ nombre: '', email: '', empresa: '', equipo: '2-5', hoy: 'excel' })
   const [error, setError] = useState(null) // { field, message }
   const [sent, setSent] = useState(null) // { nombre, empresa }
+  const [sending, setSending] = useState(false)
 
   const set = (field) => (e) => setValues((v) => ({ ...v, [field]: e.target.value }))
 
@@ -32,8 +50,9 @@ export default function SignupForm() {
     form.elements[field].focus()
   }
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault()
+    if (sending) return
     const form = e.currentTarget
     const nombre = values.nombre.trim()
     const email = values.email.trim()
@@ -44,8 +63,32 @@ export default function SignupForm() {
     if (!empresa) return fail(form, 'empresa', 'Falta el nombre de tu empresa.')
 
     setError(null)
-    // Demo: todavía no se envía a ningún servidor.
-    setSent({ nombre: nombre.split(' ')[0], empresa })
+    setSending(true)
+    try {
+      const res = await fetch(`${API_URL}/piloto`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre,
+          email,
+          empresa,
+          equipo: values.equipo,
+          hoy: values.hoy,
+          // Honeypot: se lee directo del DOM (no del estado de React), que es lo que un bot llena.
+          sitio_web: form.elements.sitio_web.value,
+        }),
+      })
+      // 422 = el backend rechazó algún campo; cualquier otro error es del servidor.
+      if (res.status === 422) throw new Error('Revisa los datos del formulario e inténtalo de nuevo.')
+      if (!res.ok) throw new Error('No pudimos registrar tus datos. Inténtalo de nuevo en unos minutos.')
+      setSent({ nombre: nombre.split(' ')[0], empresa })
+    } catch (err) {
+      // fetch lanza TypeError cuando no hay conexión o el backend no responde.
+      const message = err instanceof TypeError ? 'No pudimos conectar con el servidor. Revisa tu conexión.' : err.message
+      setError({ field: null, message })
+    } finally {
+      setSending(false)
+    }
   }
 
   const invalid = (field) => error?.field === field
@@ -81,7 +124,6 @@ export default function SignupForm() {
               <p>
                 Registramos el interés de <b>{sent.empresa}</b>. Te escribiremos para coordinar el inicio del piloto.
               </p>
-              <p className="fine">Vista de demostración: este formulario todavía no envía los datos a un servidor.</p>
             </div>
           ) : (
             <div className="signup-fields">
@@ -135,7 +177,9 @@ export default function SignupForm() {
                   Personas en el equipo
                   <select id="f-equipo" name="equipo" value={values.equipo} onChange={set('equipo')}>
                     {TEAM_SIZES.map((o) => (
-                      <option key={o}>{o}</option>
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
                     ))}
                   </select>
                 </label>
@@ -144,15 +188,24 @@ export default function SignupForm() {
                 ¿Dónde llevas tus gastos hoy?
                 <select id="f-hoy" name="hoy" value={values.hoy} onChange={set('hoy')}>
                   {TODAY.map((o) => (
-                    <option key={o}>{o}</option>
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
                   ))}
                 </select>
               </label>
+              {/* Honeypot: invisible para personas y lectores de pantalla; los bots lo llenan. */}
+              <div className="hp" aria-hidden="true">
+                <label htmlFor="f-sitio-web">
+                  No llenes este campo
+                  <input id="f-sitio-web" name="sitio_web" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
+                </label>
+              </div>
               <p className="err-msg" id="err" aria-live="polite">
                 {error?.message}
               </p>
-              <button className="btn btn-primary" type="submit">
-                Quiero sumarme al piloto <Icon name="arrow" />
+              <button className="btn btn-primary" type="submit" disabled={sending} aria-busy={sending}>
+                {sending ? 'Enviando…' : 'Quiero sumarme al piloto'} {!sending && <Icon name="arrow" />}
               </button>
               <p className="fine">Usaremos tu correo solo para contactarte sobre el piloto.</p>
             </div>
