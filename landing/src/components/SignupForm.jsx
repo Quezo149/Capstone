@@ -4,8 +4,21 @@ import Mark from './Mark'
 import Reveal from './Reveal'
 import './SignupForm.css'
 
-const TEAM_SIZES = ['Solo yo', '2 a 5', '6 a 10', '11 a 20', 'Más de 20']
-const TODAY = ['Excel o Google Sheets', 'WhatsApp y fotos', 'Papel y boletas sueltas', 'Otro sistema']
+// value = código que se guarda en la base (debe calzar con los CHECK de 0001_piloto_interesados.sql);
+// label = texto visible, se puede cambiar libremente.
+const TEAM_SIZES = [
+  { value: '1', label: 'Solo yo' },
+  { value: '2-5', label: '2 a 5' },
+  { value: '6-10', label: '6 a 10' },
+  { value: '11-20', label: '11 a 20' },
+  { value: '21+', label: 'Más de 20' },
+]
+const TODAY = [
+  { value: 'excel', label: 'Excel o Google Sheets' },
+  { value: 'whatsapp', label: 'WhatsApp y fotos' },
+  { value: 'papel', label: 'Papel y boletas sueltas' },
+  { value: 'otro', label: 'Otro sistema' },
+]
 const EMAIL_RE = /^\S+@\S+\.\S+$/
 
 // Backend (Azure Functions + FastAPI). En producción se define VITE_API_URL en Netlify;
@@ -25,7 +38,7 @@ const CONFETTI = Array.from({ length: 14 }, (_, i) => {
 })
 
 export default function SignupForm() {
-  const [values, setValues] = useState({ nombre: '', email: '', empresa: '', equipo: '2 a 5', hoy: TODAY[0] })
+  const [values, setValues] = useState({ nombre: '', email: '', empresa: '', equipo: '2-5', hoy: 'excel' })
   const [error, setError] = useState(null) // { field, message }
   const [sent, setSent] = useState(null) // { nombre, empresa }
   const [sending, setSending] = useState(false)
@@ -55,7 +68,15 @@ export default function SignupForm() {
       const res = await fetch(`${API_URL}/piloto`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, email, empresa, equipo: values.equipo, hoy: values.hoy }),
+        body: JSON.stringify({
+          nombre,
+          email,
+          empresa,
+          equipo: values.equipo,
+          hoy: values.hoy,
+          // Honeypot: se lee directo del DOM (no del estado de React), que es lo que un bot llena.
+          sitio_web: form.elements.sitio_web.value,
+        }),
       })
       // 422 = el backend rechazó algún campo; cualquier otro error es del servidor.
       if (res.status === 422) throw new Error('Revisa los datos del formulario e inténtalo de nuevo.')
@@ -156,7 +177,9 @@ export default function SignupForm() {
                   Personas en el equipo
                   <select id="f-equipo" name="equipo" value={values.equipo} onChange={set('equipo')}>
                     {TEAM_SIZES.map((o) => (
-                      <option key={o}>{o}</option>
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
                     ))}
                   </select>
                 </label>
@@ -165,10 +188,19 @@ export default function SignupForm() {
                 ¿Dónde llevas tus gastos hoy?
                 <select id="f-hoy" name="hoy" value={values.hoy} onChange={set('hoy')}>
                   {TODAY.map((o) => (
-                    <option key={o}>{o}</option>
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
                   ))}
                 </select>
               </label>
+              {/* Honeypot: invisible para personas y lectores de pantalla; los bots lo llenan. */}
+              <div className="hp" aria-hidden="true">
+                <label htmlFor="f-sitio-web">
+                  No llenes este campo
+                  <input id="f-sitio-web" name="sitio_web" type="text" tabIndex={-1} autoComplete="off" defaultValue="" />
+                </label>
+              </div>
               <p className="err-msg" id="err" aria-live="polite">
                 {error?.message}
               </p>

@@ -77,6 +77,15 @@
   color: var(--muted);
 }
 
+/* Honeypot: fuera de pantalla en vez de display:none, que algunos bots detectan y saltan. */
+.hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .err-msg {
   color: var(--gasto);
   font-size: 13px;

@@ -17,15 +17,16 @@ Texto = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 class InteresadoPiloto(BaseModel):
     """
     Cuerpo que envía el formulario de la landing (landing/src/components/SignupForm.jsx).
-    TODO: equipo/hoy guardan el texto visible del dropdown; cambiar a códigos
-    estables + CHECK antes de aplicar la migración en Azure.
+    equipo/hoy son códigos estables; deben coincidir con los CHECK de la tabla.
     """
 
     nombre: Annotated[Texto, Field(max_length=100)]
     email: Annotated[Texto, Field(max_length=254, pattern=r"^\S+@\S+\.\S+$")]
     empresa: Annotated[Texto, Field(max_length=150)]
-    equipo: Literal["Solo yo", "2 a 5", "6 a 10", "11 a 20", "Más de 20"]
-    hoy: Literal["Excel o Google Sheets", "WhatsApp y fotos", "Papel y boletas sueltas", "Otro sistema"]
+    equipo: Literal["1", "2-5", "6-10", "11-20", "21+"]
+    hoy: Literal["excel", "whatsapp", "papel", "otro"]
+    # Honeypot: campo oculto en la landing. Una persona lo deja vacío; un bot lo llena.
+    sitio_web: Annotated[str, Field(max_length=200)] = ""
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
@@ -36,7 +37,12 @@ def registrar_interesado(datos: InteresadoPiloto, db: Session = Depends(get_db))
 
     Un correo repetido responde igual que uno nuevo, para no revelar a
     terceros qué correos ya están registrados.
+
+    Si el honeypot viene lleno, se responde el mismo 201 sin guardar nada,
+    para que el bot crea que tuvo éxito y no pruebe otra estrategia.
     """
+    if datos.sitio_web:
+        return {"ok": True}
     try:
         db.execute(
             text(
@@ -45,7 +51,7 @@ def registrar_interesado(datos: InteresadoPiloto, db: Session = Depends(get_db))
                 VALUES (:nombre, :email, :empresa, :equipo, :hoy)
                 """
             ),
-            datos.model_dump(),
+            datos.model_dump(exclude={"sitio_web"}),
         )
         db.commit()
     except IntegrityError:

@@ -10,8 +10,14 @@ CREATE TABLE piloto_interesados (
     email       NVARCHAR(254) NOT NULL
                 CONSTRAINT uq_piloto_interesados_email UNIQUE,
     empresa     NVARCHAR(150) NOT NULL,
-    equipo      NVARCHAR(20)  NOT NULL,
-    gestion_hoy NVARCHAR(50)  NOT NULL,
+    -- Códigos estables, no el texto visible del formulario: la etiqueta puede
+    -- cambiar en la landing sin tocar la base (ver SignupForm.jsx).
+    equipo      VARCHAR(5)    NOT NULL
+                CONSTRAINT ck_piloto_interesados_equipo
+                CHECK (equipo IN ('1', '2-5', '6-10', '11-20', '21+')),
+    gestion_hoy VARCHAR(10)   NOT NULL
+                CONSTRAINT ck_piloto_interesados_gestion_hoy
+                CHECK (gestion_hoy IN ('excel', 'whatsapp', 'papel', 'otro')),
     creado_en   DATETIME2     NOT NULL
                 CONSTRAINT df_piloto_interesados_creado_en DEFAULT SYSUTCDATETIME()
 );
