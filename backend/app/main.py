@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import auth, expenses
+from app.routers import auth, expenses, piloto
 
 app = FastAPI(title="KontadorIA API")
 
@@ -9,7 +9,17 @@ app = FastAPI(title="KontadorIA API")
 # TODO: mover esta lista a Settings (app.core.config) para no hardcodearla.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://kontadoria.netlify.app", "https://app.kontadoria.cl"],
+    allow_origins=[
+        # frontend (app)
+        "http://localhost:5173",
+        "https://kontadoria.netlify.app",
+        "https://app.kontadoria.cl",
+        # landing (formulario del piloto)
+        "http://localhost:5174",
+        "https://landing-kontadoria.netlify.app",
+        "https://kontadoria.cl",
+        "https://www.kontadoria.cl",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -17,6 +27,7 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(expenses.router, prefix="/movimientos", tags=["movimientos"])
+app.include_router(piloto.router, prefix="/piloto", tags=["piloto"])
 
 
 @app.get("/health")

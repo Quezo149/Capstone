@@ -8,6 +8,10 @@ const TEAM_SIZES = ['Solo yo', '2 a 5', '6 a 10', '11 a 20', 'Más de 20']
 const TODAY = ['Excel o Google Sheets', 'WhatsApp y fotos', 'Papel y boletas sueltas', 'Otro sistema']
 const EMAIL_RE = /^\S+@\S+\.\S+$/
 
+// Backend (Azure Functions + FastAPI). En producción se define VITE_API_URL en Netlify;
+// en desarrollo, si no está definida, apunta a `func start` local.
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:7071' : '')
+
 // Confeti del mensaje de éxito: 14 piezas repartidas en círculo (valores fijos, sin aleatoriedad en el render).
 const CONFETTI = Array.from({ length: 14 }, (_, i) => {
   const angle = (i / 14) * Math.PI * 2
@@ -24,6 +28,7 @@ export default function SignupForm() {
   const [values, setValues] = useState({ nombre: '', email: '', empresa: '', equipo: '2 a 5', hoy: TODAY[0] })
   const [error, setError] = useState(null) // { field, message }
   const [sent, setSent] = useState(null) // { nombre, empresa }
+  const [sending, setSending] = useState(false)
 
   const set = (field) => (e) => setValues((v) => ({ ...v, [field]: e.target.value }))
 
@@ -32,8 +37,9 @@ export default function SignupForm() {
     form.elements[field].focus()
   }
 
-  function onSubmit(e) {
+  async function onSubmit(e) {
     e.preventDefault()
+    if (sending) return
     const form = e.currentTarget
     const nombre = values.nombre.trim()
     const email = values.email.trim()
@@ -44,8 +50,24 @@ export default function SignupForm() {
     if (!empresa) return fail(form, 'empresa', 'Falta el nombre de tu empresa.')
 
     setError(null)
-    // Demo: todavía no se envía a ningún servidor.
-    setSent({ nombre: nombre.split(' ')[0], empresa })
+    setSending(true)
+    try {
+      const res = await fetch(`${API_URL}/piloto`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, email, empresa, equipo: values.equipo, hoy: values.hoy }),
+      })
+      // 422 = el backend rechazó algún campo; cualquier otro error es del servidor.
+      if (res.status === 422) throw new Error('Revisa los datos del formulario e inténtalo de nuevo.')
+      if (!res.ok) throw new Error('No pudimos registrar tus datos. Inténtalo de nuevo en unos minutos.')
+      setSent({ nombre: nombre.split(' ')[0], empresa })
+    } catch (err) {
+      // fetch lanza TypeError cuando no hay conexión o el backend no responde.
+      const message = err instanceof TypeError ? 'No pudimos conectar con el servidor. Revisa tu conexión.' : err.message
+      setError({ field: null, message })
+    } finally {
+      setSending(false)
+    }
   }
 
   const invalid = (field) => error?.field === field
@@ -81,7 +103,6 @@ export default function SignupForm() {
               <p>
                 Registramos el interés de <b>{sent.empresa}</b>. Te escribiremos para coordinar el inicio del piloto.
               </p>
-              <p className="fine">Vista de demostración: este formulario todavía no envía los datos a un servidor.</p>
             </div>
           ) : (
             <div className="signup-fields">
@@ -151,8 +172,8 @@ export default function SignupForm() {
               <p className="err-msg" id="err" aria-live="polite">
                 {error?.message}
               </p>
-              <button className="btn btn-primary" type="submit">
-                Quiero sumarme al piloto <Icon name="arrow" />
+              <button className="btn btn-primary" type="submit" disabled={sending} aria-busy={sending}>
+                {sending ? 'Enviando…' : 'Quiero sumarme al piloto'} {!sending && <Icon name="arrow" />}
               </button>
               <p className="fine">Usaremos tu correo solo para contactarte sobre el piloto.</p>
             </div>

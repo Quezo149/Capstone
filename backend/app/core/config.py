@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     sql_database: str
     sql_user: str
     sql_password: str
+    # Solo en local (SQL Server en Docker usa un certificado autofirmado)
+    sql_trust_server_certificate: bool = False
 
     # Azure Blob Storage
     storage_account_name: str

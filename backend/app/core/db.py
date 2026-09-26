@@ -20,6 +20,8 @@ def _get_engine() -> Engine:
             f"@{settings.sql_server}/{settings.sql_database}"
             "?driver=ODBC+Driver+18+for+SQL+Server"
         )
+        if settings.sql_trust_server_certificate:
+            odbc_str += "&TrustServerCertificate=yes"
         # pool_pre_ping evita usar conexiones muertas; NO evita el problema
         # de SESSION_CONTEXT "sucio" de una conexión reciclada — por eso
         # set_session_context() de abajo se ejecuta en CADA request, sin excepción.
