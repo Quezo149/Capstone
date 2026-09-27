@@ -51,7 +51,7 @@ export default function Navbar() {
           type="button"
           aria-pressed={dark}
           aria-label={dark ? 'Activar modo claro' : 'Activar modo oscuro'}
-          title="Cambiar entre modo claro y oscuro"
+          title="Cambiar entre modo claro y modo oscuro"
           onClick={toggle}
         >
           <svg className="moon" viewBox="0 0 24 24" aria-hidden="true">

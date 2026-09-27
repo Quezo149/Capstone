@@ -1,7 +1,7 @@
 .plans {
   display: grid;
   grid-template-columns: 1fr 1.08fr 1fr;
-  gap: 20px;
+  gap: 28px;
   align-items: stretch;
 }
 
@@ -38,10 +38,16 @@
   transform: translateY(-9px);
 }
 
-/* Plan que aún no está disponible: borde punteado y más apagado */
-.plan.soon {
+/* Tarjeta Contador: todavía no es un plan, así que va punteada y sin precio */
+.plan.contador-card {
   border-style: dashed;
   background: transparent;
+  grid-template-rows: auto 1fr auto;
+}
+
+.plan.contador-card h3 {
+  font-size: 22px;
+  line-height: 1.2;
 }
 
 .plan .tagtop {

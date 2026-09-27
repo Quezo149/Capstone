@@ -25,6 +25,7 @@ class InteresadoPiloto(BaseModel):
     empresa: Annotated[Texto, Field(max_length=150)]
     equipo: Literal["1", "2-5", "6-10", "11-20", "21+"]
     hoy: Literal["excel", "whatsapp", "papel", "otro"]
+    es_contador: bool = False
     # Honeypot: campo oculto en la landing. Una persona lo deja vacío; un bot lo llena.
     sitio_web: Annotated[str, Field(max_length=200)] = ""
 
@@ -47,8 +48,8 @@ def registrar_interesado(datos: InteresadoPiloto, db: Session = Depends(get_db))
         db.execute(
             text(
                 """
-                INSERT INTO piloto_interesados (nombre, email, empresa, equipo, gestion_hoy)
-                VALUES (:nombre, :email, :empresa, :equipo, :hoy)
+                INSERT INTO piloto_interesados (nombre, email, empresa, equipo, gestion_hoy, es_contador)
+                VALUES (:nombre, :email, :empresa, :equipo, :hoy, :es_contador)
                 """
             ),
             datos.model_dump(exclude={"sitio_web"}),

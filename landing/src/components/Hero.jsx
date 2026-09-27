@@ -15,7 +15,7 @@ export default function Hero() {
             Para PYMEs chilenas, sin importar el tamaño
           </Reveal>
           <Reveal as="h1" delay={90}>
-            Tus boletas en orden <Mark delay={800}>antes de fin de mes</Mark>.
+            Tus boletas en <Mark delay={800}>orden</Mark>.
           </Reveal>
           <Reveal as="p" className="lead" delay={180}>
             Saca una foto, sube el PDF o importa el Excel que ya usas. KontadorIA lee los datos, tú los confirmas, y tu

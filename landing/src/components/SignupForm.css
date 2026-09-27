@@ -51,6 +51,24 @@
   width: 100%;
 }
 
+/* Casilla "Soy contador": fila horizontal, sin el tamaño de los inputs de texto */
+.signup .check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.signup .check input {
+  width: 20px;
+  height: 20px;
+  min-height: 0;
+  padding: 0;
+  flex: none;
+  accent-color: var(--brand);
+}
+
 .signup input:focus,
 .signup select:focus {
   outline: none;

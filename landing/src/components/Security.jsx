@@ -83,11 +83,11 @@ export default function Security() {
           <Reveal>
             <span className="eyebrow">Seguridad</span>
             <h2 id="sg-title">
-              Tus números <Mark>no se mezclan</Mark> con los de nadie.
+              Tus números están separados <Mark>de otras empresas</Mark>.
             </h2>
             <p className="lead">
-              Cada empresa trabaja en su propio espacio. La separación no depende de lo que muestra la pantalla: la
-              aplica la base de datos en cada consulta, incluso si alguien intenta entrar por fuera de la app.
+              Cada empresa tiene su propio espacio y cada usuario ve solo lo que necesita. Los datos de tu negocio se
+              mantienen separados de los de otras empresas.
             </p>
           </Reveal>
           <ul className="guarantees">

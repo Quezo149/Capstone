@@ -42,7 +42,7 @@ export default function Problem() {
               </div>
             </div>
             <h3>El WhatsApp</h3>
-            <p>Fotos de boletas perdidas entre stickers y audios, imposibles de encontrar a fin de mes.</p>
+            <p>Fotos de boletas perdidas entre stickers y audios, imposibles de encontrar después.</p>
           </Reveal>
 
           <Reveal as="article" delay={240}>
@@ -64,7 +64,7 @@ export default function Problem() {
         <Reveal as="p" className="turn" delay={100}>
           Tu contador recibe el desorden. Tú no sabes en qué se fue la plata{' '}
           <Mark variant="hl" delay={600}>
-            hasta que el mes ya terminó.
+            hasta que toca ordenar todo.
           </Mark>
         </Reveal>
       </div>
