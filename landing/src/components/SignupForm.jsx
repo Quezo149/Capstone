@@ -38,7 +38,14 @@ const CONFETTI = Array.from({ length: 14 }, (_, i) => {
 })
 
 export default function SignupForm() {
-  const [values, setValues] = useState({ nombre: '', email: '', empresa: '', equipo: '2-5', hoy: 'excel' })
+  const [values, setValues] = useState({
+    nombre: '',
+    email: '',
+    empresa: '',
+    equipo: '2-5',
+    hoy: 'excel',
+    es_contador: false,
+  })
   const [error, setError] = useState(null) // { field, message }
   const [sent, setSent] = useState(null) // { nombre, empresa }
   const [sending, setSending] = useState(false)
@@ -74,6 +81,7 @@ export default function SignupForm() {
           empresa,
           equipo: values.equipo,
           hoy: values.hoy,
+          es_contador: values.es_contador,
           // Honeypot: se lee directo del DOM (no del estado de React), que es lo que un bot llena.
           sitio_web: form.elements.sitio_web.value,
         }),
@@ -99,7 +107,7 @@ export default function SignupForm() {
         <Reveal>
           <span className="eyebrow">Programa piloto</span>
           <h2 id="fin-title">
-            Buscamos las primeras PYMEs que quieran <Mark variant="hl">ordenar su mes</Mark>.
+            Buscamos las primeras <Mark variant="hl">PYMEs</Mark>.
           </h2>
           <p className="lead">
             Durante el piloto usas el plan PYME completo sin costo. A cambio, nos cuentas qué funciona y qué no. Cupos
@@ -193,6 +201,16 @@ export default function SignupForm() {
                     </option>
                   ))}
                 </select>
+              </label>
+              <label className="check" htmlFor="f-contador">
+                <input
+                  id="f-contador"
+                  name="es_contador"
+                  type="checkbox"
+                  checked={values.es_contador}
+                  onChange={(e) => setValues((v) => ({ ...v, es_contador: e.target.checked }))}
+                />
+                Soy contador y llevo las finanzas de varias PYMEs
               </label>
               {/* Honeypot: invisible para personas y lectores de pantalla; los bots lo llenan. */}
               <div className="hp" aria-hidden="true">

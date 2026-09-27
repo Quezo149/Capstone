@@ -13,7 +13,7 @@ const STEPS = [
   },
   {
     title: 'Tu contador lo tiene listo',
-    text: 'Entra con su propio acceso, filtra por fecha o categoría y exporta a Excel. Sin correos con adjuntos a fin de mes.',
+    text: 'Entra con su propio acceso, filtra por fecha o categoría y exporta a Excel. Sin correos con adjuntos ni archivos perdidos.',
   },
 ]
 

@@ -6,7 +6,7 @@ import './Faq.css'
 const QUESTIONS = [
   {
     q: '¿Reemplaza a mi facturador electrónico del SII?',
-    a: 'No. KontadorIA no emite boletas ni facturas y no hace contabilidad completa (libro mayor, balances tributarios). Registra y ordena los documentos que ya emites y recibes, para que tú entiendas tu mes y tu contador trabaje con datos limpios.',
+    a: 'No. KontadorIA no emite boletas ni facturas y no hace contabilidad completa (libro mayor, balances tributarios). Registra y ordena los documentos que ya emites y recibes, para que tú entiendas tus números y tu contador trabaje con datos limpios.',
   },
   {
     q: '¿Tengo que dejar mi Excel?',
@@ -22,7 +22,7 @@ const QUESTIONS = [
   },
   {
     q: '¿Se conecta automáticamente con mi banco?',
-    a: 'Todavía no, y nunca te pediremos tus claves bancarias. Puedes exportar la cartola o los movimientos desde tu banco e importarlos como archivo.',
+    a: 'No, y nunca te pediremos tus claves bancarias. Puedes exportar la cartola o los movimientos desde tu banco e importarlos como archivo.',
   },
   {
     q: '¿Funciona con dólares u otras monedas?',

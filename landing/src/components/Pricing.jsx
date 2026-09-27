@@ -6,7 +6,7 @@ import './Pricing.css'
 const PLANS = [
   {
     name: 'Free',
-    forWho: 'Para empezar a organizar las finanzas de tu negocio.',
+    forWho: 'Empieza a organizar las finanzas de tu negocio.',
     price: '$ 0',
     priceNote: 'para siempre',
     features: [
@@ -14,7 +14,7 @@ const PLANS = [
       { ok: true, text: 'Movimientos y lecturas con IA limitados al mes' },
       { ok: true, text: 'Importación de Excel' },
     ],
-    cta: 'Probar gratis',
+    cta: 'Súmate al piloto',
     ctaClass: 'btn-ghost',
   },
   {
@@ -32,19 +32,6 @@ const PLANS = [
     ],
     cta: 'Súmate al piloto',
     ctaClass: 'btn-primary',
-  },
-  {
-    name: 'Contador',
-    forWho: 'Administra varios negocios desde una cuenta.',
-    price: 'Por definir',
-    features: [
-      { ok: true, text: 'Varias empresas desde una cuenta' },
-      { ok: true, text: 'Lectura y exportación' },
-      { ok: false, text: 'Sin carga de movimientos' },
-    ],
-    cta: 'Próximamente',
-    ctaClass: 'btn-ghost',
-    disabled: true,
   },
 ]
 
@@ -66,7 +53,7 @@ export default function Pricing() {
           {PLANS.map((p, i) => (
             <Reveal
               as="article"
-              className={`plan${p.featured ? ' featured' : ''}${p.disabled ? ' soon' : ''}`}
+              className={`plan${p.featured ? ' featured' : ''}`}
               key={p.name}
               delay={i * 130}
             >
@@ -85,17 +72,22 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              {p.disabled ? (
-                <button className={`btn ${p.ctaClass}`} type="button" disabled>
-                  {p.cta}
-                </button>
-              ) : (
-                <a className={`btn ${p.ctaClass}`} href="#piloto">
-                  {p.cta}
-                </a>
-              )}
+              <a className={`btn ${p.ctaClass}`} href="#piloto">
+                {p.cta}
+              </a>
             </Reveal>
           ))}
+          {/* Contador todavía no es un plan: tarjeta punteada, sin precio, que lleva al formulario del piloto. */}
+          <Reveal as="article" className="plan contador-card" delay={PLANS.length * 130}>
+            <h3>¿Eres contador y llevas varias PYMEs?</h3>
+            <p className="for">
+              Estamos diseñando una cuenta para gestionar a todos tus clientes en un solo lugar. Súmate al piloto y
+              cuéntanos qué necesitas.
+            </p>
+            <a className="btn btn-ghost" href="#piloto">
+              Súmate como contador <Icon name="arrow" />
+            </a>
+          </Reveal>
         </div>
         <Reveal as="p" className="plans-note">
           Estamos construyendo la plataforma junto a las primeras PYMEs que la prueban.

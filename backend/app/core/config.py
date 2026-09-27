@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     sql_password: str
     # Solo en local (SQL Server en Docker usa un certificado autofirmado)
     sql_trust_server_certificate: bool = False
+    # Segundos que espera el login. Azure SQL serverless con auto-pausa tarda
+    # hasta ~1 minuto en despertar; el default del driver (15 s) no alcanza.
+    sql_login_timeout: int = 60
 
     # Azure Blob Storage
     storage_account_name: str

@@ -45,7 +45,7 @@ export default function Roles() {
     <section className="sec" id="roles" aria-labelledby="r-title">
       <div className="wrap">
         <Reveal className="sec-head">
-          <span className="eyebrow">Hecho para cómo trabaja una PYME</span>
+          <span className="eyebrow">Para ti y tu equipo</span>
           <h2 id="r-title">
             Tu equipo, <Mark variant="brand">tu control</Mark>.
           </h2>

@@ -1,7 +1,7 @@
 from collections.abc import Generator
 
 from sqlalchemy import create_engine, text
-from sqlalchemy.engine import Engine
+from sqlalchemy.engine import URL, Engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import get_settings
@@ -14,18 +14,27 @@ def _get_engine() -> Engine:
     global _engine, _SessionLocal
     if _engine is None:
         settings = get_settings()
-        odbc_str = (
-            "mssql+pyodbc://"
-            f"{settings.sql_user}:{settings.sql_password}"
-            f"@{settings.sql_server}/{settings.sql_database}"
-            "?driver=ODBC+Driver+18+for+SQL+Server"
-        )
+        query = {"driver": "ODBC Driver 18 for SQL Server"}
         if settings.sql_trust_server_certificate:
-            odbc_str += "&TrustServerCertificate=yes"
+            query["TrustServerCertificate"] = "yes"
+        # URL.create escapa usuario y contraseña: una contraseña con @, /, # o ?
+        # rompería la URL si se armara pegando strings.
+        url = URL.create(
+            "mssql+pyodbc",
+            username=settings.sql_user,
+            password=settings.sql_password,
+            host=settings.sql_server,
+            database=settings.sql_database,
+            query=query,
+        )
         # pool_pre_ping evita usar conexiones muertas; NO evita el problema
         # de SESSION_CONTEXT "sucio" de una conexión reciclada — por eso
         # set_session_context() de abajo se ejecuta en CADA request, sin excepción.
-        _engine = create_engine(odbc_str, pool_pre_ping=True)
+        _engine = create_engine(
+            url,
+            pool_pre_ping=True,
+            connect_args={"timeout": settings.sql_login_timeout},  # login timeout de pyodbc
+        )
         _SessionLocal = sessionmaker(bind=_engine, autoflush=False, autocommit=False)
     return _engine
 

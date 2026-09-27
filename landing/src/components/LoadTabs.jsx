@@ -90,7 +90,7 @@ export default function LoadTabs() {
         <Reveal className="sec-head">
           <span className="eyebrow">Cómo cargas tus movimientos</span>
           <h2 id="c-title">
-            <Mark variant="hl">Tres formas de cargar.</Mark> Ninguna te obliga a abandonar lo que ya tienes.
+            <Mark variant="hl">Tres formas de cargar.</Mark> Sin abandonar lo que ya tienes.
           </h2>
         </Reveal>
 
