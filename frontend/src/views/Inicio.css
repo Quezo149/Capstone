@@ -1,0 +1,297 @@
+.cap::first-letter {
+  text-transform: uppercase;
+}
+
+/* ---------- KPIs ---------- */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 20px 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  background: var(--surface);
+  transition:
+    transform 0.3s cubic-bezier(0.3, 1.6, 0.5, 1),
+    box-shadow 0.3s;
+}
+
+.kpi:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card);
+}
+
+.kpi-l {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.kpi-v {
+  font-size: clamp(22px, 2.4vw, 30px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+.kpi-d {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.delta {
+  margin-right: 2px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+}
+
+.delta.up {
+  color: var(--ingreso);
+}
+
+.delta.down {
+  color: var(--gasto);
+}
+
+.delta.flat {
+  color: var(--muted);
+}
+
+/* En gastos, subir es malo */
+.kpi:nth-child(2) .delta.up {
+  color: var(--gasto);
+}
+
+.kpi:nth-child(2) .delta.down {
+  color: var(--ingreso);
+}
+
+.kpi-deep {
+  border: 0;
+  background: var(--deep);
+  padding: 20px 22px;
+}
+
+.kpi-deep .kpi-l,
+.kpi-deep .kpi-d {
+  color: var(--on-deep-muted);
+}
+
+.kpi-deep .kpi-v {
+  color: var(--highlight);
+}
+
+/* ---------- Grilla ---------- */
+.grid-2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.cats {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cats li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px 12px;
+  font-size: 14px;
+}
+
+.cat-n {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.cat-n .dot {
+  color: var(--c);
+}
+
+.cats .bar {
+  grid-column: 1 / -1;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+/* La barra crece desde 0 al entrar */
+.cats .bar i {
+  display: block;
+  height: 100%;
+  width: var(--w);
+  border-radius: 99px;
+  background: var(--c);
+  transform-origin: left;
+  animation: growX 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.05) var(--d) both;
+  transition: width 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.05);
+}
+
+@keyframes growX {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.recent {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recent li + li {
+  border-top: 1px solid var(--line);
+}
+
+.recent button {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 6px;
+  border: 0;
+  border-radius: var(--r-m);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.recent button:hover {
+  background: var(--paper);
+  transform: translateX(3px);
+}
+
+.recent-ic {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+.recent-ic svg {
+  width: 18px;
+  height: 18px;
+}
+
+.recent-ic.gasto {
+  background: var(--gasto-tint);
+  color: var(--gasto);
+}
+
+.recent-ic.ingreso {
+  background: var(--ingreso-tint);
+  color: var(--ingreso);
+}
+
+.recent-t {
+  display: grid;
+  min-width: 0;
+}
+
+.recent-t strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-t small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ---------- Tarjeta oscura ---------- */
+.quick {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.quick > div {
+  display: grid;
+  gap: 8px;
+  max-width: 60ch;
+}
+
+.quick h2 {
+  font-size: 24px;
+}
+
+.quick p {
+  color: var(--on-deep-muted);
+}
+
+@media (max-width: 1080px) {
+  .grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .kpis {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .kpi-deep {
+    grid-column: 1 / -1;
+  }
+
+  .kpi {
+    padding: 16px;
+  }
+
+  .card {
+    padding: 18px;
+  }
+}
+
+/* Celulares chicos */
+@media (max-width: 420px) {
+  .recent button {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 10px;
+    padding-inline: 2px;
+  }
+
+  .recent-ic {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+
+  .recent-t small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* Bajo 400px dos montos de 7 dígitos no caben lado a lado */
+@media (max-width: 400px) {
+  .kpis {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

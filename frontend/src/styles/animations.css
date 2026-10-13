@@ -1,0 +1,180 @@
+/* Keyframes compartidos. Los usan el hero y el resto de la página. */
+
+/* Hero: línea que recorre la boleta */
+@keyframes scan {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(330px);
+  }
+}
+
+/* Hero: el marcador amarillo se dibuja sobre la boleta */
+@keyframes mark {
+  from {
+    background-size: 0% 86%;
+  }
+  to {
+    background-size: 100% 86%;
+  }
+}
+
+/* Un campo "se llena": destello amarillo que se apaga */
+@keyframes fill {
+  from {
+    opacity: 0.25;
+    border-color: var(--highlight);
+    background: color-mix(in srgb, var(--highlight) 30%, transparent);
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Entrada desde abajo / izquierda / derecha (dirección con --tx y --ty) */
+@keyframes rise {
+  from {
+    opacity: 0;
+    translate: var(--tx, 0) var(--ty, 28px);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes zoom {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+/* Aparece con un pequeño rebote */
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.85);
+  }
+  60% {
+    transform: translateY(-2px) scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-5px);
+  }
+  40%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+/* Anillos que se expanden para llamar la atención */
+@keyframes pulseBrand {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--brand) 55%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 14px transparent;
+  }
+}
+
+@keyframes pulseHighlight {
+  from {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--highlight) 60%, transparent);
+  }
+  to {
+    box-shadow: 0 0 0 16px transparent;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -4px;
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(2%, -3%);
+  }
+}
+
+@keyframes blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+/* Línea de escaneo que baja por el cuadro de "arrastra tu boleta" */
+@keyframes dropScan {
+  0% {
+    top: -34px;
+    opacity: 0;
+  }
+  15%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+/* Confeti del mensaje de éxito */
+@keyframes burst {
+  from {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0) scale(0.4);
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1);
+  }
+}
