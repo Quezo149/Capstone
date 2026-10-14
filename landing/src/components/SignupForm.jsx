@@ -141,14 +141,10 @@ export default function SignupForm() {
                   <input
                     id="f-nombre"
                     name="nombre"
-                    type="text"
                     autoComplete="name"
                     placeholder="María González"
                     value={values.nombre}
-                    onChange={(e) => {
-                      const nombre = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '')
-                      setValues((v) => ({ ...v, nombre }))
-                    }}
+                    onChange={set('nombre')}
                     aria-invalid={invalid('nombre')}
                     aria-describedby="err"
                     required
