@@ -1,0 +1,313 @@
+/* ---------- Totales ---------- */
+.sum {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.sum > div {
+  display: grid;
+  gap: 2px;
+  padding: 14px 20px;
+}
+
+.sum > div + div {
+  border-left: 1px solid var(--line);
+}
+
+.sum > div > span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.sum strong {
+  font-size: clamp(17px, 2vw, 22px);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sum-res {
+  background: var(--paper);
+}
+
+/* ---------- Filtros ---------- */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.search {
+  position: relative;
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.search svg {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  translate: 0 -50%;
+  color: var(--muted);
+  pointer-events: none;
+  transition: color 0.15s;
+}
+
+.search:focus-within svg {
+  color: var(--brand);
+}
+
+.search .input {
+  padding-left: 40px;
+}
+
+.toolbar select.input {
+  width: auto;
+}
+
+.cap-sel {
+  text-transform: capitalize;
+}
+
+/* ---------- Tabla ---------- */
+.movs-table tbody tr.row {
+  cursor: pointer;
+  animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d) both;
+  --ty: 8px;
+  transition: background 0.12s;
+}
+
+.movs-table tbody tr.row:hover td,
+.movs-table tbody tr.row:focus-visible td {
+  background: var(--paper);
+}
+
+.movs-table tbody tr.row:focus-visible {
+  outline: none;
+}
+
+.movs-table tbody tr.row:focus-visible td:first-child {
+  box-shadow: inset 4px 0 0 var(--highlight);
+}
+
+.movs-table td:first-child {
+  white-space: nowrap;
+}
+
+.movs-table td strong {
+  display: block;
+  font-weight: 700;
+}
+
+.movs-table .sub {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.cat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 10px 3px 8px;
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--c) 13%, transparent);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.cat-chip .dot {
+  color: var(--c);
+}
+
+.row-edit {
+  width: 15px;
+  height: 15px;
+  margin-left: 8px;
+  vertical-align: -2px;
+  color: var(--muted);
+  opacity: 0;
+  translate: -4px 0;
+  transition:
+    opacity 0.15s,
+    translate 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+tr.row:hover .row-edit,
+tr.row:focus-visible .row-edit {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* Recién guardado: destello amarillo que se apaga (como un campo "que se llena" en la landing) */
+.movs-table tr.flash td,
+.movs-list li.flash button {
+  animation: flashRow 1.6s ease-out 0.15s both;
+}
+
+@keyframes flashRow {
+  from {
+    background: color-mix(in srgb, var(--highlight) 45%, transparent);
+  }
+  to {
+    background: transparent;
+  }
+}
+
+/* ---------- Lista móvil ---------- */
+.movs-list {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.movs-list li {
+  animation: rise 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d) both;
+  --ty: 8px;
+}
+
+.movs-list li + li {
+  border-top: 1px solid var(--line);
+}
+
+.movs-list button {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.movs-list button:active {
+  background: var(--paper);
+}
+
+.ml-t {
+  display: grid;
+  min-width: 0;
+}
+
+.ml-t strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ml-t small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.movs-count {
+  display: none;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ---------- Sin resultados ---------- */
+.nores {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.nores-ic {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--brand-tint);
+  color: var(--brand);
+  animation: pop 0.5s ease-out both;
+}
+
+.nores-ic svg {
+  width: 26px;
+  height: 26px;
+}
+
+.nores-acts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* Bajo 1180px los selectores se reparten la fila en vez de quedar uno solo y angosto */
+@media (max-width: 1180px) {
+  .toolbar select.input {
+    flex: 1 1 160px;
+  }
+}
+
+/* Lista de tarjetas hasta 1023px: con la barra lateral visible (861-1023px) no hay ancho
+   suficiente para las 5 columnas de la tabla sin que la fecha se parta o aparezca scroll */
+@media (max-width: 1023px) {
+  .movs-table {
+    display: none;
+  }
+
+  .movs-list,
+  .movs-count {
+    display: block;
+  }
+}
+
+@media (max-width: 720px) {
+  .sum > div {
+    padding: 12px 14px;
+  }
+
+  .toolbar .seg {
+    flex: 1 1 100%;
+  }
+
+  .toolbar select.input {
+    flex: 1 1 40%;
+  }
+}
+
+@media (max-width: 360px) {
+  .toolbar select.input {
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 460px) {
+  .sum {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .sum-res {
+    grid-column: 1 / -1;
+    border-left: 0 !important;
+    border-top: 1px solid var(--line);
+  }
+}
