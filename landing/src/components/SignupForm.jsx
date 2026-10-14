@@ -145,7 +145,10 @@ export default function SignupForm() {
                     autoComplete="name"
                     placeholder="María González"
                     value={values.nombre}
-                    onChange={set('nombre')}
+                    onChange={(e) => {
+                      const nombre = e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '')
+                      setValues((v) => ({ ...v, nombre }))
+                    }}
                     aria-invalid={invalid('nombre')}
                     aria-describedby="err"
                     required
