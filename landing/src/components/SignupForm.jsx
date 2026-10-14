@@ -141,6 +141,7 @@ export default function SignupForm() {
                   <input
                     id="f-nombre"
                     name="nombre"
+                    type="text"
                     autoComplete="name"
                     placeholder="María González"
                     value={values.nombre}
