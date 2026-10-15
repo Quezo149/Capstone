@@ -69,6 +69,29 @@
   accent-color: var(--brand);
 }
 
+/* Casilla de consentimiento: texto largo, la casilla se alinea con la primera línea */
+.signup .consent {
+  align-items: start;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.signup .consent input {
+  margin-top: 1px;
+}
+
+.signup .consent a {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.signup .check input[aria-invalid='true'] {
+  outline: 2px solid var(--gasto);
+  outline-offset: 2px;
+}
+
 .signup input:focus,
 .signup select:focus {
   outline: none;

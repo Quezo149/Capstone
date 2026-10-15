@@ -10,6 +10,10 @@ from app.core.db import get_db
 
 router = APIRouter()
 
+# Versión vigente de la política de privacidad de la landing (landing/src/data/privacidad.js).
+# Al publicar una versión nueva, subir ambas a la vez: el backend solo acepta la vigente.
+POLITICA_VERSION = "1.0"
+
 # Mismos largos que las columnas de 0001_piloto_interesados.sql.
 Texto = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
 
@@ -26,6 +30,9 @@ class InteresadoPiloto(BaseModel):
     equipo: Literal["1", "2-5", "6-10", "11-20", "21+"]
     hoy: Literal["excel", "whatsapp", "papel", "otro"]
     es_contador: bool = False
+    # Consentimiento (casilla obligatoria). Literal[True]: sin aceptar, la petición es un 422.
+    acepta_politica: Literal[True]
+    politica_version: Literal[POLITICA_VERSION]
     # Honeypot: campo oculto en la landing. Una persona lo deja vacío; un bot lo llena.
     sitio_web: Annotated[str, Field(max_length=200)] = ""
 
@@ -39,6 +46,10 @@ def registrar_interesado(datos: InteresadoPiloto, db: Session = Depends(get_db))
     Un correo repetido responde igual que uno nuevo, para no revelar a
     terceros qué correos ya están registrados.
 
+    La fecha del consentimiento la pone el procedimiento (hora del servidor). Un correo
+    repetido NO actualiza el consentimiento de la fila existente: cualquiera podría
+    escribir un correo ajeno y "aceptar" a nombre de otra persona.
+
     Si el honeypot viene lleno, se responde el mismo 201 sin guardar nada,
     para que el bot crea que tuvo éxito y no pruebe otra estrategia.
     """
@@ -48,11 +59,12 @@ def registrar_interesado(datos: InteresadoPiloto, db: Session = Depends(get_db))
         db.execute(
             text(
                 """
-                INSERT INTO piloto_interesados (nombre, email, empresa, equipo, gestion_hoy, es_contador)
-                VALUES (:nombre, :email, :empresa, :equipo, :hoy, :es_contador)
+                EXEC dbo.sp_registrar_piloto_interesado
+                    @nombre = :nombre, @email = :email, @empresa = :empresa, @equipo = :equipo,
+                    @gestion_hoy = :hoy, @es_contador = :es_contador, @politica_version = :politica_version
                 """
             ),
-            datos.model_dump(exclude={"sitio_web"}),
+            datos.model_dump(exclude={"sitio_web", "acepta_politica"}),
         )
         db.commit()
     except IntegrityError:
