@@ -6,7 +6,8 @@ CREATE TABLE piloto_interesados (
     id          UNIQUEIDENTIFIER NOT NULL
                 CONSTRAINT pk_piloto_interesados PRIMARY KEY
                 CONSTRAINT df_piloto_interesados_id DEFAULT NEWSEQUENTIALID(),
-    nombre      NVARCHAR(100) NOT NULL,
+    nombre      NVARCHAR(100) NOT NULL
+    CHECK (nombre NOT LIKE '%[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ ]%'),
     email       NVARCHAR(254) NOT NULL
                 CONSTRAINT uq_piloto_interesados_email UNIQUE,
     empresa     NVARCHAR(150) NOT NULL,
