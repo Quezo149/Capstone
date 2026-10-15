@@ -1,0 +1,66 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="PpyFB3xf57-qVbgrwvX3">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-1" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Administrador" vertex="1">
+          <mxGeometry height="60" width="30" x="60" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-17" edge="1" parent="1" source="F9lLKT8_n08-tUF3ft-B-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="F9lLKT8_n08-tUF3ft-B-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-2" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Empleado" vertex="1">
+          <mxGeometry height="60" width="30" x="60" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-4" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="KontadorIA-Documentación e IA&amp;nbsp;" vertex="1">
+          <mxGeometry height="30" width="60" x="410" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-5" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Carga de boleta o factura" vertex="1">
+          <mxGeometry height="70" width="140" x="370" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-7" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Extraer información con IA&amp;nbsp;" vertex="1">
+          <mxGeometry height="70" width="140" x="280" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-8" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Validar información extraída" vertex="1">
+          <mxGeometry height="70" width="140" x="460" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-9" edge="1" parent="1" source="F9lLKT8_n08-tUF3ft-B-5" style="endArrow=block;dashed=1;endFill=0;endSize=12;html=1;rounded=0;exitX=0.217;exitY=0.854;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.637;entryY=-0.037;entryDx=0;entryDy=0;entryPerimeter=0;" target="F9lLKT8_n08-tUF3ft-B-7" value="">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="350" y="270" as="sourcePoint" />
+            <mxPoint x="510" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-10" edge="1" parent="1" source="F9lLKT8_n08-tUF3ft-B-5" style="endArrow=block;dashed=1;endFill=0;endSize=12;html=1;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="F9lLKT8_n08-tUF3ft-B-8" value="">
+          <mxGeometry relative="1" width="160" as="geometry">
+            <mxPoint x="490" y="150" as="sourcePoint" />
+            <mxPoint x="510" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-12" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="&amp;lt;&amp;lt;Include&amp;gt;&amp;gt;" vertex="1">
+          <mxGeometry height="26" width="80" x="300" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-13" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="&amp;lt;&amp;lt;Include&amp;gt;&amp;gt;" vertex="1">
+          <mxGeometry height="26" width="80" x="500" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-14" parent="1" style="html=1;whiteSpace=wrap;fillColor=none;" value="&lt;br&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="360" width="360" x="270" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-16" edge="1" parent="1" source="F9lLKT8_n08-tUF3ft-B-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.046;entryY=0.237;entryDx=0;entryDy=0;entryPerimeter=0;" target="F9lLKT8_n08-tUF3ft-B-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-20" edge="1" parent="1" source="F9lLKT8_n08-tUF3ft-B-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="F9lLKT8_n08-tUF3ft-B-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-18" parent="1" style="html=1;dropTarget=0;whiteSpace=wrap;" value="Azure AI Document Intelligence" vertex="1">
+          <mxGeometry height="90" width="110" x="700" y="175" as="geometry" />
+        </mxCell>
+        <mxCell id="F9lLKT8_n08-tUF3ft-B-19" parent="F9lLKT8_n08-tUF3ft-B-18" style="shape=module;jettyWidth=8;jettyHeight=4;" value="" vertex="1">
+          <mxGeometry height="20" relative="1" width="20" x="1" as="geometry">
+            <mxPoint x="-27" y="7" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

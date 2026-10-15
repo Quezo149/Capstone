@@ -1,0 +1,158 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="YhDn_2VNATwRtQoYCYA7">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-22" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="655" y="80" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-20" parent="1" style="html=1;whiteSpace=wrap;" value="&amp;lt;&amp;lt;Device&amp;gt;&amp;gt;&lt;div&gt;Navegador/celular&lt;/div&gt;&lt;div&gt;Usuarios&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="110" x="600" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-24" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="0wakgCuf4qbc2f-6uc4W-23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-26" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="0wakgCuf4qbc2f-6uc4W-25">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-21" parent="1" style="html=1;whiteSpace=wrap;" value="«Execution environment»&lt;br&gt;&lt;b&gt;Netifly CDN&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="110" x="600" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-23" parent="1" style="html=1;whiteSpace=wrap;" value="«Artifact»&lt;br&gt;&lt;b&gt;Landing pública&lt;/b&gt;&lt;div&gt;&lt;b&gt;KontadorIA.cl&lt;/b&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="110" x="710" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-25" parent="1" style="html=1;whiteSpace=wrap;" value="«Artifact»&lt;br&gt;&lt;b&gt;App React + Vite(PWA)&lt;/b&gt;&lt;div&gt;&lt;b&gt;App.KontadorIA.cl&lt;/b&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="145" x="520" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-62" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="0wakgCuf4qbc2f-6uc4W-64">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="960" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-27" parent="1" style="html=1;whiteSpace=wrap;fillColor=none;" value="" vertex="1">
+          <mxGeometry height="205" width="320" x="510" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-28" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="Nodo de publicación web" vertex="1">
+          <mxGeometry height="26" width="80" x="615" y="74" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-31" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="0wakgCuf4qbc2f-6uc4W-30">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-29" parent="1" style="html=1;whiteSpace=wrap;" value="«Device»&lt;br&gt;&lt;b&gt;Servicio externo GITHUB&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="110" x="260" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-30" parent="1" style="html=1;whiteSpace=wrap;" value="«Artifact»&lt;br&gt;&lt;b&gt;Repositorio de código&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="110" x="260" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-36" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="0wakgCuf4qbc2f-6uc4W-34">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-32" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="Push/ rama Main" vertex="1">
+          <mxGeometry height="20" width="80" x="275" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-33" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.518;entryY=-0.038;entryDx=0;entryDy=0;entryPerimeter=0;" target="0wakgCuf4qbc2f-6uc4W-32">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-34" parent="1" style="html=1;whiteSpace=wrap;" value="«Execution environment»&lt;br&gt;&lt;b&gt;GITHUB ACTIONS&lt;/b&gt;&lt;div&gt;«Artifact»&lt;/div&gt;&lt;div&gt;Pipeline CI/CD&lt;br&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="130" width="135" x="247.5" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-37" parent="1" style="html=1;whiteSpace=wrap;fillColor=none;" value="" vertex="1">
+          <mxGeometry height="380" width="220" x="200" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-38" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="Control de código y despliegue" vertex="1">
+          <mxGeometry height="26" width="80" x="270" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-58" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="0wakgCuf4qbc2f-6uc4W-45">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-61" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="0wakgCuf4qbc2f-6uc4W-52">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-39" parent="1" style="html=1;whiteSpace=wrap;fillColor=none;" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="210" width="200" x="350" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-42" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="0wakgCuf4qbc2f-6uc4W-41">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-40" parent="1" style="html=1;whiteSpace=wrap;" value="Azure Functions&lt;div&gt;Flex consumption&lt;/div&gt;&lt;div&gt;Python 3.13-West US&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="120" x="365" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-41" parent="1" style="html=1;whiteSpace=wrap;" value="«Artifact»&lt;br&gt;&lt;b&gt;Backend FastApi&lt;/b&gt;" vertex="1">
+          <mxGeometry height="50" width="110" x="410" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-43" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="&lt;span style=&quot;font-weight: 400; white-space: normal;&quot;&gt;«Execution environment»&lt;/span&gt;" vertex="1">
+          <mxGeometry height="26" width="80" x="410" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-44" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="0wakgCuf4qbc2f-6uc4W-43">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-45" parent="1" style="html=1;whiteSpace=wrap;" value="«Execution environment»&lt;div&gt;Azure SQL DataBase&lt;/div&gt;&lt;div&gt;West US&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;«Artifact»&lt;/div&gt;&lt;div&gt;Datos finacieros&lt;/div&gt;&lt;div&gt;RLS por empresa_id&lt;/div&gt;&lt;div&gt;usuarios_empresa&lt;/div&gt;" vertex="1">
+          <mxGeometry height="130" width="135" x="50" y="840" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-46" parent="1" style="html=1;whiteSpace=wrap;fillColor=none;" value="&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="205" width="175" x="245" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-49" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-47" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="0wakgCuf4qbc2f-6uc4W-48">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-47" parent="1" style="html=1;whiteSpace=wrap;" value="Azure Blob Storage&lt;div&gt;North Central US&lt;/div&gt;" vertex="1">
+          <mxGeometry height="50" width="110" x="272.5" y="898" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-48" parent="1" style="html=1;whiteSpace=wrap;" value="«Artifact»&lt;br&gt;&lt;b&gt;Contenedor por empresa&lt;/b&gt;&lt;div&gt;&lt;b&gt;Boletas-facturas-archivos&lt;/b&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="145" x="260" y="980" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-50" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="&lt;span style=&quot;font-weight: 400; white-space: normal;&quot;&gt;«Execution environment»&lt;/span&gt;" vertex="1">
+          <mxGeometry height="26" width="80" x="292.5" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-51" parent="1" style="html=1;whiteSpace=wrap;" value="«Execution environment»&lt;br&gt;&lt;b&gt;Azure AI Document Intelligence&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;«Artifact»&lt;b&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Extracción de boletas y facturas&lt;/div&gt;" vertex="1">
+          <mxGeometry height="130" width="145" x="470" y="876" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-52" parent="1" style="html=1;whiteSpace=wrap;" value="«Execution environment»&lt;br&gt;&lt;b&gt;Application Insights&lt;/b&gt;&lt;br&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;«Artifact»&lt;b&gt;&lt;/b&gt;&lt;/div&gt;&lt;div&gt;Logs-métricas-errores&lt;/div&gt;" vertex="1">
+          <mxGeometry height="130" width="145" x="650" y="876" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-53" parent="1" style="html=1;whiteSpace=wrap;fillColor=none;" value="" vertex="1">
+          <mxGeometry height="510" width="780" x="40" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-55" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="AZURE FOR STUDENTS" vertex="1">
+          <mxGeometry height="26" width="80" x="90" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-56" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.602;entryY=-0.004;entryDx=0;entryDy=0;entryPerimeter=0;" target="0wakgCuf4qbc2f-6uc4W-53">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-57" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="HTTPS- REST + JWT" vertex="1">
+          <mxGeometry height="26" width="80" x="470" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-59" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.87;entryY=0.019;entryDx=0;entryDy=0;entryPerimeter=0;" target="0wakgCuf4qbc2f-6uc4W-46">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-60" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-39" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.298;entryY=0.02;entryDx=0;entryDy=0;entryPerimeter=0;" target="0wakgCuf4qbc2f-6uc4W-51">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-64" parent="1" style="html=1;whiteSpace=wrap;" value="«Execution environment»&lt;div&gt;Microsoft Entra External ID&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;«Artifact»&lt;/div&gt;&lt;div&gt;Autenticación e identidad&lt;/div&gt;" vertex="1">
+          <mxGeometry height="140" width="120" x="1070" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-65" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="OpenID Connect&lt;div&gt;Inicio de sesión&lt;/div&gt;" vertex="1">
+          <mxGeometry height="26" width="80" x="930" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-66" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-53" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0.407;entryY=0.984;entryDx=0;entryDy=0;entryPerimeter=0;" target="0wakgCuf4qbc2f-6uc4W-64">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-67" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="Validación JWT&amp;nbsp;&lt;div&gt;Firma, issuer y audience&lt;/div&gt;" vertex="1">
+          <mxGeometry height="26" width="80" x="910" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-68" parent="1" style="html=1;whiteSpace=wrap;fillColor=none;" value="" vertex="1">
+          <mxGeometry height="180" width="320" x="1030" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-69" parent="1" style="text;align=center;fontStyle=1;verticalAlign=middle;spacingLeft=3;spacingRight=3;strokeColor=none;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;html=1;" value="Azure Cuenta personal" vertex="1">
+          <mxGeometry height="26" width="80" x="1235" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="0wakgCuf4qbc2f-6uc4W-73" edge="1" parent="1" source="0wakgCuf4qbc2f-6uc4W-69" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;innerLoopWaypoints=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="0wakgCuf4qbc2f-6uc4W-69">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

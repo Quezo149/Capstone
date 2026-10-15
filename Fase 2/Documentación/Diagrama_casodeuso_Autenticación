@@ -1,0 +1,100 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="YMdHV7sP5nw4N-dOEUKZ">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="kolnJnxTxIF5yhr05hCF-21" edge="1" parent="1" source="kolnJnxTxIF5yhr05hCF-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;" target="kolnJnxTxIF5yhr05hCF-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-22" edge="1" parent="1" source="kolnJnxTxIF5yhr05hCF-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;" target="kolnJnxTxIF5yhr05hCF-18">
+          <mxGeometry relative="1" x="0.0737" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="100" />
+              <mxPoint x="200" y="220" />
+              <mxPoint x="370" y="220" />
+              <mxPoint x="370" y="305" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-23" edge="1" parent="1" source="kolnJnxTxIF5yhr05hCF-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="kolnJnxTxIF5yhr05hCF-19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-1" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Administrador" vertex="1">
+          <mxGeometry height="60" width="30" x="40" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-2" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Empleado" vertex="1">
+          <mxGeometry height="60" width="30" x="40" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-25" edge="1" parent="1" source="kolnJnxTxIF5yhr05hCF-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.043;entryY=0.383;entryDx=0;entryDy=0;entryPerimeter=0;" target="kolnJnxTxIF5yhr05hCF-16">
+          <mxGeometry relative="1" x="0.0163" as="geometry">
+            <Array as="points">
+              <mxPoint x="55" y="340" />
+              <mxPoint x="55" y="350" />
+              <mxPoint x="340" y="350" />
+              <mxPoint x="340" y="90" />
+              <mxPoint x="406" y="90" />
+            </Array>
+            <mxPoint x="40" y="248.03" as="sourcePoint" />
+            <mxPoint x="389.34" y="90" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-3" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Contador" vertex="1">
+          <mxGeometry height="60" width="30" x="30" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-26" edge="1" parent="1" source="kolnJnxTxIF5yhr05hCF-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="kolnJnxTxIF5yhr05hCF-16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-4" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Microsoft External id" vertex="1">
+          <mxGeometry height="60" width="30" x="720" y="85" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-7" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="KontadorIA-Autenticación y usuarios" vertex="1">
+          <mxGeometry height="30" width="60" x="425" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-16" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Inicio de sesión" vertex="1">
+          <mxGeometry height="70" width="140" x="400" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-17" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Registrar cuenta y empresa" vertex="1">
+          <mxGeometry height="70" width="140" x="400" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-18" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Gestionar Usuarios" vertex="1">
+          <mxGeometry height="70" width="140" x="400" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-19" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Gestionar roles y permisos" vertex="1">
+          <mxGeometry height="70" width="140" x="400" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-24" edge="1" parent="1" source="kolnJnxTxIF5yhr05hCF-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.094;entryY=0.797;entryDx=0;entryDy=0;entryPerimeter=0;" target="kolnJnxTxIF5yhr05hCF-16">
+          <mxGeometry relative="1" x="0.0016" as="geometry">
+            <Array as="points">
+              <mxPoint x="380" y="180" />
+              <mxPoint x="380" y="130.8" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-27" edge="1" parent="1" source="kolnJnxTxIF5yhr05hCF-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1.02;entryY=0.409;entryDx=0;entryDy=0;entryPerimeter=0;" target="kolnJnxTxIF5yhr05hCF-17">
+          <mxGeometry relative="1" x="0.0007" as="geometry">
+            <Array as="points">
+              <mxPoint x="735" y="150" />
+              <mxPoint x="640" y="150" />
+              <mxPoint x="640" y="198.6" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-28" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;" value="Dueño de Pyme(Nuevo usuario)" vertex="1">
+          <mxGeometry height="60" width="30" x="720" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-29" edge="1" parent="1" source="kolnJnxTxIF5yhr05hCF-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.929;entryY=0.74;entryDx=0;entryDy=0;entryPerimeter=0;" target="kolnJnxTxIF5yhr05hCF-17">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="735" y="230" />
+              <mxPoint x="530.1" y="230" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kolnJnxTxIF5yhr05hCF-30" parent="1" style="html=1;whiteSpace=wrap;fillColor=none;" value="&lt;br&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="480" width="300" x="290" y="10" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
