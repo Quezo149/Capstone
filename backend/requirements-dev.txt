@@ -1,0 +1,4 @@
+# Solo desarrollo y pruebas (no se instala en Azure)
+-r requirements.txt
+pytest
+httpx  # lo usa fastapi.testclient

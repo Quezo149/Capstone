@@ -29,7 +29,12 @@ class Settings(BaseSettings):
     # Microsoft Entra External ID (validación de tokens del frontend)
     entra_tenant_id: str
     entra_client_id: str
+    # Base de descubrimiento OIDC del tenant ({entra_issuer}/.well-known/openid-configuration).
+    # El `iss` que trae el token se lee de ese documento, no de aquí.
     entra_issuer: str
+    # Scope que expone la App Registration ("Expose an API") y que pide el frontend.
+    # Un token sin este scope (por ejemplo, un ID token) no sirve para llamar a la API.
+    entra_api_scope: str = "access_as_user"
 
     # Azure AI Document Intelligence
     document_intelligence_endpoint: str

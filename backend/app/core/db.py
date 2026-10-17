@@ -1,17 +1,46 @@
 from collections.abc import Generator
 
-from sqlalchemy import create_engine, text
+import pyodbc
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.engine import URL, Engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 
+# El pool lo maneja SQLAlchemy. El pool propio del driver ODBC (activo por defecto en pyodbc)
+# es una segunda capa que reparte conexiones sin pasar por _limpiar_contexto, y puede
+# entregar una conexión con una transacción abierta de quien la usó antes.
+pyodbc.pooling = False
+
 _engine: Engine | None = None
-_SessionLocal: sessionmaker | None = None
+
+# Claves de SESSION_CONTEXT que leen las políticas de RLS (db/migrations/0007_rls.sql).
+_CLAVES_CONTEXTO = ("empresa_id", "usuario_id", "rol")
+
+
+def _limpiar_contexto(dbapi_connection, connection_record, connection_proxy) -> None:
+    """
+    Al sacar una conexión del pool, borra el SESSION_CONTEXT que haya dejado el request anterior.
+
+    SESSION_CONTEXT vive en la conexión, no en el request, y el pool de SQLAlchemy no lo
+    resetea (solo hace rollback). Sin esto, un endpoint que no fija contexto (por ejemplo
+    POST /piloto, o un bug futuro) podría heredar la empresa del usuario anterior. Es una
+    segunda barrera: get_current_user igual lo vuelve a fijar en cada request — ver 07
+    Autenticación y Multi-tenancy.md, "SESSION_CONTEXT en conexiones reutilizadas".
+    """
+    cursor = dbapi_connection.cursor()
+    try:
+        # Una sentencia por clave: con un solo lote de varios EXEC el driver ODBC deja
+        # resultados pendientes y la transacción implícita queda abierta (bloquea a otros).
+        for clave in _CLAVES_CONTEXTO:
+            cursor.execute(f"EXEC sp_set_session_context N'{clave}', NULL")
+    finally:
+        cursor.close()
+    dbapi_connection.commit()
 
 
 def _get_engine() -> Engine:
-    global _engine, _SessionLocal
+    global _engine
     if _engine is None:
         settings = get_settings()
         query = {"driver": "ODBC Driver 18 for SQL Server"}
@@ -27,40 +56,42 @@ def _get_engine() -> Engine:
             database=settings.sql_database,
             query=query,
         )
-        # pool_pre_ping evita usar conexiones muertas; NO evita el problema
-        # de SESSION_CONTEXT "sucio" de una conexión reciclada — por eso
-        # set_session_context() de abajo se ejecuta en CADA request, sin excepción.
         _engine = create_engine(
             url,
             pool_pre_ping=True,
             connect_args={"timeout": settings.sql_login_timeout},  # login timeout de pyodbc
         )
-        _SessionLocal = sessionmaker(bind=_engine, autoflush=False, autocommit=False)
+        event.listen(_engine, "checkout", _limpiar_contexto)
     return _engine
 
 
 def set_session_context(db: Session, empresa_id: str, usuario_id: str, rol: str) -> None:
     """
     Fija el contexto que consumen las políticas de RLS de Azure SQL.
-    Debe llamarse al inicio de CADA request autenticado — ver 07 Autenticación
-    y Multi-tenancy.md, sección "Riesgo no obvio: SESSION_CONTEXT en conexiones
-    reutilizadas". Nunca asumir que una conexión del pool llega "limpia".
+    Debe llamarse al inicio de CADA request autenticado (lo hace get_current_user).
+    Nunca asumir que una conexión del pool llega "limpia".
     """
-    db.execute(text("EXEC sp_set_session_context 'empresa_id', :empresa_id"), {"empresa_id": empresa_id})
-    db.execute(text("EXEC sp_set_session_context 'usuario_id', :usuario_id"), {"usuario_id": usuario_id})
-    db.execute(text("EXEC sp_set_session_context 'rol', :rol"), {"rol": rol})
+    db.execute(text("EXEC sp_set_session_context N'empresa_id', :empresa_id"), {"empresa_id": empresa_id})
+    db.execute(text("EXEC sp_set_session_context N'usuario_id', :usuario_id"), {"usuario_id": usuario_id})
+    db.execute(text("EXEC sp_set_session_context N'rol', :rol"), {"rol": rol})
 
 
 def get_db() -> Generator[Session, None, None]:
     """
-    Dependency de FastAPI. OJO: esto NO fija SESSION_CONTEXT por sí sola —
-    eso requiere conocer al usuario autenticado, así que se hace en
-    app.core.auth.get_current_user_db (que envuelve esta dependency).
+    Dependency de FastAPI: una sesión atada a UNA sola conexión durante todo el request.
+
+    Una Session normal devuelve la conexión al pool en cada commit() y toma otra en la
+    siguiente consulta, que no tendría el SESSION_CONTEXT fijado por get_current_user
+    (o tendría el de otro usuario). Atándola a una Connection, el contexto se mantiene
+    aunque el endpoint haga commit y siga consultando.
+
+    OJO: esto NO fija SESSION_CONTEXT por sí sola — eso requiere conocer al usuario
+    autenticado, así que lo hace app.core.auth.get_current_user con este mismo `db`.
     """
-    _get_engine()
-    assert _SessionLocal is not None
-    db = _SessionLocal()
+    connection = _get_engine().connect()
+    db = Session(bind=connection, autoflush=False)
     try:
         yield db
     finally:
         db.close()
+        connection.close()
