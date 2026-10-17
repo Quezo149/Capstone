@@ -20,8 +20,8 @@ let pca = null
 // Inicialización única: en desarrollo StrictMode monta los efectos dos veces, y dos instancias
 // de MSAL compitiendo por la misma respuesta de Entra dejaban la sesión sin reconocer al volver.
 let inicio = null
-// "Crear una cuenta" pasa primero por cerrar la sesión de Microsoft (si no, Entra entra con la
-// cuenta que ya estaba abierta). Esta marca sobrevive al ida y vuelta del logout en la pestaña.
+// "Crear una cuenta" con una cuenta abierta en la app pasa primero por cerrar esa sesión de
+// Microsoft (si no, Entra entra con ella). Esta marca sobrevive al ida y vuelta del logout.
 const CREAR_KEY = 'kontadoria-crear-cuenta'
 
 // La respuesta llega como ?code=… (query) y no como #code=…: el hash lo usa el ruteo de la app.
@@ -87,15 +87,18 @@ async function sesionMicrosoft() {
  * están en esa misma página.
  *
  * `crear` abre el registro de cuenta nueva (HU17); Entra verifica el correo con un código
- * antes de activarla. Antes cierra la sesión de Microsoft que haya en el navegador: con una
- * sesión abierta, Entra entraría con esa cuenta en vez de mostrar el registro.
+ * antes de activarla. Solo si la app conoce una cuenta abierta la cierra antes: sin cuenta, un
+ * logout de Microsoft muestra "¿De qué cuenta quiere cerrar sesión?" vacío y la persona queda
+ * atascada. Si la app no ve una sesión de Microsoft (ssoSilent ya lo intentó al cargar), no la hay
+ * o el navegador bloquea las cookies de terceros; en ambos casos se va directo al registro.
  */
 export function iniciarSesion({ crear = false } = {}) {
-  if (crear) {
+  const cuenta = pca.getActiveAccount() ?? pca.getAllAccounts()[0]
+  if (crear && cuenta) {
     sessionStorage.setItem(CREAR_KEY, '1')
-    return pca.logoutRedirect({ account: pca.getActiveAccount() ?? undefined })
+    return pca.logoutRedirect({ account: cuenta })
   }
-  return pca.loginRedirect({ scopes: [API_SCOPE] })
+  return pca.loginRedirect({ scopes: [API_SCOPE], ...(crear ? { prompt: 'create' } : {}) })
 }
 
 export function cerrarSesion() {
