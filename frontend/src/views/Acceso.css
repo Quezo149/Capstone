@@ -1,0 +1,118 @@
+/* Pantallas fuera de la app: acceso, registro de la empresa y avisos de sesión */
+.acceso {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: 24px 16px;
+  background: var(--paper);
+}
+
+.acceso-card {
+  display: grid;
+  gap: 20px;
+  width: min(100%, 440px);
+  padding: clamp(24px, 5vw, 36px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  animation: panelIn 0.35s ease-out both;
+}
+
+.acceso-card.ancha {
+  width: min(100%, 520px);
+}
+
+.acceso-card h1 {
+  font-family: var(--font-display);
+  font-size: clamp(26px, 5vw, 32px);
+  line-height: 1.1;
+}
+
+.acceso-card > header {
+  display: grid;
+  gap: 10px;
+}
+
+.acceso-acts {
+  display: grid;
+  gap: 10px;
+}
+
+.acceso-acts .btn {
+  justify-content: center;
+  min-height: 48px;
+}
+
+.acceso-nota {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: var(--r-m);
+  background: var(--mint);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.acceso-nota svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  color: var(--brand);
+}
+
+.acceso-aviso {
+  padding: 12px 14px;
+  border-radius: var(--r-m);
+  background: var(--gasto-tint);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.acceso-form {
+  display: grid;
+  gap: 16px;
+}
+
+.opcional {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* Mi empresa */
+.empresa-page {
+  display: grid;
+  gap: 20px;
+  max-width: 640px;
+}
+
+.empresa-datos {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+}
+
+.empresa-datos div {
+  display: grid;
+  gap: 2px;
+}
+
+.empresa-datos dt {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.empresa-datos dd {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.form-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
