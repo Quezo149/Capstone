@@ -20,7 +20,10 @@ def get_connection():
     if not connection_string:
         print("ERROR: falta la variable de entorno AZURE_SQL_CONNECTION_STRING")
         sys.exit(1)
-    return pyodbc.connect(connection_string)
+    # Azure SQL serverless con auto-pausa tarda hasta ~1 minuto en despertar; el login timeout
+    # por defecto del driver (15 s) no alcanza. Mismo criterio que SQL_LOGIN_TIMEOUT del backend.
+    timeout = int(os.environ.get("SQL_LOGIN_TIMEOUT", "90"))
+    return pyodbc.connect(connection_string, timeout=timeout)
 
 
 def ensure_migrations_table(cursor):

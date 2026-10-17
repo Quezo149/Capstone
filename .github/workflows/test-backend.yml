@@ -44,13 +44,19 @@ jobs:
 
       - name: Instalar ODBC Driver 18 for SQL Server
         run: |
-          if ! odbcinst -q -d | grep -q "ODBC Driver 18 for SQL Server"; then
-            curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
-            echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/prod $(lsb_release -cs) main" \
-              | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          # Sin odbcinst en la imagen; si el repositorio de Microsoft ya está configurado no se vuelve a agregar
+          # (gpg sin --batch fallaba al querer preguntar por terminal si sobrescribía la llave).
+          if ! dpkg-query -W -f='${Status}' msodbcsql18 2>/dev/null | grep -q "install ok installed"; then
+            if ! grep -rqs "packages.microsoft.com/ubuntu" /etc/apt/sources.list /etc/apt/sources.list.d/; then
+              curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
+                | sudo gpg --batch --yes --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+              echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/ubuntu/$(lsb_release -rs)/prod $(lsb_release -cs) main" \
+                | sudo tee /etc/apt/sources.list.d/mssql-release.list
+            fi
             sudo apt-get update
             sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
           fi
+          odbcinst -q -d
 
       - name: Instalar dependencias
         working-directory: backend
