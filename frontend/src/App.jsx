@@ -8,6 +8,7 @@ import { useMovimientos } from './state/Movimientos'
 import { useToast } from './state/Toasts'
 import DatosLocales from './views/DatosLocales'
 import Inicio from './views/Inicio'
+import MiEmpresa from './views/MiEmpresa'
 import Movimientos from './views/Movimientos'
 import Pronto from './views/Pronto'
 
@@ -68,6 +69,7 @@ export default function App() {
   if (cargando) vista = null
   else if (ruta === 'inicio') vista = <Inicio onNuevo={nuevo} onEditar={abrir} />
   else if (ruta === 'movimientos') vista = <Movimientos onNuevo={nuevo} onEditar={abrir} />
+  else if (ruta === 'empresa') vista = <MiEmpresa />
   else vista = <Pronto ruta={ruta} />
 
   const editando = Boolean(panel?.mov)

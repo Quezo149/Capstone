@@ -9,7 +9,8 @@ const Ctx = createContext(null)
 const ordenar = (lista) =>
   [...lista].sort((a, b) => b.fecha.localeCompare(a.fecha) || b.creado_en.localeCompare(a.creado_en))
 
-export function MovimientosProvider({ children }) {
+// empresaId: los movimientos locales se guardan por empresa (ver data/movimientos.js)
+export function MovimientosProvider({ empresaId, children }) {
   const [movs, setMovs] = useState([])
   const [cargando, setCargando] = useState(true)
   // Último movimiento creado o editado: la tabla lo resalta con un destello
@@ -27,11 +28,12 @@ export function MovimientosProvider({ children }) {
   }, [tocado])
 
   useEffect(() => {
+    repo.usarEmpresa(empresaId)
     repo.listar().then((l) => {
       setMovs(ordenar(l))
       setCargando(false)
     })
-  }, [])
+  }, [empresaId])
 
   const crear = useCallback(async (datos) => {
     const mov = await repo.crear(datos)

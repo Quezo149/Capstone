@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import auth, expenses, piloto
+from app.routers import auth, categorias, empresas, expenses, piloto
 
 app = FastAPI(title="KontadorIA API")
 
@@ -26,6 +26,8 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(empresas.router, prefix="/empresas", tags=["empresas"])
+app.include_router(categorias.router, prefix="/categorias", tags=["categorias"])
 app.include_router(expenses.router, prefix="/movimientos", tags=["movimientos"])
 app.include_router(piloto.router, prefix="/piloto", tags=["piloto"])
 

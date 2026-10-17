@@ -20,7 +20,7 @@ export default function DatosLocales() {
     <div className="local-note">
       <strong>Modo local</strong>
       <span>
-        {movs.length} {movs.length === 1 ? 'movimiento guardado' : 'movimientos guardados'} solo en este navegador.
+        {movs.length} {movs.length === 1 ? 'movimiento guardado' : 'movimientos guardados'} solo en este navegador, para esta empresa.
       </span>
       <div className="local-acts">
         {movs.length === 0 ? (

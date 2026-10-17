@@ -1,6 +1,7 @@
-import { EMPRESA, NOMBRE_ROL, USUARIO } from '../data/demo'
+import { NOMBRE_ROL } from '../data/demo'
 import { SECCIONES } from '../data/secciones'
 import useTheme from '../hooks/useTheme'
+import { useSesion } from '../state/Sesion'
 import Icon from './Icon'
 import Logo from './Logo'
 import './Shell.css'
@@ -37,6 +38,7 @@ function NavLink({ s, actual, corto }) {
 
 export default function Shell({ ruta, onNuevo, children, pie }) {
   const { dark, toggle } = useTheme()
+  const { perfil, salir } = useSesion()
   // En el celular la barra inferior lleva 4 secciones y el botón "+" al centro
   const movil = ['inicio', 'movimientos', 'cargar', 'reportes'].map((id) => SECCIONES.find((s) => s.id === id))
 
@@ -63,8 +65,8 @@ export default function Shell({ ruta, onNuevo, children, pie }) {
             <Logo />
           </div>
           <div className="company">
-            <strong>{EMPRESA.nombre}</strong>
-            {EMPRESA.rut ? <span className="mono">RUT {EMPRESA.rut}</span> : <span>{EMPRESA.rubro}</span>}
+            <strong>{perfil.empresa_nombre}</strong>
+            <span>{NOMBRE_ROL[perfil.rol]}</span>
           </div>
           <div className="top-actions">
             <button
@@ -76,10 +78,19 @@ export default function Shell({ ruta, onNuevo, children, pie }) {
             >
               <Icon name={dark ? 'sun' : 'moon'} key={dark ? 'sun' : 'moon'} />
             </button>
-            {/* Sin nombre de persona (ver data/demo.js): el avatar usa las iniciales de la empresa */}
-            <span className="avatar" title={`${USUARIO.nombre ?? NOMBRE_ROL[USUARIO.rol]} · ${EMPRESA.nombre}`}>
-              {iniciales(USUARIO.nombre ?? EMPRESA.nombre)}
-            </span>
+            {/* Las iniciales son de la empresa: la app no muestra nombres de personas */}
+            <a
+              href="#/empresa"
+              className="avatar"
+              aria-current={ruta === 'empresa' ? 'page' : undefined}
+              aria-label={`Mi empresa: ${perfil.empresa_nombre}`}
+              title={`Mi empresa · ${perfil.empresa_nombre}`}
+            >
+              {iniciales(perfil.empresa_nombre)}
+            </a>
+            <button type="button" className="icon-btn" onClick={salir} aria-label="Cerrar sesión" title="Cerrar sesión">
+              <Icon name="logout" />
+            </button>
           </div>
         </header>
         <main className="main" key={ruta}>

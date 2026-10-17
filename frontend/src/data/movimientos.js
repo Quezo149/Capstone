@@ -10,7 +10,21 @@
 
 import { hoyISO, moverMes } from '../lib/format'
 
-const KEY = 'kontadoria-movimientos-v1'
+// Una clave por empresa: si dos empresas usan el mismo navegador, cada una ve solo lo suyo.
+// Provisorio hasta HU03 (Sprint 2), cuando los movimientos pasan a la API y los aísla el RLS.
+const PREFIJO = 'kontadoria-movimientos-v1'
+let KEY = null
+
+/** Elige la empresa cuyos movimientos se leen y escriben. Lo llama MovimientosProvider. */
+export function usarEmpresa(empresaId) {
+  KEY = `${PREFIJO}:${empresaId}`
+  try {
+    // Clave global de antes del login: solo tenía datos de ejemplo y no era de ninguna empresa
+    localStorage.removeItem(PREFIJO)
+  } catch {
+    // Sin almacenamiento: nada que limpiar
+  }
+}
 
 // crypto.randomUUID existe en localhost y HTTPS; el respaldo cubre una IP de la red local por HTTP
 export const nuevoId = () =>
@@ -21,6 +35,7 @@ export const nuevoId = () =>
   })
 
 function leer() {
+  if (!KEY) throw new Error('Falta usarEmpresa() antes de leer movimientos')
   try {
     const raw = localStorage.getItem(KEY)
     return raw ? JSON.parse(raw) : []
@@ -30,6 +45,7 @@ function leer() {
 }
 
 function escribir(lista) {
+  if (!KEY) throw new Error('Falta usarEmpresa() antes de guardar movimientos')
   try {
     localStorage.setItem(KEY, JSON.stringify(lista))
   } catch {

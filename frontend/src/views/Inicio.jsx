@@ -2,9 +2,9 @@ import Icon from '../components/Icon'
 import Mark from '../components/Mark'
 import Numero from '../components/Numero'
 import { categoria } from '../data/categorias'
-import { EMPRESA } from '../data/demo'
 import { clpNeto, clpSigno, fechaCorta, fechaLarga, hoyISO, moverMes, nombreMes } from '../lib/format'
 import { totales, useMovimientos } from '../state/Movimientos'
+import { useSesion } from '../state/Sesion'
 import Bienvenida from './Bienvenida'
 import './Inicio.css'
 
@@ -37,6 +37,7 @@ function Kpi({ label, valor, anterior, tono, comparado, d }) {
 }
 
 export default function Inicio({ onNuevo, onEditar }) {
+  const { perfil } = useSesion()
   const { movs } = useMovimientos()
   const hoy = hoyISO()
   const mes = hoy.slice(0, 7)
@@ -66,7 +67,7 @@ export default function Inicio({ onNuevo, onEditar }) {
         <div>
           <span className="eyebrow">{fechaLarga(hoy)}</span>
           <h1>
-            Así va <Mark variant="hl">{nombreMes(mes)}</Mark> en {EMPRESA.nombre}.
+            Así va <Mark variant="hl">{nombreMes(mes)}</Mark> en {perfil.empresa_nombre}.
           </h1>
         </div>
         <button type="button" className="btn btn-primary" onClick={onNuevo}>

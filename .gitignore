@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# Python (db/run_migrations.py se importa desde las pruebas del backend)
+__pycache__/
+
 # Sistema operativo
 .DS_Store
 Thumbs.db
