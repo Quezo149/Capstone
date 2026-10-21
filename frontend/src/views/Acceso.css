@@ -116,3 +116,31 @@
   flex-wrap: wrap;
   gap: 10px;
 }
+
+/* Mi empresa → Categorías */
+.empresa-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.empresa-link svg {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  color: var(--brand);
+}
+
+.empresa-link span {
+  display: grid;
+  gap: 2px;
+}
+
+/* Invitación (HU02): rol que tendrá y qué puede hacer */
+.inv-rol {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}

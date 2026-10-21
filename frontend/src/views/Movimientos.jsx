@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react'
 import Icon from '../components/Icon'
 import Numero from '../components/Numero'
 import Seg from '../components/Seg'
-import { CATEGORIAS, categoria, nombreDocumento } from '../data/categorias'
+import { nombreDocumento } from '../data/categorias'
 import { clpNeto, clpSigno, fechaCorta, hoyISO, mesLargo } from '../lib/format'
+import { useCategorias } from '../state/Categorias'
 import { totales, useMovimientos } from '../state/Movimientos'
+import { useSesion } from '../state/Sesion'
 import Bienvenida from './Bienvenida'
 import './Movimientos.css'
 
@@ -14,7 +16,7 @@ const TIPOS = [
   { id: 'gasto', label: 'Gastos' },
 ]
 
-const filtrosIniciales = () => ({ q: '', tipo: 'todos', cat: 'todas', mes: hoyISO().slice(0, 7) })
+const filtrosIniciales = () => ({ q: '', tipo: 'todos', cat: 'todas', usuario: 'todos', mes: hoyISO().slice(0, 7) })
 
 // Texto sin tildes ni mayúsculas, para que "mantencion" encuentre "Mantención"
 const normalizar = (s) =>
@@ -23,8 +25,14 @@ const normalizar = (s) =>
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
 
+// HU07. onNuevo / onEditar llegan en null si el rol no registra movimientos (contador):
+// entonces la lista es de solo lectura.
 export default function Movimientos({ onNuevo, onEditar }) {
   const { movs, tocado } = useMovimientos()
+  const { categorias, categoria } = useCategorias()
+  const { puede } = useSesion()
+  // El empleado solo recibe sus movimientos (RLS), así que no tiene filtro por usuario
+  const porUsuario = puede('movimientos.filtrar_usuario')
   const [f, setF] = useState(filtrosIniciales)
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }))
 
@@ -35,25 +43,42 @@ export default function Movimientos({ onNuevo, onEditar }) {
     return [...s].sort().reverse()
   }, [movs])
 
+  // Quienes registraron algo, para el filtro por usuario
+  const usuarios = useMemo(() => {
+    const m = new Map(movs.map((x) => [x.usuario_id, x.usuario_nombre]))
+    return [...m].map(([id, nombre]) => ({ id, nombre })).sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
+  }, [movs])
+
   const filas = useMemo(() => {
     const q = normalizar(f.q.trim())
     return movs.filter(
       (m) =>
         (f.tipo === 'todos' || m.tipo === f.tipo) &&
         (f.cat === 'todas' || m.categoria_id === f.cat) &&
+        (f.usuario === 'todos' || m.usuario_id === f.usuario) &&
         (f.mes === 'todos' || m.fecha.startsWith(f.mes)) &&
         (!q || normalizar(`${m.descripcion} ${m.proveedor} ${categoria(m.categoria_id).nombre}`).includes(q)),
     )
-  }, [movs, f])
+  }, [movs, f, categoria])
 
   const t = useMemo(() => totales(filas), [filas])
-  const hayFiltros = f.q || f.tipo !== 'todos' || f.cat !== 'todas'
+  const hayFiltros = f.q || f.tipo !== 'todos' || f.cat !== 'todas' || f.usuario !== 'todos'
   // Cambia cuando cambian los filtros: reinicia la animación escalonada de las filas
-  const claveLista = `${f.tipo}|${f.cat}|${f.mes}`
+  const claveLista = `${f.tipo}|${f.cat}|${f.usuario}|${f.mes}`
 
   if (!movs.length) return <Bienvenida onNuevo={onNuevo} />
 
-  const cats = f.tipo === 'todos' ? CATEGORIAS : CATEGORIAS.filter((c) => c.tipo === f.tipo)
+  const cats = f.tipo === 'todos' ? categorias : categorias.filter((c) => c.tipo === f.tipo)
+  // Props de una fila clickeable; sin onEditar la fila es solo lectura
+  const editable = (m, etiqueta) =>
+    onEditar
+      ? {
+          tabIndex: 0,
+          onClick: () => onEditar(m),
+          onKeyDown: (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onEditar(m)),
+          'aria-label': etiqueta,
+        }
+      : {}
 
   return (
     <>
@@ -62,10 +87,12 @@ export default function Movimientos({ onNuevo, onEditar }) {
           <span className="eyebrow">Movimientos</span>
           <h1>Todo lo que entra y sale</h1>
         </div>
-        <button type="button" className="btn btn-primary" onClick={onNuevo}>
-          <Icon name="plus" />
-          Nuevo movimiento
-        </button>
+        {onNuevo && (
+          <button type="button" className="btn btn-primary" onClick={onNuevo}>
+            <Icon name="plus" />
+            Nuevo movimiento
+          </button>
+        )}
       </div>
 
       <section className="sum" aria-label="Totales de lo filtrado">
@@ -115,6 +142,16 @@ export default function Movimientos({ onNuevo, onEditar }) {
             </option>
           ))}
         </select>
+        {porUsuario && usuarios.length > 1 && (
+          <select className="input" value={f.usuario} onChange={(e) => set('usuario', e.target.value)} aria-label="Registrado por">
+            <option value="todos">Todas las personas</option>
+            {usuarios.map((u) => (
+              <option key={u.id} value={u.id}>
+                {u.nombre}
+              </option>
+            ))}
+          </select>
+        )}
         <select className="input cap-sel" value={f.mes} onChange={(e) => set('mes', e.target.value)} aria-label="Mes">
           {meses.map((m) => (
             <option key={m} value={m}>
@@ -140,10 +177,12 @@ export default function Movimientos({ onNuevo, onEditar }) {
                 Limpiar filtros
               </button>
             )}
-            <button type="button" className="btn btn-primary" onClick={onNuevo}>
-              <Icon name="plus" />
-              Nuevo movimiento
-            </button>
+            {onNuevo && (
+              <button type="button" className="btn btn-primary" onClick={onNuevo}>
+                <Icon name="plus" />
+                Nuevo movimiento
+              </button>
+            )}
           </div>
         </div>
       ) : (
@@ -166,17 +205,18 @@ export default function Movimientos({ onNuevo, onEditar }) {
                   return (
                     <tr
                       key={m.id}
-                      tabIndex={0}
-                      className={`row${m.id === tocado ? ' flash' : ''}`}
+                      className={`${onEditar ? 'row' : ''}${m.id === tocado ? ' flash' : ''}`}
                       style={{ '--d': `${Math.min(i, 12) * 28}ms` }}
-                      onClick={() => onEditar(m)}
-                      onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onEditar(m))}
-                      aria-label={`Editar ${m.descripcion}`}
+                      {...editable(m, `Editar ${m.descripcion}`)}
                     >
                       <td className="mono muted">{fechaCorta(m.fecha)}</td>
                       <td>
                         <strong>{m.descripcion}</strong>
-                        {m.proveedor && <small className="sub">{m.proveedor}</small>}
+                        {(m.proveedor || porUsuario) && (
+                          <small className="sub">
+                            {[m.proveedor, porUsuario && `Registró: ${m.usuario_nombre}`].filter(Boolean).join(' · ')}
+                          </small>
+                        )}
                       </td>
                       <td>
                         <span className="cat-chip" style={{ '--c': c.color }}>
@@ -187,7 +227,7 @@ export default function Movimientos({ onNuevo, onEditar }) {
                       <td className="muted">{nombreDocumento(m.tipo_documento)}</td>
                       <td className={`num mono ${m.tipo === 'ingreso' ? 'amt-in' : 'amt-out'}`}>
                         {clpSigno(m.monto, m.tipo)}
-                        <Icon name="pen" className="row-edit" />
+                        {onEditar && <Icon name="pen" className="row-edit" />}
                       </td>
                     </tr>
                   )
@@ -210,12 +250,13 @@ export default function Movimientos({ onNuevo, onEditar }) {
               const c = categoria(m.categoria_id)
               return (
                 <li key={m.id} className={m.id === tocado ? 'flash' : ''} style={{ '--d': `${Math.min(i, 12) * 28}ms` }}>
-                  <button type="button" onClick={() => onEditar(m)}>
+                  <button type="button" onClick={onEditar ? () => onEditar(m) : undefined} disabled={!onEditar}>
                     <span className="dot" style={{ color: c.color }} />
                     <span className="ml-t">
                       <strong>{m.descripcion}</strong>
                       <small>
                         {fechaCorta(m.fecha)} · {c.nombre}
+                        {porUsuario && ` · ${m.usuario_nombre}`}
                       </small>
                     </span>
                     <span className={`mono ${m.tipo === 'ingreso' ? 'amt-in' : 'amt-out'}`}>{clpSigno(m.monto, m.tipo)}</span>

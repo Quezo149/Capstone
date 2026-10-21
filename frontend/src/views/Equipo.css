@@ -1,0 +1,107 @@
+/* Equipo (HU02) */
+.eq-page {
+  display: grid;
+  gap: 24px;
+}
+
+.eq-lista {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.eq-lista li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  min-height: 56px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.eq-lista li:last-child {
+  border-bottom: 0;
+}
+
+.eq-lista li.inactivo .eq-quien {
+  opacity: 0.6;
+}
+
+.eq-quien {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.eq-quien strong {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  overflow-wrap: anywhere;
+}
+
+.eq-quien small {
+  font-size: 13px;
+}
+
+.eq-vencida {
+  color: var(--gasto);
+}
+
+.eq-acts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.eq-rol {
+  width: auto;
+  min-width: 140px;
+  padding-block: 6px;
+}
+
+/* Panel: invitación creada */
+.inv-ok {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.inv-ok p {
+  margin: 0;
+}
+
+.inv-ok-ic {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 99px;
+  background: var(--ingreso-tint);
+  color: var(--ingreso);
+}
+
+.inv-ok-ic svg {
+  width: 18px;
+  height: 18px;
+}
+
+.inv-link {
+  display: flex;
+  gap: 8px;
+}
+
+.inv-link .input {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.inv-wsp {
+  justify-self: start;
+}

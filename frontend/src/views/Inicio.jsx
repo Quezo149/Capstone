@@ -1,8 +1,8 @@
 import Icon from '../components/Icon'
 import Mark from '../components/Mark'
 import Numero from '../components/Numero'
-import { categoria } from '../data/categorias'
 import { clpNeto, clpSigno, fechaCorta, fechaLarga, hoyISO, moverMes, nombreMes } from '../lib/format'
+import { useCategorias } from '../state/Categorias'
 import { totales, useMovimientos } from '../state/Movimientos'
 import { useSesion } from '../state/Sesion'
 import Bienvenida from './Bienvenida'
@@ -36,9 +36,11 @@ function Kpi({ label, valor, anterior, tono, comparado, d }) {
   )
 }
 
+// onNuevo / onEditar en null: el rol no registra movimientos (contador, HU03)
 export default function Inicio({ onNuevo, onEditar }) {
   const { perfil } = useSesion()
   const { movs } = useMovimientos()
+  const { categoria } = useCategorias()
   const hoy = hoyISO()
   const mes = hoy.slice(0, 7)
   const mesAnt = moverMes(mes, -1)
@@ -70,10 +72,12 @@ export default function Inicio({ onNuevo, onEditar }) {
             Así va <Mark variant="hl">{nombreMes(mes)}</Mark> en {perfil.empresa_nombre}.
           </h1>
         </div>
-        <button type="button" className="btn btn-primary" onClick={onNuevo}>
-          <Icon name="plus" />
-          Nuevo movimiento
-        </button>
+        {onNuevo && (
+          <button type="button" className="btn btn-primary" onClick={onNuevo}>
+            <Icon name="plus" />
+            Nuevo movimiento
+          </button>
+        )}
       </div>
 
       <section className="kpis" aria-label="Resumen del mes">
@@ -131,7 +135,7 @@ export default function Inicio({ onNuevo, onEditar }) {
               const c = categoria(m.categoria_id)
               return (
                 <li key={m.id}>
-                  <button type="button" onClick={() => onEditar(m)}>
+                  <button type="button" onClick={onEditar ? () => onEditar(m) : undefined} disabled={!onEditar}>
                     <span className={`recent-ic ${m.tipo}`}>
                       <Icon name={m.tipo === 'ingreso' ? 'in' : 'out'} />
                     </span>
@@ -150,6 +154,7 @@ export default function Inicio({ onNuevo, onEditar }) {
         </div>
       </section>
 
+      {onNuevo && (
       <section className="deep-card quick rise" style={{ '--d': '320ms' }}>
         <div>
           <span className="eyebrow">Muy pronto</span>
@@ -161,6 +166,7 @@ export default function Inicio({ onNuevo, onEditar }) {
           Registrar a mano
         </button>
       </section>
+      )}
     </>
   )
 }

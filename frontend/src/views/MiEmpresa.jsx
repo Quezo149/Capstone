@@ -10,12 +10,12 @@ import './Acceso.css'
 // Mi empresa (HU04): todos los miembros ven los datos; solo el administrador los edita.
 // El backend aplica la misma regla (PUT /empresas/actual exige rol admin).
 export default function MiEmpresa() {
-  const { perfil, refrescar } = useSesion()
+  const { perfil, refrescar, puede } = useSesion()
   const { aviso } = useToast()
   const [empresa, setEmpresa] = useState(null)
   const [editando, setEditando] = useState(false)
   const [error, setError] = useState(null)
-  const esAdmin = perfil.rol === 'admin'
+  const esAdmin = puede('empresa.editar')
 
   useEffect(() => {
     api('/empresas/actual')
@@ -78,6 +78,24 @@ export default function MiEmpresa() {
           </>
         )}
       </div>
+
+      {/* En el celular no hay barra lateral: este es el camino a Categorías y Equipo */}
+      <a className="card empresa-link" href="#/categorias">
+        <Icon name="tag" />
+        <span>
+          <strong>Categorías</strong>
+          <small className="muted">{esAdmin ? 'Crea y ordena las categorías de tus movimientos' : 'Las categorías que usa tu empresa'}</small>
+        </span>
+      </a>
+      {puede('usuarios.ver') && (
+        <a className="card empresa-link" href="#/equipo">
+          <Icon name="users" />
+          <span>
+            <strong>Equipo</strong>
+            <small className="muted">{esAdmin ? 'Invita a tu contador y a tu equipo, y define qué puede hacer cada uno' : 'Quiénes usan la cuenta de la empresa'}</small>
+          </span>
+        </a>
+      )}
     </section>
   )
 }
