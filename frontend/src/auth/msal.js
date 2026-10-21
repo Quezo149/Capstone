@@ -50,10 +50,12 @@ async function crearMsal() {
   pca = await createStandardPublicClientApplication(config())
   const resultado = await pca.handleRedirectPromise({ navigateToLoginRequestUrl: false })
   if (resultado?.account) pca.setActiveAccount(resultado.account)
-  if (sessionStorage.getItem(CREAR_KEY)) {
-    // Volvimos del logout de "Crear una cuenta": directo al registro de Entra
+  const crear = sessionStorage.getItem(CREAR_KEY)
+  if (crear) {
+    // Volvimos del logout de "Crear una cuenta": directo al registro de Entra.
+    // La marca guarda el correo a pre-llenar (invitaciones) o '1' si no hay.
     sessionStorage.removeItem(CREAR_KEY)
-    await pca.loginRedirect({ scopes: [API_SCOPE], prompt: 'create' })
+    await pca.loginRedirect({ scopes: [API_SCOPE], prompt: 'create', ...(crear !== '1' ? { loginHint: crear } : {}) })
     return new Promise(() => {}) // la página se va a Entra: se queda en "cargando"
   }
   // Limpia ?code=…&state=… de la barra de direcciones, conservando la ruta (#/…)
@@ -92,13 +94,19 @@ async function sesionMicrosoft() {
  * atascada. Si la app no ve una sesión de Microsoft (ssoSilent ya lo intentó al cargar), no la hay
  * o el navegador bloquea las cookies de terceros; en ambos casos se va directo al registro.
  */
-export function iniciarSesion({ crear = false } = {}) {
+export function iniciarSesion({ crear = false, correo = null } = {}) {
   const cuenta = pca.getActiveAccount() ?? pca.getAllAccounts()[0]
   if (crear && cuenta) {
-    sessionStorage.setItem(CREAR_KEY, '1')
+    sessionStorage.setItem(CREAR_KEY, correo ?? '1')
     return pca.logoutRedirect({ account: cuenta })
   }
-  return pca.loginRedirect({ scopes: [API_SCOPE], ...(crear ? { prompt: 'create' } : {}) })
+  // correo: el de una invitación (HU02). Entra lo deja escrito en su página; no lo puede
+  // bloquear, pero el backend rechaza aceptar la invitación con otro correo.
+  return pca.loginRedirect({
+    scopes: [API_SCOPE],
+    ...(crear ? { prompt: 'create' } : {}),
+    ...(correo ? { loginHint: correo } : {}),
+  })
 }
 
 export function cerrarSesion() {

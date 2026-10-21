@@ -38,7 +38,8 @@ function NavLink({ s, actual, corto }) {
 
 export default function Shell({ ruta, onNuevo, children, pie }) {
   const { dark, toggle } = useTheme()
-  const { perfil, salir } = useSesion()
+  const { perfil, salir, puede } = useSesion()
+  const secciones = SECCIONES.filter((s) => !s.permiso || puede(s.permiso))
   // En el celular la barra inferior lleva 4 secciones y el botón "+" al centro
   const movil = ['inicio', 'movimientos', 'cargar', 'reportes'].map((id) => SECCIONES.find((s) => s.id === id))
 
@@ -46,13 +47,16 @@ export default function Shell({ ruta, onNuevo, children, pie }) {
     <div className="app">
       <aside className="side" aria-label="Navegación principal">
         <Logo />
-        <button type="button" className="btn btn-primary side-new" onClick={onNuevo}>
-          <Icon name="plus" />
-          Nuevo movimiento
-          <kbd>N</kbd>
-        </button>
+        {/* onNuevo es null cuando el rol no registra movimientos (contador, HU03) */}
+        {onNuevo && (
+          <button type="button" className="btn btn-primary side-new" onClick={onNuevo}>
+            <Icon name="plus" />
+            Nuevo movimiento
+            <kbd>N</kbd>
+          </button>
+        )}
         <nav className="nav">
-          {SECCIONES.map((s) => (
+          {secciones.map((s) => (
             <NavLink key={s.id} s={s} actual={ruta} />
           ))}
         </nav>
@@ -102,9 +106,13 @@ export default function Shell({ ruta, onNuevo, children, pie }) {
         {movil.slice(0, 2).map((s) => (
           <NavLink key={s.id} s={s} actual={ruta} corto />
         ))}
-        <button type="button" className="fab" onClick={onNuevo} aria-label="Nuevo movimiento">
-          <Icon name="plus" />
-        </button>
+        {onNuevo ? (
+          <button type="button" className="fab" onClick={onNuevo} aria-label="Nuevo movimiento">
+            <Icon name="plus" />
+          </button>
+        ) : (
+          <span aria-hidden="true" />
+        )}
         {movil.slice(2).map((s) => (
           <NavLink key={s.id} s={s} actual={ruta} corto />
         ))}

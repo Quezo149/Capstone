@@ -1,27 +1,8 @@
-// Categorías globales predefinidas (en la BD serán filas de `categorias` con empresa_id = null).
-// Los ids son códigos estables, igual que en piloto_interesados: el nombre visible puede cambiar.
-// Las categorías propias de cada empresa (HU14, solo admin) llegan en una parte posterior.
+// Las categorías vienen de la API (GET /categorias): las predefinidas, iguales para todas las
+// empresas, más las propias de la empresa (HU14). Ver state/Categorias.jsx.
 
-export const CATEGORIAS = [
-  { id: 'ventas', nombre: 'Ventas', tipo: 'ingreso', color: '#17804f' },
-  { id: 'otros-ingresos', nombre: 'Otros ingresos', tipo: 'ingreso', color: '#5aa37f' },
-
-  { id: 'insumos', nombre: 'Insumos', tipo: 'gasto', color: '#0f6e55' },
-  { id: 'arriendo', nombre: 'Arriendo', tipo: 'gasto', color: '#2f5d8a' },
-  { id: 'remuneraciones', nombre: 'Remuneraciones', tipo: 'gasto', color: '#7a4fa0' },
-  { id: 'servicios-basicos', nombre: 'Servicios básicos', tipo: 'gasto', color: '#c48a12' },
-  { id: 'transporte', nombre: 'Transporte', tipo: 'gasto', color: '#b8382a' },
-  { id: 'mantencion', nombre: 'Mantención', tipo: 'gasto', color: '#8a6a4f' },
-  { id: 'marketing', nombre: 'Marketing', tipo: 'gasto', color: '#c2477d' },
-  { id: 'impuestos', nombre: 'Impuestos y patentes', tipo: 'gasto', color: '#4d625b' },
-  { id: 'otros-gastos', nombre: 'Otros gastos', tipo: 'gasto', color: '#7d8d87' },
-]
-
-const POR_ID = Object.fromEntries(CATEGORIAS.map((c) => [c.id, c]))
-
-export const categoria = (id) => POR_ID[id] ?? { id, nombre: 'Sin categoría', tipo: 'gasto', color: '#7d8d87' }
-
-export const categoriasDe = (tipo) => CATEGORIAS.filter((c) => c.tipo === tipo)
+// Colores sugeridos al crear una categoría propia: los mismos tonos de las predefinidas
+export const PALETA = ['#17804f', '#0f6e55', '#2f5d8a', '#7a4fa0', '#c48a12', '#b8382a', '#8a6a4f', '#c2477d', '#4d625b', '#7d8d87']
 
 // Mismos valores que el enum `tipo_documento` del modelo de datos
 export const TIPOS_DOCUMENTO = [

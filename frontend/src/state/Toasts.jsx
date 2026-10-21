@@ -3,6 +3,8 @@ import Icon from '../components/Icon'
 import './Toasts.css'
 
 // Avisos cortos abajo al centro. aviso('texto', { accion: { label, onClick }, festejo: true })
+// Los que traen acción (Deshacer) duran 10 s y no se cierran mientras el puntero o el foco
+// estén encima: si alguien va a tocar "Deshacer", no se le escapa.
 const Ctx = createContext(null)
 
 // Confeti del aviso de éxito: mismas piezas fijas que el formulario de la landing
@@ -14,6 +16,8 @@ const PIEZAS = Array.from({ length: 10 }, (_, i) => {
 export function ToastProvider({ children }) {
   const [items, setItems] = useState([])
   const seq = useRef(0)
+  // Temporizador de cierre de cada aviso, para pausarlo y reanudarlo
+  const timers = useRef({})
 
   const cerrar = useCallback((id) => {
     setItems((l) => l.map((t) => (t.id === id ? { ...t, saliendo: true } : t)))
@@ -21,14 +25,21 @@ export function ToastProvider({ children }) {
   }, [])
 
   const aviso = useCallback(
-    (texto, { accion, festejo = false, duracion = accion ? 6000 : 2800 } = {}) => {
+    (texto, { accion, festejo = false, duracion = accion ? 10000 : 2800 } = {}) => {
       const id = ++seq.current
       // Máximo dos a la vez: el más viejo se va
       setItems((l) => [...l.slice(-1), { id, texto, accion, festejo }])
-      setTimeout(() => cerrar(id), duracion)
+      timers.current[id] = setTimeout(() => cerrar(id), duracion)
     },
     [cerrar],
   )
+
+  const pausar = useCallback((id) => clearTimeout(timers.current[id]), [])
+  // Al soltar se dan unos segundos más, no el tiempo completo
+  const reanudar = useCallback((id) => {
+    clearTimeout(timers.current[id])
+    timers.current[id] = setTimeout(() => cerrar(id), 4000)
+  }, [cerrar])
 
   const value = useMemo(() => ({ aviso }), [aviso])
 
@@ -37,7 +48,18 @@ export function ToastProvider({ children }) {
       {children}
       <div className="toasts" role="status" aria-live="polite">
         {items.map((t) => (
-          <div key={t.id} className={`toast${t.saliendo ? ' out' : ''}`}>
+          <div
+            key={t.id}
+            className={`toast${t.saliendo ? ' out' : ''}`}
+            {...(t.accion
+              ? {
+                  onMouseEnter: () => pausar(t.id),
+                  onMouseLeave: () => reanudar(t.id),
+                  onFocus: () => pausar(t.id),
+                  onBlur: () => reanudar(t.id),
+                }
+              : {})}
+          >
             <span className="toast-ic">
               <Icon name="checkc" />
               {t.festejo &&

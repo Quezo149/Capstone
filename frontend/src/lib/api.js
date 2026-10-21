@@ -25,13 +25,17 @@ function leerError(status, cuerpo) {
   return new ApiError(status, 'error', 'Algo salió mal. Intenta de nuevo en unos segundos.')
 }
 
-export async function api(ruta, { method = 'GET', body } = {}) {
-  const token = await obtenerToken()
+// publica: sin sesión (por ejemplo, la vista del link de invitación antes de iniciar sesión)
+export async function api(ruta, { method = 'GET', body, publica = false } = {}) {
+  const token = publica ? null : await obtenerToken()
   let r
   try {
     r = await fetch(`${BASE}${ruta}`, {
       method,
-      headers: { Authorization: `Bearer ${token}`, ...(body ? { 'Content-Type': 'application/json' } : {}) },
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(body ? { 'Content-Type': 'application/json' } : {}),
+      },
       body: body ? JSON.stringify(body) : undefined,
     })
   } catch {

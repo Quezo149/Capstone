@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Icon from './Icon'
 import './Drawer.css'
 
 // Panel lateral (abajo, tipo hoja, en el celular). Se cierra con Escape, con la X o
-// tocando el fondo. Espera a que termine la animación de salida antes de desmontarse.
+// tocando el fondo. Se dibuja en <body> (portal): dentro de un contenedor animado con
+// transform, `position: fixed` se mediría desde ese contenedor y no desde la ventana. Espera a que termine la animación de salida antes de desmontarse.
 export default function Drawer({ abierto, onCerrar, titulo, eyebrow, children, ancho = 480 }) {
   const [montado, setMontado] = useState(abierto)
   const [saliendo, setSaliendo] = useState(false)
@@ -54,7 +56,7 @@ export default function Drawer({ abierto, onCerrar, titulo, eyebrow, children, a
 
   if (!montado) return null
 
-  return (
+  return createPortal(
     <div className={`scrim${saliendo ? ' out' : ''}`} onMouseDown={(e) => e.target === e.currentTarget && onCerrar()}>
       <aside
         ref={panel}
@@ -75,6 +77,7 @@ export default function Drawer({ abierto, onCerrar, titulo, eyebrow, children, a
         </header>
         {children}
       </aside>
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -51,9 +51,13 @@ export function SesionProvider({ children }) {
     }
   }, [refrescar])
 
+  // HU03: los permisos los calcula el backend a partir del rol (GET /auth/me). La pantalla solo
+  // oculta lo que el rol no puede hacer; la regla de verdad se aplica en el servidor.
+  const puede = useCallback((permiso) => Boolean(perfil?.permisos?.includes(permiso)), [perfil])
+
   const valor = useMemo(
-    () => ({ estado, perfil, error, refrescar, entrar: iniciarSesion, salir: cerrarSesion }),
-    [estado, perfil, error, refrescar],
+    () => ({ estado, perfil, error, refrescar, puede, entrar: iniciarSesion, salir: cerrarSesion }),
+    [estado, perfil, error, refrescar, puede],
   )
   return <SesionContext.Provider value={valor}>{children}</SesionContext.Provider>
 }

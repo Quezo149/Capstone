@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.core.auth import CurrentUser, get_current_user, require_roles
+from app.core.auth import CurrentUser, get_current_user
 from app.core.db import get_db
+from app.core.permisos import permisos_de
 
 router = APIRouter()
 
@@ -22,15 +23,7 @@ def me(user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_
         "empresa_nombre": empresa.nombre,
         "rol": user.rol,
         "email": user.email,
+        # HU03 — KONTADORIA-45: la app muestra u oculta acciones con esta lista,
+        # calculada en el servidor a partir del rol guardado en usuarios_empresa.
+        "permisos": permisos_de(user.rol),
     }
-
-
-@router.post("/invitaciones")
-def crear_invitacion(user: CurrentUser = Depends(require_roles("admin"))):
-    """
-    TODO: recibir correo + rol del invitado (body), generar token (UUID v4),
-    guardar token_hash + email_invitado + expiración (72h) en `invitaciones`,
-    devolver el link para que el admin lo copie — ver 07 Autenticación y
-    Multi-tenancy.md, sección "Flujo de redención".
-    """
-    raise NotImplementedError

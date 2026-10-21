@@ -1,6 +1,7 @@
-import { useMemo, useRef, useState } from 'react'
-import { categoria as catPorId, categoriasDe, TIPOS_DOCUMENTO } from '../data/categorias'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { TIPOS_DOCUMENTO } from '../data/categorias'
 import { nuevoId } from '../data/movimientos'
+import { useCategorias } from '../state/Categorias'
 import { clp, desglosarIva, hoyISO, leerMonto } from '../lib/format'
 import Icon from './Icon'
 import Seg from './Seg'
@@ -36,17 +37,29 @@ function validar(f) {
 // onGuardar(datos, { otro }) → `otro` true cuando el usuario quiere seguir cargando.
 export default function MovimientoForm({ inicial, proveedores = [], onGuardar, onEliminar }) {
   const editando = Boolean(inicial)
-  const [f, setF] = useState(() => (inicial ? { ...inicial } : vacio()))
+  const { categoria: catPorId, categoriasDe } = useCategorias()
+  const [f, setF] = useState(() =>
+    inicial ? { ...inicial, proveedor: inicial.proveedor ?? '', descripcion: inicial.descripcion ?? '' } : vacio(),
+  )
   // Se genera una vez por formulario abierto: si el guardado se repite, no se duplica
   const [requestId, setRequestId] = useState(nuevoId)
   const [errores, setErrores] = useState({})
+  // Error que devolvió la API y no corresponde a un campo (sin conexión, sin permiso, …)
+  const [errorGeneral, setErrorGeneral] = useState(null)
   const [enviando, setEnviando] = useState(false)
+  // Eliminar pide confirmar, mostrando qué se elimina (monto y descripción guardados)
+  const [confirmar, setConfirmar] = useState(false)
+  const [eliminando, setEliminando] = useState(false)
+  const confirmRef = useRef(null)
+  useEffect(() => {
+    if (confirmar) confirmRef.current?.focus()
+  }, [confirmar])
   // Candado inmediato: `enviando` (estado) recién se actualiza en el próximo render, así que
   // un doble clic rápido alcanzaba a enviar dos veces. La ref cambia en el acto.
   const enCurso = useRef(false)
   const montoRef = useRef(null)
 
-  const cats = useMemo(() => categoriasDe(f.tipo), [f.tipo])
+  const cats = useMemo(() => categoriasDe(f.tipo), [categoriasDe, f.tipo])
   const set = (campo, valor) => {
     setF((x) => ({ ...x, [campo]: valor }))
     if (errores[campo]) setErrores((x) => ({ ...x, [campo]: undefined }))
@@ -71,6 +84,7 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
     }
     enCurso.current = true
     setEnviando(true)
+    setErrorGeneral(null)
     try {
       const datos = {
         tipo: f.tipo,
@@ -89,6 +103,11 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
         setRequestId(nuevoId())
         montoRef.current?.focus()
       }
+    } catch (err) {
+      // 422 por campo → bajo cada campo; categoría de otro tipo → en la categoría; el resto, arriba del botón
+      if (err.campos) setErrores(err.campos)
+      else if (err.codigo === 'categoria_invalida') setErrores({ categoria_id: err.message })
+      else setErrorGeneral(err.message)
     } finally {
       enCurso.current = false
       setEnviando(false)
@@ -266,9 +285,60 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
         </div>
       </div>
 
+      {errorGeneral && (
+        <p className="err mf-err" role="alert">
+          {errorGeneral}
+        </p>
+      )}
+      {confirmar ? (
+        // El foco va a la barra misma (no a un botón): un Enter apurado no elimina ni cancela
+        <footer
+          className="mf-foot mf-confirm"
+          role="alertdialog"
+          aria-labelledby="mf-confirm-t"
+          aria-describedby="mf-confirm-d"
+          tabIndex={-1}
+          ref={confirmRef}
+        >
+          <div className="mf-confirm-msg">
+            <span className="mf-confirm-ic">
+              <Icon name="trash" />
+            </span>
+            <div>
+              <strong id="mf-confirm-t">¿Eliminar este {inicial.tipo}?</strong>
+              <p id="mf-confirm-d">
+                <span className="mono">{clp(inicial.monto)}</span>
+                {inicial.descripcion && <> · {inicial.descripcion}</>}
+              </p>
+              <small>Podrás deshacerlo durante unos segundos.</small>
+            </div>
+          </div>
+          <div className="mf-confirm-acts">
+            <button type="button" className="btn btn-ghost" disabled={eliminando} onClick={() => setConfirmar(false)}>
+              Cancelar
+            </button>
+            <button
+              type="button"
+              className="btn btn-danger-solid"
+              disabled={eliminando}
+              onClick={async () => {
+                setEliminando(true)
+                try {
+                  await onEliminar()
+                } finally {
+                  setEliminando(false)
+                }
+              }}
+            >
+              <Icon name="trash" />
+              Sí, eliminar
+            </button>
+          </div>
+        </footer>
+      ) : (
       <footer className="mf-foot">
         {editando && (
-          <button type="button" className="btn btn-danger" onClick={onEliminar}>
+          <button type="button" className="btn btn-danger" onClick={() => setConfirmar(true)}>
             <Icon name="trash" />
             Eliminar
           </button>
@@ -284,6 +354,7 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
           {editando ? 'Guardar cambios' : esGasto ? 'Guardar gasto' : 'Guardar ingreso'}
         </button>
       </footer>
+      )}
     </form>
   )
 }

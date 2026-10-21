@@ -1,13 +1,22 @@
 import Icon from '../components/Icon'
 import Mark from '../components/Mark'
-import { useMovimientos } from '../state/Movimientos'
-import { useToast } from '../state/Toasts'
 import './Bienvenida.css'
 
-// Estado vacío: todavía no hay ningún movimiento guardado en este navegador.
+// Estado vacío: la empresa todavía no tiene movimientos (o el empleado aún no registra los suyos).
+// Los datos de ejemplo ya no se ofrecen aquí: ahora se guardarían en la base real de la empresa
+// (siguen disponibles con ?debug, ver DatosLocales). onNuevo null = rol que no registra (contador).
 export default function Bienvenida({ onNuevo }) {
-  const { cargarEjemplo } = useMovimientos()
-  const { aviso } = useToast()
+  if (!onNuevo) {
+    return (
+      <section className="welcome deep-card">
+        <div className="welcome-txt">
+          <span className="eyebrow">Aún no hay movimientos</span>
+          <h1>Cuando el equipo registre ingresos y gastos, los verás aquí.</h1>
+          <p>Como contador puedes consultar y filtrar todos los movimientos de la empresa.</p>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="welcome deep-card">
@@ -28,17 +37,6 @@ export default function Bienvenida({ onNuevo }) {
           <button type="button" className="btn quick-btn" onClick={onNuevo}>
             <Icon name="plus" />
             Agregar el primero
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost welcome-ghost"
-            onClick={async () => {
-              await cargarEjemplo()
-              aviso('Cargamos 3 meses de ejemplo para que explores', { festejo: true })
-            }}
-          >
-            <Icon name="spark" />
-            Ver con datos de ejemplo
           </button>
         </div>
       </div>

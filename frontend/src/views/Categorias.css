@@ -1,0 +1,173 @@
+/* Categorías (HU14) */
+/* Mismo espacio entre bloques que <main> (Shell.css): todo va dentro de una sola sección */
+.cat-page {
+  display: grid;
+  gap: 24px;
+}
+
+.cat-colores {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.cat-color {
+  width: 30px;
+  height: 30px;
+  border: 2px solid transparent;
+  border-radius: 99px;
+  background: var(--c);
+  cursor: pointer;
+  box-shadow: inset 0 0 0 2px var(--surface);
+  transition: transform 0.15s ease;
+}
+
+.cat-color:hover {
+  transform: scale(1.12);
+}
+
+.cat-color[aria-checked='true'] {
+  border-color: var(--ink);
+}
+
+/* Color libre: un círculo con lápiz que abre el selector del sistema */
+.cat-color-libre {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px dashed var(--muted);
+  border-radius: 99px;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.cat-color-libre svg {
+  width: 14px;
+  height: 14px;
+}
+
+.cat-color-libre input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Vista previa en tema claro y oscuro, con los colores fijos de cada tema (tokens.css) */
+.cat-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.cat-preview-tema {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m, 12px);
+}
+
+.cat-preview-tema.claro {
+  background: #ffffff;
+  color: #0b2620;
+  --pista: #e8eeeb;
+}
+
+.cat-preview-tema.oscuro {
+  background: #13201c;
+  color: #e6efe9;
+  --pista: #24352f;
+}
+
+.cat-preview-fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cat-preview-fila > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cat-preview-fila .dot {
+  color: var(--c);
+}
+
+.cat-preview-barra {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--pista);
+}
+
+.cat-preview-barra i {
+  display: block;
+  width: 65%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--c);
+}
+
+.cat-preview-tema small {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.cat-grid {
+  align-items: start;
+}
+
+.cat-lista {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cat-lista li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.cat-lista li:last-child {
+  border-bottom: 0;
+}
+
+.cat-lista li.activa {
+  font-weight: 700;
+}
+
+.cat-nombre {
+  flex: 1;
+  min-width: 0;
+}
+
+.cat-acts {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cat-acts .btn-sm svg {
+  width: 16px;
+  height: 16px;
+}
+
+.cat-color-libre.elegido {
+  border: 2px solid var(--ink);
+  background: var(--c);
+  color: #fff;
+  box-shadow: inset 0 0 0 2px var(--surface);
+}

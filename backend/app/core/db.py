@@ -14,8 +14,9 @@ pyodbc.pooling = False
 
 _engine: Engine | None = None
 
-# Claves de SESSION_CONTEXT que leen las políticas de RLS (db/migrations/0007_rls.sql).
-_CLAVES_CONTEXTO = ("empresa_id", "usuario_id", "rol")
+# Claves de SESSION_CONTEXT que leen las políticas de RLS (db/migrations/0007_rls.sql y,
+# para invitaciones, 0009_invitaciones.sql).
+_CLAVES_CONTEXTO = ("empresa_id", "usuario_id", "rol", "invitacion_token", "invitacion_email")
 
 
 def _limpiar_contexto(dbapi_connection, connection_record, connection_proxy) -> None:
@@ -74,6 +75,17 @@ def set_session_context(db: Session, empresa_id: str, usuario_id: str, rol: str)
     db.execute(text("EXEC sp_set_session_context N'empresa_id', :empresa_id"), {"empresa_id": empresa_id})
     db.execute(text("EXEC sp_set_session_context N'usuario_id', :usuario_id"), {"usuario_id": usuario_id})
     db.execute(text("EXEC sp_set_session_context N'rol', :rol"), {"rol": rol})
+
+
+def set_contexto_invitacion(db: Session, *, token_hash: bytes | None = None, email: str | None = None) -> None:
+    """
+    Contexto para quien aún no tiene empresa (HU02): con el hash del token del link ve solo esa
+    invitación; con su correo verificado, solo las dirigidas a él. Ver 0009_invitaciones.sql.
+    """
+    if token_hash is not None:
+        db.execute(text("EXEC sp_set_session_context N'invitacion_token', :v"), {"v": token_hash})
+    if email is not None:
+        db.execute(text("EXEC sp_set_session_context N'invitacion_email', :v"), {"v": email})
 
 
 def get_db() -> Generator[Session, None, None]:
