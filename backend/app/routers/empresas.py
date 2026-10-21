@@ -6,8 +6,9 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.core.auth import CurrentUser, Identidad, get_current_user, get_identidad, require_roles
-from app.core.db import get_db
+from app.core.auth import CurrentUser, Identidad, get_identidad, require_permiso
+from app.core.cuentas import asegurar_usuario, pertenece_a_una_empresa
+from app.core.db import get_db, set_contexto_invitacion
 from app.core.rut import formatear_rut, normalizar_rut
 
 router = APIRouter()
@@ -63,8 +64,9 @@ def registrar_empresa(
     y lo deja como administrador, todo en una transacción.
 
     Quien ya pertenece a una empresa (por ejemplo, porque llegó con una invitación, HU02)
-    no puede crear otra: se une a la que lo invitó, con el rol asignado.
-    TODO (HU02, Sprint 2): rechazar también si el correo tiene una invitación pendiente.
+    no puede crear otra: se une a la que lo invitó, con el rol asignado. Tampoco quien tiene
+    una invitación pendiente: lo más probable es que se haya saltado el link y crearía una
+    empresa vacía por error.
 
     Las categorías predefinidas no se copian: son filas con empresa_id NULL que RLS deja
     ver a todas las empresas (0005_categorias.sql).
@@ -73,33 +75,31 @@ def registrar_empresa(
         # Falta el claim opcional "email" en el access token (Entra → Token configuration).
         raise _error(status.HTTP_400_BAD_REQUEST, "token_sin_email", "No pudimos leer tu correo desde la sesión.")
 
-    ya_es_miembro = db.execute(
-        text(
-            """
-            SELECT 1 FROM dbo.usuarios u
-            JOIN dbo.usuarios_empresa ue ON ue.usuario_id = u.id
-            WHERE u.entra_oid = :oid
-            """
-        ),
-        {"oid": identidad.entra_oid},
-    ).first()
-    if ya_es_miembro:
+    if pertenece_a_una_empresa(db, identidad.entra_oid):
         raise _error(status.HTTP_409_CONFLICT, "ya_tiene_empresa", "Tu cuenta ya pertenece a una empresa.")
 
+    # Con el correo verificado de la sesión, RLS deja ver solo las invitaciones dirigidas a él
+    set_contexto_invitacion(db, email=identidad.email)
+    invitacion = db.execute(
+        text(
+            """
+            SELECT TOP 1 e.nombre FROM dbo.invitaciones i JOIN dbo.empresas e ON e.id = i.empresa_id
+            WHERE i.email_invitado = :email AND i.aceptada_en IS NULL AND i.revocada_en IS NULL
+              AND i.expira_en > SYSUTCDATETIME()
+            ORDER BY i.creado_en DESC
+            """
+        ),
+        {"email": identidad.email},
+    ).first()
+    if invitacion:
+        raise _error(
+            status.HTTP_409_CONFLICT,
+            "tiene_invitacion",
+            f"{invitacion.nombre} te invitó a su equipo. Abre el link que te enviaron para unirte.",
+        )
+
     try:
-        # MERGE: el usuario puede existir sin empresa (por ejemplo, si lo desvincularon).
-        usuario_id = db.execute(
-            text(
-                """
-                MERGE dbo.usuarios WITH (HOLDLOCK) AS t
-                USING (SELECT CAST(:oid AS UNIQUEIDENTIFIER) AS entra_oid) AS s ON t.entra_oid = s.entra_oid
-                WHEN MATCHED THEN UPDATE SET email = :email, nombre = COALESCE(:nombre, t.nombre)
-                WHEN NOT MATCHED THEN INSERT (entra_oid, email, nombre) VALUES (s.entra_oid, :email, :nombre)
-                OUTPUT inserted.id;
-                """
-            ),
-            {"oid": identidad.entra_oid, "email": identidad.email, "nombre": identidad.nombre},
-        ).scalar_one()
+        usuario_id = asegurar_usuario(db, identidad)
         empresa = db.execute(
             text(
                 """
@@ -125,7 +125,7 @@ def registrar_empresa(
 
 
 @router.get("/actual")
-def ver_empresa(user: CurrentUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def ver_empresa(user: CurrentUser = Depends(require_permiso("empresa.ver")), db: Session = Depends(get_db)):
     """HU04 — KONTADORIA-28. Cualquier miembro activo ve los datos de su empresa (la app muestra el nombre)."""
     return {"empresa": _empresa_json(_leer_empresa(db, user.empresa_id)), "rol": user.rol}
 
@@ -133,7 +133,7 @@ def ver_empresa(user: CurrentUser = Depends(get_current_user), db: Session = Dep
 @router.put("/actual")
 def editar_empresa(
     datos: DatosEmpresa,
-    user: CurrentUser = Depends(require_roles("admin")),
+    user: CurrentUser = Depends(require_permiso("empresa.editar")),
     db: Session = Depends(get_db),
 ):
     """

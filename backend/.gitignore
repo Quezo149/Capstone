@@ -10,7 +10,7 @@ venv/
 htmlcov/
 
 # Azure Functions — configuración local con secretos (usar local.settings.json.example como plantilla)
-local.settings.json
+local.settings*.json
 .python_packages/
 bin/
 obj/

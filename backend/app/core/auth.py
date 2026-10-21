@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.db import get_db, set_session_context
+from app.core.permisos import PERMISOS
 
 # auto_error=False: sin token respondemos 401 nosotros, con el mismo formato que un token inválido.
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -207,3 +208,13 @@ def require_roles(*roles_permitidos: str):
         return user
 
     return _checker
+
+
+def require_permiso(permiso: str):
+    """
+    HU03 — KONTADORIA-44. Igual que require_roles, pero con los roles tomados de la tabla
+    de app.core.permisos: así el endpoint y la pantalla leen la misma regla.
+    """
+    if permiso not in PERMISOS:
+        raise KeyError(f"Permiso desconocido: {permiso}")  # error de programación, al importar el router
+    return require_roles(*PERMISOS[permiso])
