@@ -278,3 +278,95 @@
     display: none;
   }
 }
+
+/* Error de la API que no es de un campo (sin conexión, sin permiso) */
+.mf-err {
+  margin: 0;
+  padding: 10px 20px;
+  color: var(--gasto);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Confirmación de eliminar: reemplaza la barra de botones (no es una ventana encima) */
+.mf-confirm {
+  display: grid;
+  gap: 14px;
+  background: var(--gasto-tint);
+  border-top-color: var(--gasto);
+  outline: none;
+  animation: panelIn 0.2s ease-out both;
+}
+
+.mf-confirm-msg {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.mf-confirm-ic {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--gasto) 18%, transparent);
+  color: var(--gasto);
+}
+
+.mf-confirm-ic svg {
+  width: 18px;
+  height: 18px;
+}
+
+.mf-confirm-msg > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mf-confirm-msg strong {
+  font-size: 15px;
+}
+
+.mf-confirm-msg p {
+  margin: 0;
+  overflow: hidden;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* En el color del texto: en la app el rojo significa "gasto", y esto puede ser un ingreso */
+.mf-confirm-msg .mono {
+  font-weight: 700;
+}
+
+.mf-confirm-msg small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+/* Dos botones del mismo ancho */
+.mf-confirm-acts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.mf-confirm-acts .btn {
+  justify-content: center;
+}
+
+/* Texto en el color de la tarjeta: blanco sobre rojo (claro), casi negro sobre salmón (oscuro) */
+.btn-danger-solid {
+  background: var(--gasto);
+  border-color: var(--gasto);
+  color: var(--surface);
+}
+
+.btn-danger-solid:hover {
+  background: color-mix(in srgb, var(--gasto) 85%, #000);
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--gasto) 30%, transparent);
+}

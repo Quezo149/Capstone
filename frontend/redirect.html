@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>KontadorIA</title>
+  </head>
+  <body>
+    <!-- "Redirect bridge" de MSAL v5: recibe la respuesta de Entra en las renovaciones silenciosas
+         de sesión y se la pasa a la app. Debe servirse desde el mismo origen (nunca desde un CDN)
+         y estar registrada como Redirect URI en la App Registration. -->
+    <script type="module">
+      import { broadcastResponseToMainFrame } from '@azure/msal-browser/redirect-bridge'
+      broadcastResponseToMainFrame().catch((e) => console.error(e))
+    </script>
+  </body>
+</html>

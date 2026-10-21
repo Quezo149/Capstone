@@ -9,6 +9,7 @@ import Pricing from './components/Pricing'
 import Faq from './components/Faq'
 import SignupForm from './components/SignupForm'
 import Footer from './components/Footer'
+import PrivacyDialog from './components/PrivacyDialog'
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <SignupForm />
       </main>
       <Footer />
+      <PrivacyDialog />
     </>
   )
 }

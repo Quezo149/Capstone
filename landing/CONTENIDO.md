@@ -302,6 +302,9 @@ Durante el piloto, puedes usar la plataforma sin costo y ayudarnos a mejorarla c
   - Papel y boletas sueltas
   - Otro sistema
 - Casilla (desmarcada por defecto): Soy contador y llevo las finanzas de varias PYMEs
+- Casilla de consentimiento (desmarcada, **obligatoria**): Acepto la [política de privacidad] y autorizo el tratamiento de mis datos para coordinar el piloto, incluido su almacenamiento en servidores de Microsoft Azure en Estados Unidos.
+
+> "política de privacidad" es un enlace que abre la política en un modal (`PrivacyDialog.jsx`). El texto de la casilla menciona Estados Unidos a propósito: es el consentimiento expreso para la transferencia internacional (Ley 21.719, art. 27). Si se cambia el texto de la política, subir `VERSION` en `src/data/privacidad.js` y `POLITICA_VERSION` en `backend/app/routers/piloto.py` a la vez.
 
 > Las opciones de los dos menús se pueden reescribir libremente: lo que se guarda en la base es un código interno. Solo **agregar o quitar** opciones requiere tocar el backend y la base de datos.
 
@@ -313,6 +316,7 @@ Durante el piloto, puedes usar la plataforma sin costo y ayudarnos a mejorarla c
 - Nombre vacío: Escribe tu nombre para saber a quién contactar.
 - Correo inválido: Revisa el correo: debe verse como nombre@empresa.cl.
 - Empresa vacía: Falta el nombre de tu empresa.
+- Casilla de consentimiento sin marcar: Para registrarte, necesitamos que aceptes la política de privacidad.
 - El servidor rechazó los datos: Revisa los datos del formulario e inténtalo de nuevo.
 - Error del servidor: No pudimos registrar tus datos. Inténtalo de nuevo en unos minutos.
 - Sin conexión: No pudimos conectar con el servidor. Revisa tu conexión.
@@ -327,7 +331,7 @@ Durante el piloto, puedes usar la plataforma sin costo y ayudarnos a mejorarla c
 ## 11. Pie de página (`Footer.jsx`)
 
 - Logo: Kontador**IA**
-- Texto: Gestión de gastos e ingresos para PYMEs chilenas · Santiago, Chile · 2026
+- Texto: Gestión de gastos e ingresos para PYMEs chilenas · Santiago, Chile · 2026 · [Política de privacidad]
 
 ---
 

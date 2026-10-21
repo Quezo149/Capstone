@@ -151,7 +151,12 @@ a {
   box-shadow: 0 10px 22px color-mix(in srgb, var(--brand) 38%, transparent);
 }
 
+/* Solo el + gira (girado sigue siendo un +); un ✓ o un lápiz girados se ven como otro ícono */
 .btn-primary:hover svg {
+  transform: scale(1.15);
+}
+
+.btn-primary:hover .i-plus {
   transform: rotate(90deg) scale(1.1);
 }
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Icon from './Icon'
 import Mark from './Mark'
 import Reveal from './Reveal'
+import { HASH, VERSION as POLITICA_VERSION } from '../data/privacidad'
 import './SignupForm.css'
 
 // value = código que se guarda en la base (debe calzar con los CHECK de 0001_piloto_interesados.sql);
@@ -45,6 +46,7 @@ export default function SignupForm() {
     equipo: '2-5',
     hoy: 'excel',
     es_contador: false,
+    acepta_politica: false,
   })
   const [error, setError] = useState(null) // { field, message }
   const [sent, setSent] = useState(null) // { nombre, empresa }
@@ -68,6 +70,8 @@ export default function SignupForm() {
     if (!nombre) return fail(form, 'nombre', 'Escribe tu nombre para saber a quién contactar.')
     if (!EMAIL_RE.test(email)) return fail(form, 'email', 'Revisa el correo: debe verse como nombre@empresa.cl.')
     if (!empresa) return fail(form, 'empresa', 'Falta el nombre de tu empresa.')
+    if (!values.acepta_politica)
+      return fail(form, 'acepta_politica', 'Para registrarte, necesitamos que aceptes la política de privacidad.')
 
     setError(null)
     setSending(true)
@@ -82,6 +86,9 @@ export default function SignupForm() {
           equipo: values.equipo,
           hoy: values.hoy,
           es_contador: values.es_contador,
+          // Consentimiento: el backend registra la fecha (hora del servidor) y esta versión.
+          acepta_politica: values.acepta_politica,
+          politica_version: POLITICA_VERSION,
           // Honeypot: se lee directo del DOM (no del estado de React), que es lo que un bot llena.
           sitio_web: form.elements.sitio_web.value,
         }),
@@ -215,6 +222,23 @@ export default function SignupForm() {
                   onChange={(e) => setValues((v) => ({ ...v, es_contador: e.target.checked }))}
                 />
                 Soy contador y llevo las finanzas de varias PYMEs
+              </label>
+              {/* Consentimiento (Ley 19.628 art. 4 / Ley 21.719 arts. 12 y 27): desmarcada por defecto y obligatoria. */}
+              <label className="check consent" htmlFor="f-politica">
+                <input
+                  id="f-politica"
+                  name="acepta_politica"
+                  type="checkbox"
+                  checked={values.acepta_politica}
+                  onChange={(e) => setValues((v) => ({ ...v, acepta_politica: e.target.checked }))}
+                  aria-invalid={invalid('acepta_politica')}
+                  aria-describedby="err"
+                  required
+                />
+                <span>
+                  Acepto la <a href={HASH}>política de privacidad</a> y autorizo el tratamiento de mis datos para
+                  coordinar el piloto, incluido su almacenamiento en servidores de Microsoft Azure en Estados Unidos.
+                </span>
               </label>
               {/* Honeypot: invisible para personas y lectores de pantalla; los bots lo llenan. */}
               <div className="hp" aria-hidden="true">

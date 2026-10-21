@@ -311,3 +311,10 @@ tr.row:focus-visible .row-edit {
     border-top: 1px solid var(--line);
   }
 }
+
+/* Solo lectura (contador): la tarjeta no se ve apagada ni invita a tocarla */
+.movs-list button:disabled {
+  opacity: 1;
+  cursor: default;
+  color: inherit;
+}

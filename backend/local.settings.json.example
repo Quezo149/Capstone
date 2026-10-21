@@ -16,12 +16,13 @@
     "ENTRA_TENANT_ID": "0ef9f2a8-27f4-4a7f-b4d5-eaf8fce93dd7",
     "ENTRA_CLIENT_ID": "8e6327c7-97ab-48c4-9a08-dfdbc91986b9",
     "ENTRA_ISSUER": "https://kontadoria.ciamlogin.com/0ef9f2a8-27f4-4a7f-b4d5-eaf8fce93dd7/v2.0",
+    "ENTRA_API_SCOPE": "access_as_user",
 
     "DOCUMENT_INTELLIGENCE_ENDPOINT": "reemplazar-en-local-settings-json-real",
     "DOCUMENT_INTELLIGENCE_KEY": "reemplazar-en-local-settings-json-real"
   },
   "Host": {
-    "CORS": "http://localhost:5173,http://localhost:5174,https://kontadoria.netlify.app",
+    "CORS": "http://localhost:5173,http://localhost:5174,https://kontadoria.netlify.app,https://app.kontadoria.cl",
     "CORSCredentials": true
   }
 }

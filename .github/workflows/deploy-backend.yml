@@ -24,7 +24,12 @@ concurrency:
   cancel-in-progress: false   # evita cancelar un deploy en curso si llega un push nuevo
 
 jobs:
+  # Las mismas pruebas de los PR (test-backend.yml): si fallan, no se despliega.
+  pruebas:
+    uses: ./.github/workflows/test-backend.yml
+
   build-and-deploy:
+    needs: pruebas
     runs-on: ubuntu-latest
     steps:
       - name: Checkout del repo
@@ -40,11 +45,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-
-      # Si tienen tests, este es el lugar para correrlos y frenar el deploy si fallan
-      # - name: Correr tests
-      #   working-directory: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-      #   run: pytest
 
       - name: Login en Azure (OIDC, sin passwords)
         uses: azure/login@v2
