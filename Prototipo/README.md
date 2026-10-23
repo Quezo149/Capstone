@@ -1,91 +1,72 @@
-# ContadorIA — Prototipo navegable
+# KontadorIA — Prototipo del Sprint 3
 
-Prototipo funcional de la app de gestión financiera para PYMEs, importado desde el
-proyecto de Claude Design **"Prototipo app web multiplataforma"** (`ContadorIA App.dc.html`)
-y convertido en una aplicación web autónoma que corre en el navegador, sin backend.
+Copia de la app real (`/frontend`) **con datos falsos**, para mostrar cómo se verán las historias
+del Sprint 3 antes de construirlas. No llama al backend, no pide iniciar sesión con Microsoft y
+nada sale del navegador: los datos se guardan en `localStorage`.
 
-Pensado para que **clientes lo prueben** en PC y celular. Las funciones que dependerían
-del backend real (IA de boletas, Azure AD, multi-empresa, envío de correos) están
-simuladas; lo que sí es completamente funcional:
-
-| Sistema | Estado en el prototipo |
+| Historia | Qué muestra el prototipo |
 |---|---|
-| **Drag & drop / importación CSV** | Real. Arrastra un `.csv`, se parsea, valida fila por fila, muestra preview (válidas / con error) y al confirmar inserta los movimientos. Detecta separador `,` o `;`, tildes, y varios formatos de fecha. |
-| **Generar movimientos** | Real. "Nuevo movimiento" abre un formulario que valida y agrega el movimiento (origen `manual`), a nombre del rol activo. También se pueden eliminar. |
-| **Generar reportes** | Real. KPIs (ingresos, gastos, balance, margen) y gasto por categoría se **calculan** desde los movimientos del período elegido. Exporta el reporte a CSV y tiene vista imprimible (PDF vía "Imprimir"). |
-| **Usuarios** | Empiezan **vacíos** (requisito). "Invitar usuario" agrega a la lista; se puede cambiar rol, activar/desactivar y quitar. |
-| Login | Demo: cualquier correo y contraseña entran. Botón SSO simula el acceso. |
-| Roles | `Admin` / `Contador` / `Empleado` con "Ver como" — cambian navegación, permisos y qué datos se ven. |
+| **HU08** Cargar boleta o factura | Sección **Cargar boleta**: arrastrar, elegir archivo o sacar foto (en el celular), indicador de lectura y, si falla, paso al formulario manual con el documento adjunto. |
+| **HU09** Validar lo extraído | Formulario prellenado con marcas *Leído por IA* / *Revisa este dato* / *Corregido*, categoría sugerida por historial del proveedor, vista "Lo que leyó la IA" sobre el documento, **Confirmar y guardar** o **Cancelar** sin guardar nada. |
+| **HU18** Dashboard | Selector de mes, gráfico de dona por categoría con sus colores, saldo del mes y últimos movimientos del mes elegido. El colaborador solo ve lo suyo. |
 
-## Arranca en blanco
+Además: los movimientos que vienen de foto o PDF muestran su ícono en la lista y el documento
+adjunto al editarlos; el registro manual ofrece el atajo "¿Tienes la boleta?".
 
-La app parte **sin empresa, sin movimientos y sin usuarios**, para que armes una
-instancia desde cero según lo que necesite tu cliente:
+**Lo simulado:** la llamada a la IA (en la app real será Azure AI Document Intelligence vía
+`POST /documentos/extraer`). Los 7 ejemplos son **fotos reales** de boletas y vouchers POS
+(`ejemplos/`), y lo que muestra la pantalla es lo que Document Intelligence leyó de verdad en ellas,
+con la posición de cada dato (`fuente/src/data/ejemplos-lectura.json`, generado con
+`backend/scripts/probar_lectura.py`, `locale="es-CL"`). Las fotos van sin metadatos (EXIF/GPS), sin
+la sección "Mi Club" de Líder y con el RUT de la persona del voucher Pluxee pixelado. **No van en la
+versión de producción.**
 
-1. Login (cualquier correo/contraseña).
-2. Pantalla **"Crea tu empresa"**: pones el nombre del emprendimiento → entras al dashboard vacío.
-3. Desde ahí: cargas movimientos, importas un CSV e invitas usuarios.
+Reglas que se prueban aquí y pasarán al backend:
+- **Tipo de documento** por el texto impreso que exige el SII ("Boleta Electrónica", "Bol.
+  Electronica", "Válido como boleta"); "Comprobante de venta" queda a revisar y el voucher de pago
+  queda como "otro".
+- **RUT del emisor** validado con dígito verificador: es la llave del historial de categorías.
+- **Proveedor a revisar** si la IA no lo encontró o si es una sola palabra, aunque venga con 99 %.
+- **Aviso de duplicado**: mismo monto, fecha y RUT/proveedor (voucher + boleta de la misma compra).
+  Para verlo: guarda el voucher de Mercado Pago y luego carga la boleta de XS Market.
 
-En la barra lateral (o el menú **"Más"** en celular):
+Con un archivo propio, el prototipo muestra tu imagen pero propone datos de muestra. El historial
+sembrado (movimientos de meses anteriores) usa boletas dibujadas con comercios, RUT y personas
+inventados.
 
-- **Datos de ejemplo** — carga una empresa de muestra con ~20 movimientos, para ver todo funcionando de inmediato.
-- **Vaciar todo** — vuelve al estado en blanco.
-- El nombre de la empresa se cambia en cualquier momento con el ✎ de la barra superior.
+## Controles del prototipo
 
-Los datos se guardan en `localStorage` del navegador y persisten al recargar (clave `contadoria_proto_v2`).
+Barra amarilla abajo a la izquierda (sobre la barra inferior en el celular):
 
-## Cómo ejecutarlo
+- **Ver como**: Dueño, Contador o Colaborador. Cambia menús y permisos igual que en la app real
+  (el contador no carga boletas; el colaborador solo ve sus movimientos).
+- **↺**: vuelve a los datos de ejemplo.
 
-Necesita servirse por HTTP (no abrir el archivo con `file://`, para que funcionen
-el service worker y la lectura de archivos de forma consistente).
-
-### Opción 1 — Python (ya instalado en la mayoría de los equipos)
+## Cómo abrirlo
 
 ```bash
 cd Prototipo
 python -m http.server 8000
 ```
 
-Luego abre <http://localhost:8000> en el navegador.
+Abrir <http://localhost:8000>. Para el celular: misma red Wi-Fi y `http://<IP-del-PC>:8000`.
 
-### Opción 2 — Node
+## Cómo modificarlo
+
+El código está en `fuente/` (copia de `/frontend` con la sesión y la API reemplazadas):
 
 ```bash
-cd Prototipo
-npx serve .        # o:  npx http-server -p 8000
+cd Prototipo/fuente
+npm install
+npm run dev      # para trabajar
+npm run build    # compila y copia el resultado a Prototipo/
 ```
 
-### Probar en el celular
+Archivos propios del prototipo: `src/lib/proto.js` (datos falsos), `src/lib/api.js` (API simulada),
+`src/auth/msal.js` (sesión simulada), `src/lib/documentos.js` (documentos y lectura simulada),
+`src/views/Cargar.jsx`, `src/components/VisorDocumento.jsx` y `src/components/ProtoBar.jsx`.
+Los cambios a `MovimientoForm.jsx`, `Inicio.jsx`, `Movimientos.jsx` y `App.jsx` están marcados con
+`PROTOTIPO`.
 
-1. El PC y el celular deben estar en la **misma red Wi-Fi**.
-2. Averigua la IP local del PC (`ipconfig` en Windows → "Dirección IPv4", ej. `192.168.1.20`).
-3. En el celular abre `http://192.168.1.20:8000`.
-4. Opcional: "Agregar a pantalla de inicio" — está configurado como PWA (`manifest.webmanifest` + `sw.js`) y funciona offline tras la primera carga.
-
-## Archivos
-
-| Archivo | Qué es |
-|---|---|
-| `index.html` | La app completa: markup, estilos y lógica (JS vanilla, sin dependencias ni build). |
-| `logo.svg` | Logo principal de ContadorIA (marca completa sobre el badge verde). |
-| `favicon.svg` | Versión cuadrada del logo — favicon del navegador, ícono PWA y badge de la interfaz. |
-| `manifest.webmanifest` | Metadatos PWA (nombre, colores, íconos). |
-| `sw.js` | Service worker: cachea la app para uso offline. Solo se registra en `http/https`. |
-
-## Formato del CSV de importación
-
-Descargable desde la pantalla **Importar → "Descargar plantilla"**. Columnas:
-
-```
-fecha,monto,tipo,categoria,proveedor,descripcion
-2026-08-01,-52300,gasto,Insumos,Distribuidora Ñuble,Harina y levadura
-2026-08-05,920100,ingreso,Ventas,Venta mostrador,Resumen semanal
-```
-
-- `fecha`: `AAAA-MM-DD` o `DD/MM/AAAA` (también `DD-MM-AAAA`).
-- `monto`: número; el signo negativo o el `tipo` determinan gasto/ingreso.
-- `tipo`: `gasto` o `ingreso` (si falta, se infiere del signo del monto).
-- Se aceptan encabezados alternativos comunes (`date`, `amount`, `category`, …).
-- XLSX no se procesa en el prototipo: expórtalo como CSV.
-
-Las filas con error no se importan y se pueden descargar aparte para corregir y reintentar.
+`sw.js` existe solo para desactivar el service worker del prototipo anterior en los navegadores
+que lo tenían guardado.

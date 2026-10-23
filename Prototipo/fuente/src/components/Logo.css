@@ -1,0 +1,35 @@
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 21px;
+  letter-spacing: -0.02em;
+}
+
+.logo svg {
+  width: 28px;
+  height: 32px;
+  flex: none;
+}
+
+.logo b {
+  color: var(--brand);
+  font-weight: 800;
+}
+
+@media (max-width: 420px) {
+  .logo {
+    font-size: 19px;
+  }
+}
+
+.logo svg {
+  transition: transform 0.4s cubic-bezier(0.3, 1.8, 0.5, 1);
+}
+
+.logo:hover svg {
+  transform: rotate(-8deg) scale(1.1);
+}

@@ -1,0 +1,107 @@
+.toasts {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  translate: -50% 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: calc(100% - 32px);
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px 12px 16px;
+  border-radius: var(--r-m);
+  background: var(--deep);
+  color: var(--on-deep);
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: var(--shadow-card);
+  animation: pop 0.45s ease-out both;
+}
+
+.toast.out {
+  animation: toastOut 0.22s ease-in both;
+}
+
+@keyframes toastOut {
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+}
+
+.toast-ic {
+  position: relative;
+  display: grid;
+  color: var(--highlight);
+}
+
+.toast-ic svg {
+  width: 22px;
+  height: 22px;
+}
+
+.toast-act {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--on-deep) 12%, transparent);
+  color: var(--highlight);
+  font: 800 14px var(--font-sans);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.toast-act:hover {
+  background: color-mix(in srgb, var(--on-deep) 22%, transparent);
+}
+
+.toast-act svg {
+  width: 15px;
+  height: 15px;
+}
+
+.confetti {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 9px;
+  margin: -4px 0 0 -3px;
+  border-radius: 2px;
+  opacity: 0;
+  pointer-events: none;
+  animation: burst 0.8s cubic-bezier(0.2, 0.8, 0.3, 1) 0.1s both;
+}
+
+.confetti.c0 {
+  background: var(--brand);
+}
+
+.confetti.c1 {
+  background: var(--highlight);
+}
+
+.confetti.c2 {
+  background: #fff;
+}
+
+@media (max-width: 860px) {
+  /* Sobre la barra inferior */
+  .toasts {
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+}
