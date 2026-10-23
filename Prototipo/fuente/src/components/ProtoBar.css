@@ -1,0 +1,70 @@
+.proto-bar {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 5px 5px 12px;
+  border-radius: var(--r-pill);
+  background: var(--highlight);
+  color: var(--hl-ink);
+  font-size: 12.5px;
+  box-shadow: 0 8px 24px rgba(11, 38, 32, 0.25);
+}
+
+.proto-bar label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.proto-bar select,
+.proto-bar button {
+  border: 0;
+  border-radius: var(--r-pill);
+  background: rgba(11, 38, 32, 0.12);
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.proto-bar button:hover,
+.proto-bar select:hover {
+  background: rgba(11, 38, 32, 0.2);
+}
+
+.proto-bar label span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+@media (max-width: 860px) {
+  .proto-bar {
+    max-width: none;
+    left: 50%;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+}
+
+.proto-bar button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.proto-bar button svg {
+  width: 15px;
+  height: 15px;
+}

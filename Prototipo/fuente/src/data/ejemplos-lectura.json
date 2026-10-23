@@ -1,0 +1,289 @@
+{
+ "farmacia": {
+  "tipo_documento": "boleta",
+  "confianza_tipo": "alta",
+  "evidencia_tipo": "BOLETA ELECTRONICA",
+  "rut": null,
+  "cajas": {
+   "tipo_documento": [
+    0.2186,
+    0.2556,
+    0.3396,
+    0.02
+   ],
+   "proveedor": [
+    0.2109,
+    0.1006,
+    0.3418,
+    0.0381
+   ],
+   "monto": [
+    0.6948,
+    0.5,
+    0.0566,
+    0.0225
+   ],
+   "fecha": [
+    0.374,
+    0.2744,
+    0.1043,
+    0.0163
+   ]
+  },
+  "ok": true,
+  "proveedor": "VICTORIA,CANALES Y COMPANIA LTDA",
+  "conf_proveedor": 0.98,
+  "proveedor_respaldo": false,
+  "monto": 29320,
+  "conf_monto": 0.98,
+  "fecha": "2026-10-23",
+  "conf_fecha": 0.99,
+  "items": []
+ },
+ "lider": {
+  "tipo_documento": "boleta",
+  "confianza_tipo": "alta",
+  "evidencia_tipo": "BOL. ELECTRONICA",
+  "rut": "76134941-4",
+  "cajas": {
+   "tipo_documento": [
+    0.2816,
+    0.1544,
+    0.5544,
+    0.0294
+   ],
+   "rut": [
+    0.4377,
+    0.1113,
+    0.2333,
+    0.0331
+   ],
+   "proveedor": [
+    0.2939,
+    0.7406,
+    0.464,
+    0.0356
+   ],
+   "monto": [
+    0.6544,
+    0.5619,
+    0.1553,
+    0.0244
+   ],
+   "fecha": [
+    0.2395,
+    0.8481,
+    0.1307,
+    0.0262
+   ]
+  },
+  "ok": true,
+  "proveedor": "Lider",
+  "conf_proveedor": null,
+  "proveedor_respaldo": true,
+  "monto": 16015,
+  "conf_monto": 0.94,
+  "fecha": "2026-10-23",
+  "conf_fecha": 0.96,
+  "items": [
+   "QUESAVILLA Precio Antes Sora",
+   "SA3 WAINIL.A",
+   "MAY\" 200G",
+   "-ECAUGA COS\""
+  ]
+ },
+ "movida": {
+  "tipo_documento": "otro",
+  "confianza_tipo": "baja",
+  "evidencia_tipo": null,
+  "rut": null,
+  "cajas": {},
+  "ok": false
+ },
+ "pronto": {
+  "tipo_documento": "boleta",
+  "confianza_tipo": "media",
+  "evidencia_tipo": "COMPROBANTE DE VENTA",
+  "rut": "78071589-8",
+  "cajas": {
+   "tipo_documento": [
+    0.3141,
+    0.1731,
+    0.283,
+    0.02
+   ],
+   "rut": [
+    0.1654,
+    0.2925,
+    0.2164,
+    0.0231
+   ],
+   "proveedor": [
+    0.1654,
+    0.3081,
+    0.5083,
+    0.0256
+   ],
+   "monto": [
+    0.6437,
+    0.5794,
+    0.0844,
+    0.0138
+   ],
+   "fecha": [
+    0.3796,
+    0.4094,
+    0.1354,
+    0.015
+   ]
+  },
+  "ok": true,
+  "proveedor": "Comercial Y Servicios Roca Limitada",
+  "conf_proveedor": null,
+  "proveedor_respaldo": true,
+  "monto": 4100,
+  "conf_monto": 0.99,
+  "fecha": "2026-10-23",
+  "conf_fecha": 0.99,
+  "items": [
+   "Pall Mall Silver XL 20s"
+  ]
+ },
+ "transbank": {
+  "tipo_documento": "boleta",
+  "confianza_tipo": "alta",
+  "evidencia_tipo": "VALIDO COMO BOLETA",
+  "rut": "76387718-3",
+  "cajas": {
+   "tipo_documento": [
+    0.3285,
+    0.5125,
+    0.3707,
+    0.0231
+   ],
+   "rut": [
+    0.384,
+    0.4694,
+    0.2619,
+    0.0175
+   ],
+   "proveedor": [
+    0.232,
+    0.405,
+    0.576,
+    0.0206
+   ],
+   "monto": [
+    0.6992,
+    0.6269,
+    0.1454,
+    0.0238
+   ],
+   "fecha": [
+    0.1853,
+    0.5425,
+    0.1598,
+    0.0175
+   ]
+  },
+  "ok": true,
+  "proveedor": "SOCIEDAD ODONTOLÓGICA LA ROCA LIMITADA",
+  "conf_proveedor": 0.92,
+  "proveedor_respaldo": false,
+  "monto": 16200,
+  "conf_monto": 0.98,
+  "fecha": "2026-10-20",
+  "conf_fecha": 0.99,
+  "items": []
+ },
+ "voucher-mp": {
+  "tipo_documento": "otro",
+  "confianza_tipo": "baja",
+  "evidencia_tipo": null,
+  "rut": "76218671-3",
+  "cajas": {
+   "rut": [
+    0.5516,
+    0.6863,
+    0.182,
+    0.0181
+   ],
+   "proveedor": [
+    0.1654,
+    0.6869,
+    0.1842,
+    0.015
+   ],
+   "monto": [
+    0.5882,
+    0.5825,
+    0.1299,
+    0.0256
+   ],
+   "fecha": [
+    0.5749,
+    0.4412,
+    0.0899,
+    0.0163
+   ]
+  },
+  "ok": true,
+  "proveedor": "KCINCO SPA",
+  "conf_proveedor": 0.94,
+  "proveedor_respaldo": false,
+  "monto": 2200,
+  "conf_monto": 0.51,
+  "fecha": "2026-10-22",
+  "conf_fecha": 0.98,
+  "items": []
+ },
+ "xsmarket": {
+  "tipo_documento": "boleta",
+  "confianza_tipo": "alta",
+  "evidencia_tipo": "BOLETA ELECTRONICA",
+  "rut": "76218671-3",
+  "cajas": {
+   "tipo_documento": [
+    0.4417,
+    0.2238,
+    0.2186,
+    0.0169
+   ],
+   "rut": [
+    0.4451,
+    0.2006,
+    0.212,
+    0.0175
+   ],
+   "proveedor": [
+    0.5128,
+    0.09,
+    0.1565,
+    0.0281
+   ],
+   "monto": [
+    0.6759,
+    0.4888,
+    0.101,
+    0.0144
+   ],
+   "fecha": [
+    0.4107,
+    0.2913,
+    0.1332,
+    0.0156
+   ]
+  },
+  "ok": true,
+  "proveedor": "market",
+  "conf_proveedor": 0.99,
+  "proveedor_respaldo": false,
+  "monto": 2200,
+  "conf_monto": 0.99,
+  "fecha": "2026-10-22",
+  "conf_fecha": 0.99,
+  "items": [
+   "HOT DOG XL"
+  ]
+ }
+}
