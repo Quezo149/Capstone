@@ -20,6 +20,9 @@ class Settings(BaseSettings):
     # Segundos que espera el login. Azure SQL serverless con auto-pausa tarda
     # hasta ~1 minuto en despertar; el default del driver (15 s) no alcanza.
     sql_login_timeout: int = 60
+    # Mientras despierta, la base rechaza el login de inmediato (error 40613) en vez de esperar:
+    # por cuántos segundos seguir reintentando antes de responder 503 (ver core/db.py).
+    sql_reintentos_segundos: int = 120
 
     # Azure Blob Storage
     storage_account_name: str
