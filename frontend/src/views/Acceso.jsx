@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
 import Logo from '../components/Logo'
 import { useSesion } from '../state/Sesion'
@@ -6,7 +7,7 @@ import './Acceso.css'
 // Pantalla de inicio de sesión (HU01) y de avisos de sesión. El correo y la contraseña
 // se escriben en la página de Microsoft Entra, no aquí: KontadorIA no guarda contraseñas.
 export default function Acceso() {
-  const { estado, error, entrar, salir, refrescar } = useSesion()
+  const { estado, error, entrar, salir, reintentar } = useSesion()
 
   if (estado === 'desactivado') {
     return (
@@ -29,7 +30,7 @@ export default function Acceso() {
       <Marco titulo="No pudimos cargar tu cuenta" eyebrow="Sesión">
         <p className="acceso-aviso">{error}</p>
         <div className="acceso-acts">
-          <button type="button" className="btn btn-primary" onClick={refrescar}>
+          <button type="button" className="btn btn-primary" onClick={reintentar}>
             <Icon name="undo" />
             Reintentar
           </button>
@@ -69,6 +70,34 @@ export default function Acceso() {
           Te llevaremos a la página segura de Microsoft. ¿Olvidaste tu contraseña? Ahí mismo puedes recuperarla.
         </span>
       </p>
+    </Marco>
+  )
+}
+
+// Mientras se procesa la vuelta desde Microsoft y se pregunta a la API quién es. Normalmente dura
+// un instante; si la API y la base estaban en pausa puede tardar hasta un par de minutos, y antes
+// esto era una pantalla en blanco que parecía colgada.
+export function Cargando() {
+  const [paso, setPaso] = useState(0) // 0: nada (evita un parpadeo), 1: cargando, 2: aviso de demora
+  useEffect(() => {
+    const t1 = setTimeout(() => setPaso(1), 400)
+    const t2 = setTimeout(() => setPaso(2), 6000)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+  }, [])
+  if (paso === 0) return <main className="acceso" />
+  return (
+    <Marco titulo="Entrando a tu cuenta" eyebrow="Un momento">
+      <div className="acceso-cargando" role="status">
+        <span className="acceso-spinner" aria-hidden="true" />
+        <p className="muted">
+          {paso === 1
+            ? 'Cargando los datos de tu empresa…'
+            : 'Estamos preparando el servidor; la primera vez en el día puede tardar hasta un minuto. No cierres esta página.'}
+        </p>
+      </div>
     </Marco>
   )
 }

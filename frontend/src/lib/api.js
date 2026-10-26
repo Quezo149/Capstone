@@ -45,3 +45,10 @@ export async function api(ruta, { method = 'GET', body, publica = false } = {}) 
   if (!r.ok) throw leerError(r.status, cuerpo)
   return cuerpo
 }
+
+// Apenas carga la app, antes de saber si hay sesión: despierta la API (Function en frío) y la base
+// serverless (en pausa si nadie la usó) mientras la persona inicia sesión en Microsoft. Si falla
+// no importa: /auth/me reintenta igual (ver state/Sesion.jsx).
+export function despertarServidor() {
+  api('/health/db', { publica: true }).catch(() => {})
+}

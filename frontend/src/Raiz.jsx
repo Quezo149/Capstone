@@ -4,7 +4,7 @@ import { invitacionPendiente } from './lib/invitacion'
 import { CategoriasProvider } from './state/Categorias'
 import { MovimientosProvider } from './state/Movimientos'
 import { useSesion } from './state/Sesion'
-import Acceso from './views/Acceso'
+import Acceso, { Cargando } from './views/Acceso'
 import Invitacion from './views/Invitacion'
 import RegistroEmpresa from './views/RegistroEmpresa'
 
@@ -13,7 +13,7 @@ export default function Raiz() {
   const { estado, perfil } = useSesion()
   // Link de invitación abierto (HU02): tiene prioridad hasta aceptarlo o descartarlo
   const [invitacion, setInvitacion] = useState(invitacionPendiente)
-  if (estado === 'cargando') return null
+  if (estado === 'cargando') return <Cargando />
   if (invitacion && ['anonimo', 'sin_empresa', 'listo', 'desactivado'].includes(estado)) {
     return <Invitacion token={invitacion} onTerminar={() => setInvitacion(null)} />
   }

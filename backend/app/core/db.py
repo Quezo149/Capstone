@@ -1,3 +1,5 @@
+import re
+import time
 from collections.abc import Generator
 
 import pyodbc
@@ -17,6 +19,40 @@ _engine: Engine | None = None
 # Claves de SESSION_CONTEXT que leen las políticas de RLS (db/migrations/0007_rls.sql y,
 # para invitaciones, 0009_invitaciones.sql).
 _CLAVES_CONTEXTO = ("empresa_id", "usuario_id", "rol", "invitacion_token", "invitacion_email")
+
+
+# Errores con que Azure SQL dice "aún no, intenta de nuevo". El más común es 40613: la base
+# serverless estaba en pausa y el primer login la despierta pero falla de inmediato; los
+# siguientes intentos fallan igual hasta que termina de despertar (~1 minuto).
+# https://learn.microsoft.com/azure/azure-sql/database/troubleshoot-common-connectivity-issues
+_ERRORES_TRANSITORIOS = {4060, 4221, 10928, 10929, 40197, 40501, 40613, 49918, 49919, 49920}
+_CODIGO_SQL = re.compile(r"\((\d+)\)")
+
+
+def es_transitorio(exc: BaseException) -> bool:
+    """Error de conexión que se arregla solo esperando (base despertando, failover, timeout)."""
+    if not isinstance(exc, pyodbc.Error):
+        return False
+    if exc.args and exc.args[0] in ("HYT00", "HYT01", "08001", "08S01"):  # timeouts y conexión caída
+        return True
+    return any(int(c) in _ERRORES_TRANSITORIOS for c in _CODIGO_SQL.findall(str(exc)))
+
+
+def _conectar_con_reintentos(dialect, conn_rec, cargs, cparams):
+    """
+    Reintenta la conexión mientras la base serverless despierta, en vez de responder 500 al
+    primer intento (que es lo que veía quien iniciaba sesión con la base en pausa).
+    """
+    limite = time.monotonic() + get_settings().sql_reintentos_segundos
+    espera = 2.0
+    while True:
+        try:
+            return dialect.loaded_dbapi.connect(*cargs, **cparams)
+        except pyodbc.Error as exc:
+            if not es_transitorio(exc) or time.monotonic() + espera > limite:
+                raise
+            time.sleep(espera)
+            espera = min(espera * 1.5, 10.0)
 
 
 def _limpiar_contexto(dbapi_connection, connection_record, connection_proxy) -> None:
@@ -62,6 +98,7 @@ def _get_engine() -> Engine:
             pool_pre_ping=True,
             connect_args={"timeout": settings.sql_login_timeout},  # login timeout de pyodbc
         )
+        event.listen(_engine, "do_connect", _conectar_con_reintentos)
         event.listen(_engine, "checkout", _limpiar_contexto)
     return _engine
 
