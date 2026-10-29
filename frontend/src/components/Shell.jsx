@@ -1,5 +1,6 @@
 import { NOMBRE_ROL } from '../data/demo'
 import { SECCIONES } from '../data/secciones'
+import useOcultarAlBajar from '../hooks/useOcultarAlBajar'
 import useTheme from '../hooks/useTheme'
 import { useSesion } from '../state/Sesion'
 import Icon from './Icon'
@@ -38,6 +39,7 @@ function NavLink({ s, actual, corto }) {
 
 export default function Shell({ ruta, onNuevo, children, pie }) {
   const { dark, toggle } = useTheme()
+  const barraOculta = useOcultarAlBajar()
   const { perfil, salir, puede } = useSesion()
   const secciones = SECCIONES.filter((s) => !s.permiso || puede(s.permiso))
   // En el celular la barra inferior lleva 4 secciones y el botón "+" al centro
@@ -64,7 +66,7 @@ export default function Shell({ ruta, onNuevo, children, pie }) {
       </aside>
 
       <div className="main-wrap">
-        <header className="top">
+        <header className={`top${barraOculta ? ' oculta' : ''}`}>
           <div className="top-logo">
             <Logo />
           </div>

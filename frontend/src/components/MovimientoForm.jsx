@@ -2,9 +2,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { TIPOS_DOCUMENTO } from '../data/categorias'
 import { nuevoId } from '../data/movimientos'
 import { useCategorias } from '../state/Categorias'
+import { useMovimientos } from '../state/Movimientos'
+import { useSesion } from '../state/Sesion'
 import { clp, desglosarIva, hoyISO, leerMonto } from '../lib/format'
 import Icon from './Icon'
 import Seg from './Seg'
+import { formatearRut } from '../lib/rut'
+import { Comprobante } from './VisorDocumento'
 import './MovimientoForm.css'
 
 const MAX_MONTO = 999_999_999_999 // cabe en numeric(14,0)
@@ -33,14 +37,79 @@ function validar(f) {
   return e
 }
 
+// Marca junto a un campo que vino de la IA (HU09): leído, dudoso o ya corregido por el usuario
+function MarcaIa({ ia, campo, corregidos }) {
+  const nivel = ia?.confianza?.[campo]
+  if (!nivel) return null
+  if (corregidos.has(campo)) return <span className="ia-marca corregido">Corregido</span>
+  if (nivel === 'media')
+    return (
+      <span className="ia-marca revisa" title={ia.motivos?.[campo] ?? 'La IA no está segura de este dato'}>
+        Revisa este dato
+      </span>
+    )
+  return (
+    <span className="ia-marca" title="Dato leído del documento">
+      <Icon name="spark" />
+      Leído por IA
+    </span>
+  )
+}
+
+// Por qué la IA pide revisar un campo (se oculta cuando el usuario ya lo corrigió)
+function MotivoIa({ ia, campo, corregidos }) {
+  const motivo = ia?.confianza?.[campo] === 'media' && !corregidos.has(campo) && ia.motivos?.[campo]
+  return motivo ? <span className="hint ia-motivo">{motivo}</span> : null
+}
+
+// el tipo no tiene ninguna categoría visible (no debería pasar: la API no deja
+// ocultar la última, pero puede venir de datos anteriores). El admin las recupera aquí mismo, sin
+// perder lo escrito; los demás roles no gestionan categorías (D2).
+function SinCategorias({ tipo }) {
+  const { puede } = useSesion()
+  const { categoriasDe, ocultar } = useCategorias()
+  const [enviando, setEnviando] = useState(false)
+  const ocultas = categoriasDe(tipo).filter((c) => c.oculta)
+  const nombre = tipo === 'gasto' ? 'gasto' : 'ingreso'
+  async function mostrar() {
+    setEnviando(true)
+    try {
+      for (const c of ocultas) await ocultar(c.id, false)
+    } finally {
+      setEnviando(false)
+    }
+  }
+  return (
+    <div className="mf-sin-cats" role="status">
+      <strong>No hay categorías de {nombre} visibles.</strong>
+      {puede('categorias.gestionar') ? (
+        ocultas.length > 0 && (
+          <button type="button" className="btn btn-ghost btn-sm" onClick={mostrar} disabled={enviando}>
+            Mostrar las ocultas ({ocultas.length})
+          </button>
+        )
+      ) : (
+        <span>Pídele al administrador que active alguna en Categorías.</span>
+      )}
+    </div>
+  )
+}
+
 // Formulario de alta y edición. `inicial` = movimiento a editar, o null para uno nuevo.
 // onGuardar(datos, { otro }) → `otro` true cuando el usuario quiere seguir cargando.
-export default function MovimientoForm({ inicial, proveedores = [], onGuardar, onEliminar }) {
+// HU09: `prellenado` + `ia` = datos leídos de una boleta (POST /documentos/extraer), con su
+// confianza, el motivo cuando pide revisar y la categoría sugerida; `onCancelar` descarta sin guardar.
+export default function MovimientoForm({ inicial, prellenado, ia, proveedores = [], onGuardar, onEliminar, onCancelar }) {
   const editando = Boolean(inicial)
   const { categoria: catPorId, categoriasDe } = useCategorias()
   const [f, setF] = useState(() =>
-    inicial ? { ...inicial, proveedor: inicial.proveedor ?? '', descripcion: inicial.descripcion ?? '' } : vacio(),
+    inicial
+      ? { ...inicial, proveedor: inicial.proveedor ?? '', descripcion: inicial.descripcion ?? '' }
+      : { ...vacio(), ...prellenado },
   )
+  // Campos leídos por la IA que el usuario cambió
+  const [corregidos, setCorregidos] = useState(() => new Set())
+  const [verDoc, setVerDoc] = useState(false)
   // Se genera una vez por formulario abierto: si el guardado se repite, no se duplica
   const [requestId, setRequestId] = useState(nuevoId)
   const [errores, setErrores] = useState({})
@@ -59,9 +128,30 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
   const enCurso = useRef(false)
   const montoRef = useRef(null)
 
-  const cats = useMemo(() => categoriasDe(f.tipo), [categoriasDe, f.tipo])
+  // primero las categorías que la empresa usa (y las propias); las predefinidas que
+  // nunca se usaron van bajo "Más categorías", y las ocultas no aparecen. El grupo se arma con la
+  // categoría que traía el formulario al abrirse (la del movimiento o la sugerida por la IA), no
+  // con la que se toca: así una categoría elegida desde "Más" no salta de lugar.
+  const { movs } = useMovimientos()
+  const [catInicial] = useState(() => f.categoria_id)
+  const [verTodas, setVerTodas] = useState(false)
+  const usos = useMemo(() => {
+    const u = {}
+    for (const m of movs) u[m.categoria_id] = (u[m.categoria_id] ?? 0) + 1
+    return u
+  }, [movs])
+  const { cats, plegadas } = useMemo(() => {
+    const disponibles = categoriasDe(f.tipo).filter((c) => !c.oculta || c.id === catInicial)
+    const ordenadas = [...disponibles].sort((a, b) => (usos[b.id] ?? 0) - (usos[a.id] ?? 0) || a.nombre.localeCompare(b.nombre, 'es'))
+    const aMano = ordenadas.filter((c) => usos[c.id] || !c.predefinida || c.id === catInicial)
+    // Empresa que recién parte: con tan pocas a mano se muestran todas
+    if (aMano.length < 4) return { cats: ordenadas, plegadas: 0 }
+    const resto = ordenadas.filter((c) => !aMano.includes(c))
+    return { cats: verTodas ? [...aMano, ...resto] : aMano, plegadas: resto.length }
+  }, [categoriasDe, f.tipo, usos, catInicial, verTodas])
   const set = (campo, valor) => {
     setF((x) => ({ ...x, [campo]: valor }))
+    if (ia?.confianza?.[campo] && !corregidos.has(campo)) setCorregidos((c) => new Set(c).add(campo))
     if (errores[campo]) setErrores((x) => ({ ...x, [campo]: undefined }))
   }
 
@@ -127,6 +217,18 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
       }}
     >
       <div className="mf-body">
+        {/* La foto o el PDF con que se registró (HU09): se abre con un link temporal */}
+        {inicial?.tiene_comprobante && (
+          <button type="button" className="mf-adjunto" aria-expanded={verDoc} onClick={() => setVerDoc((v) => !v)}>
+            <Icon name={inicial.origen === 'pdf' ? 'receipt' : 'camera'} />
+            <span>
+              <strong>Documento adjunto</strong>
+              <small>{inicial.origen === 'pdf' ? 'PDF' : 'Foto'} guardado con este movimiento</small>
+            </span>
+            <span className="btn btn-text btn-sm">{verDoc ? 'Ocultar' : 'Ver'}</span>
+          </button>
+        )}
+        {verDoc && <Comprobante key={inicial.id} mov={inicial} altura="50vh" />}
         {/* Tipo: dos tarjetas grandes, fáciles de tocar */}
         <div className="mf-tipo" role="radiogroup" aria-label="Tipo de movimiento">
           {[
@@ -154,7 +256,9 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
 
         {/* Monto grande en mono, con separador de miles mientras se escribe */}
         <div className="field">
-          <label htmlFor="f-monto">Monto total</label>
+          <label htmlFor="f-monto">
+            Monto total <MarcaIa ia={ia} campo="monto" corregidos={corregidos} />
+          </label>
           <div className={`mf-monto${errores.monto ? ' bad' : ''}`}>
             <span aria-hidden="true">{esGasto ? '−' : '+'} $</span>
             <input
@@ -174,6 +278,10 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
             <span className="err" id="e-monto">
               {errores.monto}
             </span>
+          ) : ia?.motivos?.monto && ia.confianza.monto === 'media' && !corregidos.has('monto') ? (
+            <span className="hint ia-motivo" id="h-monto">
+              {ia.motivos.monto} Compáralo con la foto.
+            </span>
           ) : (
             <span className="hint" id="h-monto">
               {iva ? (
@@ -192,40 +300,61 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
           <span className="label" id="l-cat">
             Categoría
           </span>
-          <div
-            className="mf-cats"
-            role="radiogroup"
-            aria-labelledby="l-cat"
-            aria-describedby={errores.categoria_id ? 'e-cat' : undefined}
-            key={f.tipo}
-          >
-            {cats.map((c, i) => (
-              <button
-                key={c.id}
-                id={i === 0 ? 'f-categoria_id' : undefined}
-                type="button"
-                role="radio"
-                aria-checked={f.categoria_id === c.id}
-                className={`mf-cat${errores.categoria_id ? ' bad' : ''}`}
-                style={{ '--c': c.color, '--d': `${i * 25}ms` }}
-                onClick={() => set('categoria_id', c.id)}
-              >
-                <span className="dot" />
-                {c.nombre}
-                <Icon name="check" className="mf-cat-ok" />
-              </button>
-            ))}
-          </div>
-          {errores.categoria_id && (
+          {!cats.length ? (
+            <SinCategorias tipo={f.tipo} />
+          ) : (
+            <div
+              className="mf-cats"
+              role="radiogroup"
+              aria-labelledby="l-cat"
+              aria-describedby={errores.categoria_id ? 'e-cat' : undefined}
+              key={f.tipo}
+            >
+              {cats.map((c, i) => (
+                <button
+                  key={c.id}
+                  id={i === 0 ? 'f-categoria_id' : undefined}
+                  type="button"
+                  role="radio"
+                  aria-checked={f.categoria_id === c.id}
+                  className={`mf-cat${errores.categoria_id ? ' bad' : ''}`}
+                  style={{ '--c': c.color, '--d': `${i * 25}ms` }}
+                  onClick={() => set('categoria_id', c.id)}
+                >
+                  <span className="dot" />
+                  {c.nombre}
+                  <Icon name="check" className="mf-cat-ok" />
+                </button>
+              ))}
+              {plegadas > 0 && (
+                <button type="button" className="mf-cat mf-cat-mas" aria-expanded={verTodas} onClick={() => setVerTodas((v) => !v)}>
+                  {verTodas ? 'Mostrar menos' : `+ ${plegadas} más`}
+                </button>
+              )}
+            </div>
+          )}
+          {errores.categoria_id ? (
             <span className="err" id="e-cat">
               {errores.categoria_id}
             </span>
-          )}
+          ) : ia && ia.sugerencia && f.categoria_id === ia.sugerencia.categoria_id ? (
+            <span className="hint ia-hint">
+              <Icon name="spark" />
+              Sugerida: {ia.sugerencia.motivo}
+            </span>
+          ) : ia && !ia.sugerencia && !f.categoria_id ? (
+            <span className="hint ia-hint">
+              <Icon name="spark" />
+              No encontramos una categoría parecida: elige una de la lista.
+            </span>
+          ) : null}
         </div>
 
         <div className="mf-grid">
           <div className="field">
-            <label htmlFor="f-fecha">Fecha</label>
+            <label htmlFor="f-fecha">
+              Fecha <MarcaIa ia={ia} campo="fecha" corregidos={corregidos} />
+            </label>
             <input
               id="f-fecha"
               type="date"
@@ -238,7 +367,9 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
             {errores.fecha && <span className="err">{errores.fecha}</span>}
           </div>
           <div className="field">
-            <span className="label">Documento</span>
+            <span className="label">
+              Documento <MarcaIa ia={ia} campo="tipo_documento" corregidos={corregidos} />
+            </span>
             <Seg
               label="Tipo de documento"
               className="mf-doc"
@@ -246,11 +377,14 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
               valor={f.tipo_documento}
               onChange={(v) => set('tipo_documento', v)}
             />
+            <MotivoIa ia={ia} campo="tipo_documento" corregidos={corregidos} />
           </div>
         </div>
 
         <div className="field">
-          <label htmlFor="f-descripcion">Descripción</label>
+          <label htmlFor="f-descripcion">
+            Descripción <MarcaIa ia={ia} campo="descripcion" corregidos={corregidos} />
+          </label>
           <input
             id="f-descripcion"
             className="input"
@@ -260,12 +394,12 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
             onChange={(e) => set('descripcion', e.target.value)}
             aria-invalid={Boolean(errores.descripcion)}
           />
-          {errores.descripcion && <span className="err">{errores.descripcion}</span>}
+          {errores.descripcion ? <span className="err">{errores.descripcion}</span> : <MotivoIa ia={ia} campo="descripcion" corregidos={corregidos} />}
         </div>
 
         <div className="field">
           <label htmlFor="f-proveedor">
-            {esGasto ? 'Proveedor' : 'Cliente'} <span className="muted">(opcional)</span>
+            {esGasto ? 'Proveedor' : 'Cliente'} {ia ? <MarcaIa ia={ia} campo="proveedor" corregidos={corregidos} /> : <span className="muted">(opcional)</span>}
           </label>
           <input
             id="f-proveedor"
@@ -277,6 +411,12 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
             value={f.proveedor}
             onChange={(e) => set('proveedor', e.target.value)}
           />
+          <MotivoIa ia={ia} campo="proveedor" corregidos={corregidos} />
+          {ia?.rut && (
+            <span className="hint ia-rut">
+              RUT <span className="mono">{formatearRut(ia.rut)}</span> · leído del documento y validado con su dígito verificador
+            </span>
+          )}
           <datalist id="proveedores">
             {proveedores.map((p) => (
               <option key={p} value={p} />
@@ -344,14 +484,20 @@ export default function MovimientoForm({ inicial, proveedores = [], onGuardar, o
           </button>
         )}
         <span className="mf-foot-space" />
-        {!editando && (
-          <button type="button" className="btn btn-ghost" disabled={enviando} onClick={() => enviar(true)}>
-            Guardar y otro
+        {onCancelar ? (
+          <button type="button" className="btn btn-ghost" disabled={enviando} onClick={onCancelar}>
+            Cancelar
           </button>
+        ) : (
+          !editando && (
+            <button type="button" className="btn btn-ghost" disabled={enviando} onClick={() => enviar(true)}>
+              Guardar y otro
+            </button>
+          )
         )}
         <button type="submit" className="btn btn-primary mf-save" disabled={enviando}>
           <Icon name="check" />
-          {editando ? 'Guardar cambios' : esGasto ? 'Guardar gasto' : 'Guardar ingreso'}
+          {ia ? 'Confirmar y guardar' : editando ? 'Guardar cambios' : esGasto ? 'Guardar gasto' : 'Guardar ingreso'}
         </button>
       </footer>
       )}

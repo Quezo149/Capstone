@@ -217,6 +217,8 @@
 .mf-foot {
   position: sticky;
   bottom: 0;
+  /* Sobre el selector de documento (.seg button tiene z-index 1) cuando pasa por debajo */
+  z-index: 2;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -260,6 +262,32 @@
 @media (max-width: 460px) {
   .mf-body {
     padding-inline: 16px;
+  }
+
+  /* Gasto / Ingreso: en una línea; "Salió plata" no cabía y partía la tarjeta en tres */
+  .mf-tipo-op {
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  .mf-tipo-op small {
+    display: none;
+  }
+
+  .mf-tipo-ic {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+  }
+
+  .mf-cats {
+    gap: 6px;
+  }
+
+  .mf-cat {
+    gap: 6px;
+    padding: 7px 10px;
+    font-size: 13.5px;
   }
 
   .mf-grid {
@@ -369,4 +397,155 @@
 .btn-danger-solid:hover {
   background: color-mix(in srgb, var(--gasto) 85%, #000);
   box-shadow: 0 10px 22px color-mix(in srgb, var(--gasto) 30%, transparent);
+}
+
+/* ---------- HU09: datos leídos por la IA ---------- */
+.ia-marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: var(--r-pill);
+  background: var(--brand-tint);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  vertical-align: 1px;
+}
+
+.ia-marca svg {
+  width: 12px;
+  height: 12px;
+  color: var(--brand);
+}
+
+.ia-marca.revisa {
+  background: var(--warn-tint);
+}
+
+.ia-marca.corregido {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.ia-hint {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.ia-hint svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-top: 2px;
+  color: var(--brand);
+}
+
+/* Documento adjunto al editar un movimiento cargado con foto o PDF */
+.mf-adjunto {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-m);
+  background: var(--paper);
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mf-adjunto:hover {
+  border-color: var(--brand);
+}
+
+.mf-adjunto > svg {
+  width: 40px;
+  height: 40px;
+  padding: 9px;
+  border-radius: 10px;
+  background: var(--brand-tint);
+  color: var(--brand);
+}
+
+.mf-adjunto span:not(.btn) {
+  display: grid;
+}
+
+.mf-adjunto small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.mf-atajo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 24px 0;
+  padding: 10px 14px;
+  border-radius: var(--r-m);
+  background: var(--sand);
+  color: var(--ink);
+  font-size: 13.5px;
+  text-decoration: none;
+}
+
+.mf-atajo:hover {
+  background: var(--warn-tint);
+}
+
+.mf-atajo svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  color: var(--brand);
+}
+
+@media (max-width: 720px) {
+  .mf-atajo {
+    margin-inline: 16px;
+  }
+}
+
+.ia-motivo {
+  color: var(--ink);
+  padding: 4px 8px;
+  border-left: 3px solid var(--highlight);
+  background: var(--warn-tint);
+  border-radius: 0 6px 6px 0;
+}
+
+.ia-rut .mono {
+  color: var(--ink);
+}
+
+/* "+ 5 más" al final de las categorías, distinto de una categoría */
+.mf-cat.mf-cat-mas {
+  border-style: dashed;
+  background: none;
+  color: var(--muted);
+}
+
+.mf-cat.mf-cat-mas:hover {
+  color: var(--ink);
+}
+
+/* sin categorías visibles para el tipo elegido */
+.mf-sin-cats {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-m);
+  background: var(--paper);
+  font-size: 14px;
+}
+
+.mf-sin-cats span {
+  color: var(--muted);
 }

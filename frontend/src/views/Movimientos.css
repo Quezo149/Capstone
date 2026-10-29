@@ -318,3 +318,16 @@ tr.row:focus-visible .row-edit {
   cursor: default;
   color: inherit;
 }
+
+/* Ícono junto a la descripción: el movimiento tiene su foto o PDF guardado (HU09) */
+.row-doc {
+  display: inline-flex;
+  margin-left: 6px;
+  color: var(--muted);
+  vertical-align: -2px;
+}
+
+.row-doc svg {
+  width: 14px;
+  height: 14px;
+}

@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Drawer from './components/Drawer'
+import Icon from './components/Icon'
 import MovimientoForm from './components/MovimientoForm'
+import { Comprobante } from './components/VisorDocumento'
 import Shell from './components/Shell'
 import useHashRoute from './hooks/useHashRoute'
 import { clp } from './lib/format'
 import { useMovimientos } from './state/Movimientos'
 import { useSesion } from './state/Sesion'
 import { useToast } from './state/Toasts'
+import Cargar from './views/Cargar'
 import Categorias from './views/Categorias'
 import DatosLocales from './views/DatosLocales'
 import Equipo from './views/Equipo'
@@ -26,7 +29,7 @@ export default function App() {
   const { aviso } = useToast()
   // HU03: el contador consulta pero no registra ni corrige movimientos (D1)
   const registra = puede('movimientos.registrar')
-  // null = cerrado · { mov: null } = nuevo · { mov } = editar
+  // null = cerrado · { mov: null } = nuevo · { mov } = editar · { ver } = solo ver el comprobante
   const [panel, setPanel] = useState(null)
   // Cambia en cada apertura: monta un formulario limpio (nuevo client_request_id)
   const [vez, setVez] = useState(0)
@@ -38,6 +41,8 @@ export default function App() {
   const nuevo = useCallback(() => abrir(null), [abrir])
   const onNuevo = registra ? nuevo : null
   const onEditar = registra ? abrir : null
+  // El contador no edita, pero sí revisa la foto o el PDF de cada movimiento (HU09)
+  const onVer = registra ? null : (mov) => setPanel({ ver: mov })
   const cerrar = useCallback(() => setPanel(null), [])
 
   // Atajo de teclado: N abre "Nuevo movimiento" (si no se está escribiendo en un campo)
@@ -82,6 +87,7 @@ export default function App() {
   if (ruta === 'empresa') vista = <MiEmpresa />
   else if (ruta === 'categorias') vista = <Categorias />
   else if (ruta === 'equipo' && puede('usuarios.ver')) vista = <Equipo />
+  else if (ruta === 'cargar' && registra) vista = <Cargar proveedores={proveedores} />
   else if (cargando) vista = <p className="muted">Cargando movimientos…</p>
   else if (error && (ruta === 'inicio' || ruta === 'movimientos'))
     vista = (
@@ -93,11 +99,12 @@ export default function App() {
         </button>
       </div>
     )
-  else if (ruta === 'inicio') vista = <Inicio onNuevo={onNuevo} onEditar={onEditar} />
-  else if (ruta === 'movimientos') vista = <Movimientos onNuevo={onNuevo} onEditar={onEditar} />
+  else if (ruta === 'inicio') vista = <Inicio onNuevo={onNuevo} onEditar={onEditar} onVer={onVer} />
+  else if (ruta === 'movimientos') vista = <Movimientos onNuevo={onNuevo} onEditar={onEditar} onVer={onVer} />
   else vista = <Pronto ruta={ruta} />
 
   const editando = Boolean(panel?.mov)
+  const viendo = panel?.ver
 
   return (
     <>
@@ -108,10 +115,24 @@ export default function App() {
       <Drawer
         abierto={Boolean(panel)}
         onCerrar={cerrar}
-        eyebrow={editando ? 'Editar' : 'Registro manual'}
-        titulo={editando ? 'Editar movimiento' : 'Nuevo movimiento'}
+        eyebrow={viendo ? 'Comprobante' : editando ? 'Editar' : 'Registro manual'}
+        titulo={viendo ? viendo.descripcion : editando ? 'Editar movimiento' : 'Nuevo movimiento'}
       >
-        {panel && (
+        {viendo && (
+          <div className="panel-ver">
+            <Comprobante key={viendo.id} mov={viendo} altura="70vh" />
+          </div>
+        )}
+        {panel && !editando && !viendo && (
+          // Atajo a la carga con IA desde el registro manual
+          <a className="mf-atajo" href="#/cargar" onClick={cerrar}>
+            <Icon name="camera" />
+            <span>
+              <strong>¿Tienes la boleta?</strong> Súbela y la IA completa los datos.
+            </span>
+          </a>
+        )}
+        {panel && !viendo && (
           <MovimientoForm
             key={vez}
             inicial={panel.mov}

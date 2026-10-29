@@ -72,6 +72,35 @@ a {
   border-radius: 4px;
 }
 
+/* Al tocar en el celular: sin el recuadro celeste del navegador ni selección de texto en los
+   controles. Los textos (montos, descripciones) se siguen pudiendo seleccionar y copiar, y el
+   anillo de :focus-visible se mantiene para quien navega con teclado. */
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+label,
+summary,
+img,
+svg,
+[role='button'],
+[role='radio'],
+[role='tab'] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Mantener presionado un botón o una sección no abre el menú de "abrir enlace / copiar" */
+.btn,
+.icon-btn,
+.nav-item,
+.fab,
+.avatar {
+  -webkit-touch-callout: none;
+}
+
 .mono {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
@@ -518,5 +547,26 @@ tfoot td {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     transition-delay: 0s !important;
+  }
+}
+
+/* Texto solo para lectores de pantalla */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Panel del contador que solo muestra el comprobante (App.jsx) */
+.panel-ver {
+  padding: 20px 24px 24px;
+}
+
+@media (max-width: 460px) {
+  .panel-ver {
+    padding-inline: 16px;
   }
 }
