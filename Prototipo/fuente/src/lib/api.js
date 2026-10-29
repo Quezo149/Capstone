@@ -64,7 +64,25 @@ export async function api(ruta, { method = 'GET', body } = {}) {
     return { usuario_id: yo.id, empresa_id: db.empresa.id, empresa_nombre: db.empresa.nombre, rol, email: yo.email, permisos: permisosDe(rol) }
 
   // ---------- Categorías (HU14) ----------
-  if (r('/categorias')) return copia(db.categorias)
+  // PROTOTIPO A+B: el admin puede ocultar una predefinida para SU empresa (no se borra: el
+  // historial la sigue mostrando). En la app real sería una tabla categorias_ocultas.
+  const ocultas = () => (db.empresa.ocultas ??= [])
+  // Siempre queda al menos una categoría visible de gastos y una de ingresos: el empleado no
+  // crea categorías (D2) y sin ninguna no podría registrar nada
+  const visiblesDe = (tipo) => db.categorias.filter((c) => c.tipo === tipo && !ocultas().includes(c.id))
+  const ultimaVisible = (c) => visiblesDe(c.tipo).length <= 1 && !ocultas().includes(c.id)
+  const errorUltima = (c) =>
+    new ApiError(409, 'ultima_visible', `Debe quedar al menos una categoría de ${c.tipo === 'gasto' ? 'gastos' : 'ingresos'}.`)
+  if (r('/categorias')) return copia(db.categorias.map((c) => ({ ...c, oculta: ocultas().includes(c.id) })))
+  if ((p = r('/categorias/:id/oculta', 'PUT'))) {
+    exigir(rol, 'categorias.gestionar')
+    const c = db.categorias.find((x) => x.id === p.id)
+    if (!c) throw noEncontrado()
+    if (!c.predefinida) throw new ApiError(422, 'solo_predefinidas', 'Las categorías propias se editan o eliminan.')
+    if (body.oculta && ultimaVisible(c)) throw errorUltima(c)
+    db.empresa.ocultas = body.oculta ? [...new Set([...ocultas(), c.id])] : ocultas().filter((id) => id !== c.id)
+    return fin({ ...c, oculta: Boolean(body.oculta) })
+  }
   if (r('/categorias', 'POST')) {
     exigir(rol, 'categorias.gestionar')
     const c = { id: nuevoId(), ...body, predefinida: false }
@@ -82,6 +100,8 @@ export async function api(ruta, { method = 'GET', body } = {}) {
     exigir(rol, 'categorias.gestionar')
     if (db.movimientos.some((m) => m.categoria_id === p.id && !m.eliminado))
       throw new ApiError(409, 'categoria_en_uso', 'Esta categoría tiene movimientos: no se puede eliminar.')
+    const borrada = db.categorias.find((x) => x.id === p.id)
+    if (borrada && ultimaVisible(borrada)) throw errorUltima(borrada)
     db.categorias = db.categorias.filter((x) => x.id !== p.id)
     return fin(null)
   }

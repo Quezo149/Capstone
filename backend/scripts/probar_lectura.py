@@ -10,7 +10,9 @@ Uso (desde backend/):
     .venv/bin/python scripts/probar_lectura.py --texto boleta1.jpg   # además, todo el texto leído
     .venv/bin/python scripts/probar_lectura.py --json salida.json fotos/*.jpg
 
-Lee el endpoint y la clave de local.settings.json (nunca las imprime). El plan F0 permite
+Elige el modelo como POST /documentos/extraer: fotos con prebuilt-receipt y PDF con
+prebuilt-invoice (--modelo para forzar otro). Lee el endpoint y la clave de
+local.settings.json (nunca las imprime). El plan F0 permite
 20 lecturas por minuto y 500 páginas al mes, y lee solo las 2 primeras páginas de cada PDF.
 Las fotos conviene enviarlas a 1600 px o más: a 1100 px la lectura empeoró.
 """
@@ -25,6 +27,7 @@ from azure.core.credentials import AzureKeyCredential
 
 BACKEND = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BACKEND))
+from app.core.ia import formato  # noqa: E402
 from app.core.lectura import interpretar  # noqa: E402
 
 SETTINGS = BACKEND / "local.settings.json"
@@ -36,6 +39,7 @@ def main() -> None:
     p.add_argument("archivos", nargs="+", type=Path)
     p.add_argument("--texto", action="store_true", help="muestra el texto completo que leyó")
     p.add_argument("--json", type=Path, help="guarda los resultados interpretados en este archivo")
+    p.add_argument("--modelo", help="fuerza un modelo (prebuilt-receipt | prebuilt-invoice)")
     args = p.parse_args()
 
     valores = json.loads(SETTINGS.read_text())["Values"]
@@ -48,14 +52,20 @@ def main() -> None:
         if not ruta.is_file():
             print("  no existe")
             continue
+        contenido = ruta.read_bytes()
+        f = formato(contenido)
+        modelo = args.modelo or (f.modelo if f else None)
+        if not modelo:
+            print("  No es JPG, PNG ni PDF: el endpoint respondería 415")
+            continue
+        print(f"  modelo: {modelo}")
         try:
-            with ruta.open("rb") as fh:
-                # es-CL: sin esto "$4.100" se lee como 4,1 (punto decimal en inglés)
-                resultado = cliente.begin_analyze_document("prebuilt-receipt", body=fh, locale="es-CL").result()
+            # es-CL: sin esto "$4.100" se lee como 4,1 (punto decimal en inglés)
+            resultado = cliente.begin_analyze_document(modelo, body=contenido, locale="es-CL").result()
         except Exception as e:  # noqa: BLE001 - prueba manual: mostrar el error y seguir con el siguiente
             print(f"  Error: {type(e).__name__}: {str(e)[:300]}")
             continue
-        r = interpretar(resultado)
+        r = interpretar(resultado, modelo)
         salida[ruta.name] = r
         if not r["ok"]:
             print(f"  No se pudo leer: {r['motivo']}")

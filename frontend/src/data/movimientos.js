@@ -4,7 +4,8 @@
 // Forma de un movimiento (tabla `movimientos`, 0006_movimientos.sql):
 //   { id, client_request_id, fecha 'AAAA-MM-DD', monto (entero CLP, IVA incluido),
 //     tipo 'ingreso'|'gasto', categoria_id, proveedor, descripcion,
-//     tipo_documento 'boleta'|'factura'|'otro', origen, creado_en, usuario_id, usuario_nombre }
+//     tipo_documento 'boleta'|'factura'|'otro', origen, creado_en, usuario_id, usuario_nombre,
+//     proveedor_rut (0010, leído de la boleta), tiene_comprobante (foto o PDF guardado) }
 // empresa_id y usuario_id los pone el backend a partir del token: el frontend no los envía.
 // Qué movimientos llegan lo decide RLS: el empleado recibe solo los suyos (HU05).
 
@@ -32,11 +33,24 @@ export async function crear(datos) {
   return normalizar(await api('/movimientos', { method: 'POST', body: datos }))
 }
 
-const EDITABLES = ['fecha', 'monto', 'tipo', 'categoria_id', 'proveedor', 'descripcion', 'tipo_documento']
+const EDITABLES = ['fecha', 'monto', 'tipo', 'categoria_id', 'proveedor', 'proveedor_rut', 'descripcion', 'tipo_documento']
 const soloEditables = (m) => Object.fromEntries(EDITABLES.map((k) => [k, m[k]]))
 
 export async function actualizar(id, cambios) {
   return normalizar(await api(`/movimientos/${id}`, { method: 'PUT', body: soloEditables(cambios) }))
+}
+
+// Dashboard (HU18): totales, gastos por categoría y últimos movimientos de un mes (AAAA-MM),
+// con el mes anterior para comparar. El backend suma en la base: no hace falta traer todo.
+export async function resumen(mes) {
+  const r = await api(`/movimientos/resumen?mes=${mes}`)
+  return { ...r, ultimos: r.ultimos.map(normalizar) }
+}
+
+// Foto o PDF guardado con el movimiento: { url, tipo, origen, vence_en_minutos }. El link es
+// temporal (10 min) y de solo lectura: se pide uno nuevo cada vez que se abre.
+export async function comprobante(id) {
+  return api(`/movimientos/${id}/comprobante`)
 }
 
 // Anula el movimiento (ver restaurar)

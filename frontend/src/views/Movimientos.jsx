@@ -25,9 +25,9 @@ const normalizar = (s) =>
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
 
-// HU07. onNuevo / onEditar llegan en null si el rol no registra movimientos (contador):
-// entonces la lista es de solo lectura.
-export default function Movimientos({ onNuevo, onEditar }) {
+// HU07. onNuevo / onEditar llegan en null si el rol no registra movimientos (contador): la lista
+// es de solo lectura, salvo las filas con foto o PDF, que abren el comprobante con onVer (HU09).
+export default function Movimientos({ onNuevo, onEditar, onVer }) {
   const { movs, tocado } = useMovimientos()
   const { categorias, categoria } = useCategorias()
   const { puede } = useSesion()
@@ -69,16 +69,20 @@ export default function Movimientos({ onNuevo, onEditar }) {
   if (!movs.length) return <Bienvenida onNuevo={onNuevo} />
 
   const cats = f.tipo === 'todos' ? categorias : categorias.filter((c) => c.tipo === f.tipo)
-  // Props de una fila clickeable; sin onEditar la fila es solo lectura
-  const editable = (m, etiqueta) =>
-    onEditar
+  // Qué hace tocar una fila: editar (admin y empleado) o ver su comprobante (contador)
+  const abrir = (m) => (onEditar ? onEditar : m.tiene_comprobante ? onVer : null)
+  // Props de una fila clickeable; sin acción la fila es solo lectura
+  const editable = (m, etiqueta) => {
+    const accion = abrir(m)
+    return accion
       ? {
           tabIndex: 0,
-          onClick: () => onEditar(m),
-          onKeyDown: (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), onEditar(m)),
-          'aria-label': etiqueta,
+          onClick: () => accion(m),
+          onKeyDown: (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), accion(m)),
+          'aria-label': onEditar ? etiqueta : `Ver el comprobante de ${m.descripcion}`,
         }
       : {}
+  }
 
   return (
     <>
@@ -205,13 +209,21 @@ export default function Movimientos({ onNuevo, onEditar }) {
                   return (
                     <tr
                       key={m.id}
-                      className={`${onEditar ? 'row' : ''}${m.id === tocado ? ' flash' : ''}`}
+                      className={`${abrir(m) ? 'row' : ''}${m.id === tocado ? ' flash' : ''}`}
                       style={{ '--d': `${Math.min(i, 12) * 28}ms` }}
                       {...editable(m, `Editar ${m.descripcion}`)}
                     >
                       <td className="mono muted">{fechaCorta(m.fecha)}</td>
                       <td>
-                        <strong>{m.descripcion}</strong>
+                        <strong>
+                          {m.descripcion}
+                          {m.tiene_comprobante && (
+                            <span className="row-doc" title={m.origen === 'pdf' ? 'Con PDF' : 'Con foto'}>
+                              <Icon name={m.origen === 'pdf' ? 'receipt' : 'camera'} />
+                              <span className="sr-only">{m.origen === 'pdf' ? 'Con PDF' : 'Con foto'}</span>
+                            </span>
+                          )}
+                        </strong>
                         {(m.proveedor || porUsuario) && (
                           <small className="sub">
                             {[m.proveedor, porUsuario && `Registró: ${m.usuario_nombre}`].filter(Boolean).join(' · ')}
@@ -250,13 +262,14 @@ export default function Movimientos({ onNuevo, onEditar }) {
               const c = categoria(m.categoria_id)
               return (
                 <li key={m.id} className={m.id === tocado ? 'flash' : ''} style={{ '--d': `${Math.min(i, 12) * 28}ms` }}>
-                  <button type="button" onClick={onEditar ? () => onEditar(m) : undefined} disabled={!onEditar}>
+                  <button type="button" onClick={abrir(m) ? () => abrir(m)(m) : undefined} disabled={!abrir(m)}>
                     <span className="dot" style={{ color: c.color }} />
                     <span className="ml-t">
                       <strong>{m.descripcion}</strong>
                       <small>
                         {fechaCorta(m.fecha)} · {c.nombre}
                         {porUsuario && ` · ${m.usuario_nombre}`}
+                        {m.tiene_comprobante && ` · ${m.origen === 'pdf' ? 'PDF' : 'Foto'}`}
                       </small>
                     </span>
                     <span className={`mono ${m.tipo === 'ingreso' ? 'amt-in' : 'amt-out'}`}>{clpSigno(m.monto, m.tipo)}</span>

@@ -38,14 +38,21 @@ export function CategoriasProvider({ children }) {
     return c
   }, [])
 
+  // ocultar o volver a mostrar una predefinida en esta empresa
+  const ocultar = useCallback(async (id, oculta) => {
+    const c = await api(`/categorias/${id}/oculta`, { method: 'PUT', body: { oculta } })
+    setLista((l) => l.map((x) => (x.id === id ? c : x)))
+    return c
+  }, [])
+
   const eliminar = useCallback(async (id) => {
     await api(`/categorias/${id}`, { method: 'DELETE' })
     setLista((l) => l.filter((x) => x.id !== id))
   }, [])
 
   const value = useMemo(
-    () => ({ categorias: lista, cargando, error, categoria, categoriasDe, crear, editar, eliminar }),
-    [lista, cargando, error, categoria, categoriasDe, crear, editar, eliminar],
+    () => ({ categorias: lista, cargando, error, categoria, categoriasDe, crear, editar, eliminar, ocultar }),
+    [lista, cargando, error, categoria, categoriasDe, crear, editar, eliminar, ocultar],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

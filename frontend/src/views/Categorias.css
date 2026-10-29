@@ -171,3 +171,56 @@
   color: #fff;
   box-shadow: inset 0 0 0 2px var(--surface);
 }
+
+/* ---------- uso de cada categoría y ocultas ---------- */
+.cat-usos {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.cat-ocultas {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line);
+}
+
+.cat-ocultas summary {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.cat-ocultas summary::before {
+  content: '›';
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.cat-ocultas[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.cat-ocultas summary small {
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.cat-ocultas .cat-lista li {
+  opacity: 0.7;
+}
+
+.cat-ultima {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+}
+
+.cat-acts .btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

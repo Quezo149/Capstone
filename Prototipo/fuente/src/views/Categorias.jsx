@@ -5,6 +5,7 @@ import Seg from '../components/Seg'
 import { PALETA } from '../data/categorias'
 import { problemaColor } from '../lib/color'
 import { useCategorias } from '../state/Categorias'
+import { useMovimientos } from '../state/Movimientos'
 import { useSesion } from '../state/Sesion'
 import { useToast } from '../state/Toasts'
 import './Categorias.css'
@@ -140,7 +141,8 @@ function CategoriaForm({ inicial, onGuardar }) {
   )
 }
 
-function Fila({ c, admin, editando, onEditar, onEliminar }) {
+function Fila({ c, admin, editando, usos, ultima, onEditar, onEliminar, onOcultar }) {
+  const porQue = ultima ? `Debe quedar al menos una categoría de ${c.tipo === 'gasto' ? 'gastos' : 'ingresos'}` : undefined
   // Eliminar pide un segundo clic dentro de 3 s
   const [confirmar, setConfirmar] = useState(false)
   useEffect(() => {
@@ -152,9 +154,20 @@ function Fila({ c, admin, editando, onEditar, onEliminar }) {
   return (
     <li className={editando ? 'activa' : ''}>
       <span className="dot" style={{ color: c.color }} />
-      <span className="cat-nombre">{c.nombre}</span>
+      <span className="cat-nombre">
+        {c.nombre}
+        {/* PROTOTIPO A+B: cuánto se usa, para decidir qué ocultar */}
+        <small className="cat-usos">{usos ? `${usos} ${usos === 1 ? 'movimiento' : 'movimientos'}` : 'Sin usar'}</small>
+      </span>
       {c.predefinida ? (
-        <span className="chip line">Predefinida</span>
+        <span className="cat-acts">
+          <span className="chip line">Predefinida</span>
+          {admin && (
+            <button type="button" className="btn btn-text btn-sm" onClick={onOcultar} disabled={!c.oculta && ultima} title={c.oculta ? undefined : porQue}>
+              {c.oculta ? 'Mostrar' : 'Ocultar'}
+            </button>
+          )}
+        </span>
       ) : (
         admin && (
           <span className="cat-acts">
@@ -165,6 +178,8 @@ function Fila({ c, admin, editando, onEditar, onEliminar }) {
               type="button"
               className={`btn btn-sm ${confirmar ? 'btn-danger' : 'btn-text'}`}
               onClick={() => (confirmar ? onEliminar() : setConfirmar(true))}
+              disabled={ultima}
+              title={porQue}
               aria-label={`Eliminar ${c.nombre}`}
             >
               {confirmar ? '¿Eliminar?' : <Icon name="trash" />}
@@ -176,10 +191,31 @@ function Fila({ c, admin, editando, onEditar, onEliminar }) {
   )
 }
 
+// PROTOTIPO A+B: predefinidas que el admin ocultó en esta empresa. No se borran: los movimientos
+// que ya las usan las siguen mostrando, y aquí se pueden volver a mostrar.
+function Ocultas({ lista, admin, usos, onOcultar }) {
+  if (!lista.length) return null
+  return (
+    <details className="cat-ocultas">
+      <summary>
+        Ocultas ({lista.length})<small>No aparecen al registrar un movimiento</small>
+      </summary>
+      <ul className="cat-lista">
+        {lista.map((c) => (
+          <Fila key={c.id} c={c} admin={admin} usos={usos[c.id]} onOcultar={() => onOcultar(c)} />
+        ))}
+      </ul>
+    </details>
+  )
+}
+
 // HU14 — KONTADORIA-37. Todos los roles ven las categorías; solo el admin crea, edita y elimina.
 export default function Categorias() {
   const { puede } = useSesion()
-  const { categorias, cargando, error, crear, editar, eliminar } = useCategorias()
+  const { categorias, cargando, error, crear, editar, eliminar, ocultar } = useCategorias()
+  const { movs } = useMovimientos()
+  const usos = {}
+  for (const m of movs) usos[m.categoria_id] = (usos[m.categoria_id] ?? 0) + 1
   const { aviso } = useToast()
   const admin = puede('categorias.gestionar')
   // null = sin formulario · 'nueva' · id de la categoría en edición
@@ -200,6 +236,15 @@ export default function Categorias() {
     try {
       await eliminar(c.id)
       aviso(`Eliminamos "${c.nombre}"`)
+    } catch (e) {
+      aviso(e.message)
+    }
+  }
+
+  async function alternar(c) {
+    try {
+      await ocultar(c.id, !c.oculta)
+      aviso(c.oculta ? `"${c.nombre}" vuelve a aparecer al registrar` : `Ocultamos "${c.nombre}": ya no aparece al registrar`)
     } catch (e) {
       aviso(e.message)
     }
@@ -235,18 +280,26 @@ export default function Categorias() {
             </div>
             <ul className="cat-lista">
               {categorias
-                .filter((c) => c.tipo === t.id)
-                .map((c) => (
+                .filter((c) => c.tipo === t.id && !c.oculta)
+                .map((c, _, visibles) => (
                   <Fila
                     key={c.id}
                     c={c}
                     admin={admin}
+                    usos={usos[c.id]}
+                    ultima={visibles.length === 1}
                     editando={form === c.id}
                     onEditar={() => setForm(c.id)}
                     onEliminar={() => quitar(c)}
+                    onOcultar={() => alternar(c)}
                   />
                 ))}
             </ul>
+            {admin && categorias.filter((c) => c.tipo === t.id && !c.oculta).length === 1 && (
+              <p className="muted cat-ultima">Debe quedar al menos una categoría de {t.id === 'gasto' ? 'gastos' : 'ingresos'} para poder registrar.</p>
+            )}
+            {/* PROTOTIPO A+B: las ocultas quedan aquí, plegadas, para volver a mostrarlas */}
+            <Ocultas lista={categorias.filter((c) => c.tipo === t.id && c.oculta)} admin={admin} usos={usos} onOcultar={alternar} />
           </div>
         ))}
       </div>

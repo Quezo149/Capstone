@@ -229,6 +229,12 @@
   .top {
     padding: 10px 16px;
     padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    transition: transform 0.25s ease;
+  }
+
+  /* Se esconde al bajar (hooks/useOcultarAlBajar.js); con el teclado dentro de la barra, se ve */
+  .top.oculta:not(:focus-within) {
+    transform: translateY(-100%);
   }
 
   .top-logo {
@@ -325,4 +331,10 @@
 
 .local-acts {
   margin: 4px 0 0 -10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .top {
+    transition: none;
+  }
 }
