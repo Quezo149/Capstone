@@ -217,6 +217,8 @@
 .mf-foot {
   position: sticky;
   bottom: 0;
+  /* Sobre el selector de documento (.seg button tiene z-index 1) cuando pasa por debajo */
+  z-index: 2;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -492,4 +494,31 @@
 
 .ia-rut .mono {
   color: var(--ink);
+}
+
+/* PROTOTIPO A+B: "+ 5 más" al final de las categorías, distinto de una categoría */
+.mf-cat.mf-cat-mas {
+  border-style: dashed;
+  background: none;
+  color: var(--muted);
+}
+
+.mf-cat.mf-cat-mas:hover {
+  color: var(--ink);
+}
+
+/* PROTOTIPO A+B: sin categorías visibles para el tipo elegido */
+.mf-sin-cats {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px dashed var(--line);
+  border-radius: var(--r-m);
+  background: var(--paper);
+  font-size: 14px;
+}
+
+.mf-sin-cats span {
+  color: var(--muted);
 }
