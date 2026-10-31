@@ -2,6 +2,7 @@ import Icon from './Icon'
 import HeroDemo from './HeroDemo'
 import Mark from './Mark'
 import Reveal from './Reveal'
+import { LINK_CREAR_CUENTA } from '../data/app'
 import './Hero.css'
 
 const REASSURE = ['Sin tarjeta de crédito', 'Trae tu planilla actual', 'Funciona en el celular']
@@ -22,8 +23,8 @@ export default function Hero() {
             contador recibe todo ordenado. Sin aprender un software contable.
           </Reveal>
           <Reveal className="cta-row" delay={270}>
-            <a className="btn btn-primary" href="#piloto">
-              Súmate al piloto gratis <Icon name="arrow" />
+            <a className="btn btn-primary" href={LINK_CREAR_CUENTA}>
+              Crea tu cuenta gratis <Icon name="arrow" />
             </a>
             <a className="btn btn-ghost" href="#carga">
               Ver cómo funciona

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
 import Logo from '../components/Logo'
+import { accesoPendiente, tomarAcceso } from '../lib/acceso'
 import { useSesion } from '../state/Sesion'
 import './Acceso.css'
 
@@ -8,6 +9,15 @@ import './Acceso.css'
 // se escriben en la página de Microsoft Entra, no aquí: KontadorIA no guarda contraseñas.
 export default function Acceso() {
   const { estado, error, entrar, salir, reintentar } = useSesion()
+  // Llegó desde la landing ("Crear cuenta" / "Iniciar sesión") sin sesión: directo a Microsoft
+  const redirigiendo = estado === 'anonimo' && accesoPendiente()
+  useEffect(() => {
+    if (!redirigiendo) return
+    const intencion = tomarAcceso()
+    if (intencion) entrar(intencion === 'crear' ? { crear: true } : undefined)
+  }, [redirigiendo, entrar])
+
+  if (redirigiendo) return <Cargando />
 
   if (estado === 'desactivado') {
     return (

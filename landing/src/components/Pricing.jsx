@@ -1,6 +1,7 @@
 import Icon from './Icon'
 import Mark from './Mark'
 import Reveal from './Reveal'
+import { LINK_CREAR_CUENTA } from '../data/app'
 import './Pricing.css'
 
 const PLANS = [
@@ -14,7 +15,7 @@ const PLANS = [
       { ok: true, text: 'Movimientos y lecturas con IA limitados al mes' },
       { ok: true, text: 'Importación de Excel' },
     ],
-    cta: 'Súmate al piloto',
+    cta: 'Crear cuenta gratis',
     ctaClass: 'btn-ghost',
   },
   {
@@ -25,12 +26,12 @@ const PLANS = [
     price: '$ 0',
     priceNote: 'durante el piloto',
     features: [
-      { ok: true, text: 'Dueño, contador y empleados' },
+      { ok: true, text: 'Dueño, contador y colaboradores' },
       { ok: true, text: 'Lectura de boletas y facturas sin límite duro' },
       { ok: true, text: 'Reportes por categoría, usuario y fecha' },
       { ok: true, text: 'Presupuestos por categoría' },
     ],
-    cta: 'Súmate al piloto',
+    cta: 'Crear cuenta gratis',
     ctaClass: 'btn-primary',
   },
 ]
@@ -72,20 +73,20 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              <a className={`btn ${p.ctaClass}`} href="#piloto">
+              <a className={`btn ${p.ctaClass}`} href={LINK_CREAR_CUENTA}>
                 {p.cta}
               </a>
             </Reveal>
           ))}
-          {/* Contador todavía no es un plan: tarjeta punteada, sin precio, que lleva al formulario del piloto. */}
+          {/* Contador todavía no es un plan: tarjeta punteada, sin precio. Hoy el contador entra invitado por la PYME. */}
           <Reveal as="article" className="plan contador-card" delay={PLANS.length * 130}>
             <h3>¿Eres contador y llevas varias PYMEs?</h3>
             <p className="for">
-              Estamos diseñando una cuenta para gestionar a todos tus clientes en un solo lugar. Súmate al piloto y
-              cuéntanos qué necesitas.
+              Hoy entras a cada empresa cuando tu cliente te invita como contador. Estamos diseñando una cuenta para
+              gestionar a todos tus clientes en un solo lugar: crea tu cuenta y cuéntanos qué necesitas.
             </p>
-            <a className="btn btn-ghost" href="#piloto">
-              Súmate como contador <Icon name="arrow" />
+            <a className="btn btn-ghost" href={LINK_CREAR_CUENTA}>
+              Crea tu cuenta <Icon name="arrow" />
             </a>
           </Reveal>
         </div>

@@ -47,6 +47,15 @@
   white-space: nowrap;
 }
 
+.nav .nav-login {
+  color: var(--ink);
+  padding: 0 12px;
+}
+
+.nav .nav-login:hover {
+  color: var(--brand);
+}
+
 .theme-toggle {
   flex: none;
   width: 42px;
@@ -89,6 +98,13 @@
 
   .theme-toggle {
     margin-left: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  /* En celular queda solo "Crear cuenta"; el acceso está también al final de la página */
+  .nav .nav-login {
+    display: none;
   }
 }
 

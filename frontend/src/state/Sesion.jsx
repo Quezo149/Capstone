@@ -16,6 +16,7 @@ const pausa = (ms) => new Promise((r) => setTimeout(r, ms))
 //   anonimo      → no hay sesión: pantalla de acceso
 //   sin_empresa  → primera vez: registrar la empresa (HU17)
 //   desactivado  → el admin le quitó el acceso (HU01)
+//   politica_pendiente → la cuenta no ha aceptado la versión vigente de la política de privacidad
 //   error        → la API no respondió como se esperaba
 //   listo        → `perfil` tiene rol y empresa: se muestra la app
 const SesionContext = createContext(null)
@@ -43,6 +44,7 @@ export function SesionProvider({ children }) {
     } catch (e) {
       if (e instanceof ApiError && e.codigo === 'sin_empresa') setEstado('sin_empresa')
       else if (e instanceof ApiError && e.codigo === 'usuario_desactivado') setEstado('desactivado')
+      else if (e instanceof ApiError && e.codigo === 'politica_pendiente') setEstado('politica_pendiente')
       else if (e instanceof ApiError && e.status === 401) setEstado('anonimo')
       else {
         setError(e instanceof ApiError ? e.message : 'No pudimos validar tu sesión.')

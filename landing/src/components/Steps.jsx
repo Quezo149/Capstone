@@ -5,7 +5,7 @@ import './Steps.css'
 const STEPS = [
   {
     title: 'Cargas el gasto el mismo día',
-    text: 'Tú o tus empleados suben la boleta desde el celular apenas pagan. Se acabó la guantera.',
+    text: 'Tú o tus colaboradores suben la boleta desde el celular apenas pagan. Se acabó la guantera.',
   },
   {
     title: 'Revisas y confirmas',

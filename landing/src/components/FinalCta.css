@@ -1,0 +1,78 @@
+.final .box {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(28px, 5vw, 64px);
+  align-items: center;
+}
+
+.final h2 {
+  font-size: clamp(34px, 4.6vw, 56px);
+  line-height: 1;
+  font-weight: 800;
+  margin-block: 14px 18px;
+}
+
+/* Segundo brillo (amarillo, abajo a la derecha) además del verde de .deep */
+.final::before {
+  background:
+    radial-gradient(700px 420px at 0% 0%, color-mix(in srgb, var(--brand) 30%, transparent), transparent 70%),
+    radial-gradient(620px 420px at 95% 100%, color-mix(in srgb, var(--highlight) 20%, transparent), transparent 70%);
+}
+
+.final-card {
+  background: var(--surface);
+  color: var(--ink);
+  border-radius: var(--r-l);
+  padding: clamp(20px, 3vw, 32px);
+  display: grid;
+  gap: 18px;
+}
+
+.final-card h3 {
+  font-size: 22px;
+}
+
+.final-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.final-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: var(--muted);
+}
+
+.final-steps .n {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--brand) 14%, transparent);
+  color: var(--brand);
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.final-login {
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.final-login a {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .final .box {
+    grid-template-columns: 1fr;
+  }
+}

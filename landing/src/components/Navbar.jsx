@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import useTheme from '../hooks/useTheme'
 import Logo from './Logo'
+import { LINK_CREAR_CUENTA, LINK_INICIAR_SESION } from '../data/app'
 import './Navbar.css'
 
 const LINKS = [
@@ -64,8 +65,11 @@ export default function Navbar() {
             </g>
           </svg>
         </button>
-        <a className="btn btn-primary" href="#piloto">
-          Súmate al piloto
+        <a className="btn btn-text nav-login" href={LINK_INICIAR_SESION}>
+          Iniciar sesión
+        </a>
+        <a className="btn btn-primary" href={LINK_CREAR_CUENTA}>
+          Crear cuenta
         </a>
       </div>
     </header>

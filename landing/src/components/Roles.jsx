@@ -28,9 +28,9 @@ const ROLES = [
     ],
   },
   {
-    initial: 'E',
+    initial: 'C',
     tone: 'ink',
-    name: 'Empleado',
+    name: 'Colaborador',
     who: 'Registra los movimientos del día a día',
     can: [
       { ok: true, text: 'Sube boletas por foto, PDF o a mano' },
@@ -50,7 +50,7 @@ export default function Roles() {
             Tu equipo, <Mark variant="brand">tu control</Mark>.
           </h2>
           <p className="lead">
-            Dueños, contadores y empleados trabajan en la misma plataforma, pero cada uno accede solo a lo que necesita.
+            Dueños, contadores y colaboradores trabajan en la misma plataforma, pero cada uno accede solo a lo que necesita.
           </p>
         </Reveal>
         <div className="roles">

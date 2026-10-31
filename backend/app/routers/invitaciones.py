@@ -21,6 +21,7 @@ from sqlalchemy.orm import Session
 from app.core.auth import CurrentUser, Identidad, get_identidad, require_permiso
 from app.core.cuentas import asegurar_usuario, pertenece_a_una_empresa
 from app.core.db import get_db, set_contexto_invitacion
+from app.core.politica import ConPolitica, registrar_aceptacion
 
 router = APIRouter()
 
@@ -34,7 +35,7 @@ class NuevaInvitacion(BaseModel):
     rol: Literal["admin", "contador", "empleado"]
 
 
-class Aceptar(BaseModel):
+class Aceptar(ConPolitica):
     token: Annotated[str, Field(min_length=20, max_length=100)]
 
 
@@ -233,6 +234,7 @@ def aceptar_invitacion(datos: Aceptar, identidad: Identidad = Depends(get_identi
         raise _error(status.HTTP_409_CONFLICT, "ya_tiene_empresa", "Tu cuenta ya pertenece a una empresa.")
 
     usuario_id = asegurar_usuario(db, identidad)
+    registrar_aceptacion(db, usuario_id)
     # Se marca usada primero y con la condición completa: si dos pestañas aceptan a la vez,
     # solo una cambia la fila y la otra sale por aquí.
     usadas = db.execute(
