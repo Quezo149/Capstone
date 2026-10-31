@@ -24,3 +24,6 @@ desktop.ini
 
 # Claude Code: configuración personal y worktrees locales
 .claude/
+
+# Copia de politica.json que hace el deploy del backend (la fuente es la de la raíz)
+backend/politica.json

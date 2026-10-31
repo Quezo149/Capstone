@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.auth import CurrentUser, Identidad, get_identidad, require_permiso
 from app.core.cuentas import asegurar_usuario, pertenece_a_una_empresa
 from app.core.db import get_db, set_contexto_invitacion
+from app.core.politica import ConPolitica, registrar_aceptacion
 from app.core.rut import formatear_rut, normalizar_rut
 
 router = APIRouter()
@@ -34,6 +35,10 @@ class DatosEmpresa(BaseModel):
         return v or None
 
 
+class RegistroEmpresa(DatosEmpresa, ConPolitica):
+    """Registro (HU17): los datos de la empresa más la aceptación de la política de privacidad."""
+
+
 def _error(status_code: int, codigo: str, mensaje: str) -> HTTPException:
     return HTTPException(status_code=status_code, detail={"codigo": codigo, "mensaje": mensaje})
 
@@ -55,7 +60,7 @@ def _leer_empresa(db: Session, empresa_id: str):
 
 @router.post("", status_code=status.HTTP_201_CREATED)
 def registrar_empresa(
-    datos: DatosEmpresa,
+    datos: RegistroEmpresa,
     identidad: Identidad = Depends(get_identidad),
     db: Session = Depends(get_db),
 ):
@@ -100,6 +105,7 @@ def registrar_empresa(
 
     try:
         usuario_id = asegurar_usuario(db, identidad)
+        registrar_aceptacion(db, usuario_id)
         empresa = db.execute(
             text(
                 """
@@ -108,7 +114,7 @@ def registrar_empresa(
                 VALUES (:nombre, :rut, :giro)
                 """
             ),
-            datos.model_dump(),
+            datos.model_dump(include={"nombre", "rut", "giro"}),
         ).one()
         db.execute(
             text("INSERT INTO dbo.usuarios_empresa (usuario_id, empresa_id, rol) VALUES (:u, :e, 'admin')"),

@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.core.config import get_settings
 from app.core.db import get_db, set_session_context
 from app.core.permisos import PERMISOS
+from app.core.politica import POLITICA_VERSION
 
 # auto_error=False: sin token respondemos 401 nosotros, con el mismo formato que un token inválido.
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -173,7 +174,7 @@ def get_current_user(
     rows = db.execute(
         text(
             """
-            SELECT u.id AS usuario_id, ue.empresa_id, ue.rol, ue.activo, u.email
+            SELECT u.id AS usuario_id, ue.empresa_id, ue.rol, ue.activo, u.email, u.politica_version
             FROM dbo.usuarios u
             JOIN dbo.usuarios_empresa ue ON ue.usuario_id = u.id
             WHERE u.entra_oid = :entra_oid
@@ -185,10 +186,14 @@ def get_current_user(
 
     if not rows:
         raise _error(status.HTTP_403_FORBIDDEN, "sin_empresa", "Aún no registras tu empresa.")
-    usuario_id, empresa_id, rol, activo, email = rows[0]
+    usuario_id, empresa_id, rol, activo, email, politica_version = rows[0]
     if not activo:
         # HU01: un usuario desactivado no entra aunque sus credenciales sean correctas.
         raise _error(status.HTTP_403_FORBIDDEN, "usuario_desactivado", "Tu acceso a esta empresa fue desactivado. Habla con el administrador.")
+    if politica_version != POLITICA_VERSION:
+        # Cuenta creada antes de pedir el consentimiento, o que aceptó una versión anterior:
+        # la app muestra la casilla y llama a POST /auth/politica antes de dejarla seguir.
+        raise _error(status.HTTP_403_FORBIDDEN, "politica_pendiente", "Para seguir, acepta la política de privacidad vigente.")
 
     set_session_context(db, empresa_id=str(empresa_id), usuario_id=str(usuario_id), rol=rol)
 

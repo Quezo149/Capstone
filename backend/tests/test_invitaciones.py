@@ -14,7 +14,7 @@ import uuid
 
 import pytest
 
-from tests.utils import agregar_miembro, auth, crear_token, registrar_empresa, rut_valido
+from tests.utils import ACEPTA, POLITICA_VERSION, agregar_miembro, auth, crear_token, registrar_empresa, rut_valido
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def _invitado(email="nueva.persona@prueba.cl"):
 
 
 def _aceptar(client, token_sesion, token_link, **extra):
-    return client.post("/invitaciones/aceptar", json={"token": token_link, **extra}, headers=auth(token_sesion))
+    return client.post("/invitaciones/aceptar", json={"token": token_link, **ACEPTA, **extra}, headers=auth(token_sesion))
 
 
 def _con_contexto(sql, empresa_id, sentencia, *params):
@@ -187,7 +187,7 @@ def test_con_invitacion_pendiente_no_crea_empresa_propia(client, empresa):
     email = f"sin.empresa.{uuid.uuid4().hex[:8]}@prueba.cl"
     r = _invitar(client, empresa["token"], email=email).json()
     persona = _invitado(email)
-    datos = {"nombre": "Por error", "rut": rut_valido()}
+    datos = {"nombre": "Por error", "rut": rut_valido(), **ACEPTA}
     resp = client.post("/empresas", json=datos, headers=auth(persona["token"]))
     assert resp.status_code == 409 and resp.json()["detail"]["codigo"] == "tiene_invitacion"
     assert "Pollito Picarón" in resp.json()["detail"]["mensaje"]
@@ -212,4 +212,24 @@ def test_sin_contexto_no_se_ve_ninguna(client, sql, empresa):
 
 def test_sin_sesion_no_se_acepta(client, empresa):
     token = _invitar(client, empresa["token"]).json()["token"]
-    assert client.post("/invitaciones/aceptar", json={"token": token}).status_code == 401
+    assert client.post("/invitaciones/aceptar", json={"token": token, **ACEPTA}).status_code == 401
+
+
+@pytest.mark.parametrize("politica", [{}, {**ACEPTA, "acepta_politica": False}, {**ACEPTA, "politica_version": "0.9"}])
+def test_aceptar_exige_la_politica_vigente(client, empresa, politica):
+    token = _invitar(client, empresa["token"]).json()["token"]
+    persona = _invitado()
+    r = client.post("/invitaciones/aceptar", json={"token": token, **politica}, headers=auth(persona["token"]))
+    assert r.status_code == 422
+    # El link sigue sirviendo: no se gastó
+    assert _aceptar(client, persona["token"], token).status_code == 200
+
+
+def test_aceptar_guarda_version_y_fecha_de_la_politica(client, sql, empresa):
+    token = _invitar(client, empresa["token"]).json()["token"]
+    persona = _invitado()
+    assert _aceptar(client, persona["token"], token).status_code == 200
+    fila = sql.cursor().execute(
+        "SELECT politica_version, politica_aceptada_en FROM dbo.usuarios WHERE entra_oid = ?", persona["oid"]
+    ).fetchone()
+    assert fila.politica_version == POLITICA_VERSION and fila.politica_aceptada_en is not None

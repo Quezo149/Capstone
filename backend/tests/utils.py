@@ -57,6 +57,8 @@ os.environ.update(
 
 import pyodbc  # noqa: E402
 
+from app.core.politica import POLITICA_VERSION  # noqa: E402
+
 # Igual que app/core/db.py: sin el pool del driver ODBC (entregaba conexiones con
 # transacciones abiertas de la conexión anterior y bloqueaba las pruebas).
 pyodbc.pooling = False
@@ -131,6 +133,9 @@ def auth(token: str) -> dict:
 
 # ---------- Datos ----------
 
+# Casilla de la política de privacidad marcada (obligatoria al registrar empresa o aceptar invitación)
+ACEPTA = {"acepta_politica": True, "politica_version": POLITICA_VERSION}
+
 def rut_valido() -> str:
     cuerpo = random.randint(5_000_000, 99_999_999)
     return f"{cuerpo}-{digito_verificador(cuerpo)}"
@@ -140,7 +145,7 @@ def registrar_empresa(client, nombre: str = "Empresa de prueba") -> dict:
     """Registra una empresa por la API (HU17) y devuelve oid, token y empresa del admin."""
     oid = str(uuid.uuid4())
     token = crear_token(oid, f"admin.{oid[:8]}@prueba.cl")
-    r = client.post("/empresas", json={"nombre": nombre, "rut": rut_valido(), "giro": "Comercio"}, headers=auth(token))
+    r = client.post("/empresas", json={"nombre": nombre, "rut": rut_valido(), "giro": "Comercio", **ACEPTA}, headers=auth(token))
     assert r.status_code == 201, r.text
     return {"oid": oid, "token": token, "empresa": r.json()["empresa"]}
 
@@ -152,7 +157,9 @@ def agregar_miembro(sql, empresa_id: str, rol: str, activo: bool = True) -> dict
     oid = str(uuid.uuid4())
     cur = sql.cursor()
     usuario_id = cur.execute(
-        "INSERT INTO dbo.usuarios (entra_oid, email) OUTPUT inserted.id VALUES (?, ?)", oid, f"{rol}.{oid[:8]}@prueba.cl"
+        "INSERT INTO dbo.usuarios (entra_oid, email, politica_version, politica_aceptada_en) OUTPUT inserted.id"
+        " VALUES (?, ?, ?, SYSUTCDATETIME())",
+        oid, f"{rol}.{oid[:8]}@prueba.cl", POLITICA_VERSION,
     ).fetchall()[0][0]  # fetchall: con fetchone el INSERT queda a medias y su transacción abierta
     cur.execute(
         "INSERT INTO dbo.usuarios_empresa (usuario_id, empresa_id, rol, activo) VALUES (?, ?, ?, ?)",
