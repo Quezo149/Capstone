@@ -1,4 +1,5 @@
 import EmpresaForm from '../components/EmpresaForm'
+import { VERSION as POLITICA_VERSION } from '../data/politica'
 import { api } from '../lib/api'
 import { useSesion } from '../state/Sesion'
 import { Marco } from './Acceso'
@@ -9,7 +10,10 @@ export default function RegistroEmpresa() {
   const { refrescar, salir } = useSesion()
 
   async function guardar(datos) {
-    await api('/empresas', { method: 'POST', body: datos })
+    await api('/empresas', {
+      method: 'POST',
+      body: { ...datos, acepta_politica: true, politica_version: POLITICA_VERSION },
+    })
     await refrescar()
   }
 
@@ -19,7 +23,7 @@ export default function RegistroEmpresa() {
         Con estos datos identificamos a tu negocio. Quedarás como administrador y después podrás invitar a tu contador y a
         tu equipo.
       </p>
-      <EmpresaForm textoBoton="Crear mi empresa" onGuardar={guardar} />
+      <EmpresaForm textoBoton="Crear mi empresa" onGuardar={guardar} conPolitica />
       <button type="button" className="btn btn-text" onClick={salir}>
         Usar otra cuenta
       </button>

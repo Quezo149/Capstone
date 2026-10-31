@@ -6,6 +6,7 @@ import { MovimientosProvider } from './state/Movimientos'
 import { useSesion } from './state/Sesion'
 import Acceso, { Cargando } from './views/Acceso'
 import Invitacion from './views/Invitacion'
+import PoliticaPendiente from './views/PoliticaPendiente'
 import RegistroEmpresa from './views/RegistroEmpresa'
 
 // Qué se muestra según la sesión (ver state/Sesion.jsx): la app solo con rol y empresa resueltos.
@@ -18,6 +19,7 @@ export default function Raiz() {
     return <Invitacion token={invitacion} onTerminar={() => setInvitacion(null)} />
   }
   if (estado === 'sin_empresa') return <RegistroEmpresa />
+  if (estado === 'politica_pendiente') return <PoliticaPendiente />
   if (estado !== 'listo') return <Acceso />
   return (
     // key: si cambia la empresa, categorías y movimientos parten de cero

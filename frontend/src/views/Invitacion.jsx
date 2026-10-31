@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
+import AceptaPolitica from '../components/AceptaPolitica'
 import Icon from '../components/Icon'
 import { NOMBRE_ROL } from '../data/demo'
+import { VERSION as POLITICA_VERSION } from '../data/politica'
 import { api } from '../lib/api'
 import { olvidarInvitacion } from '../lib/invitacion'
 import { useSesion } from '../state/Sesion'
@@ -28,6 +30,8 @@ export default function Invitacion({ token, onTerminar }) {
   const [info, setInfo] = useState(null)
   const [error, setError] = useState(null) // { mensaje, salir? }
   const [enviando, setEnviando] = useState(false)
+  const [politica, setPolitica] = useState(false)
+  const [errorPolitica, setErrorPolitica] = useState(null)
 
   useEffect(() => {
     api(`/invitaciones/publica/${token}`, { publica: true })
@@ -43,10 +47,15 @@ export default function Invitacion({ token, onTerminar }) {
   }
 
   async function aceptar() {
+    if (!politica) {
+      setErrorPolitica('Para unirte tienes que aceptar la política de privacidad.')
+      document.getElementById('acepta-politica')?.focus()
+      return
+    }
     setEnviando(true)
     setError(null)
     try {
-      await api('/invitaciones/aceptar', { method: 'POST', body: { token } })
+      await api('/invitaciones/aceptar', { method: 'POST', body: { token, acepta_politica: true, politica_version: POLITICA_VERSION } })
       olvidarInvitacion()
       await refrescar() // ahora /auth/me trae la empresa y el rol: entra a la app
       onTerminar()
@@ -107,10 +116,20 @@ export default function Invitacion({ token, onTerminar }) {
               Continuar sin la invitación
             </button>
           ) : (
-            <button type="button" className="btn btn-primary" disabled={enviando} onClick={aceptar}>
-              <Icon name="check" />
-              Unirme a {info.empresa}
-            </button>
+            <>
+              <AceptaPolitica
+                marcada={politica}
+                onCambio={(v) => {
+                  setPolitica(v)
+                  if (v) setErrorPolitica(null)
+                }}
+                error={errorPolitica}
+              />
+              <button type="button" className="btn btn-primary" disabled={enviando} onClick={aceptar}>
+                <Icon name="check" />
+                Unirme a {info.empresa}
+              </button>
+            </>
           )}
         </div>
       )}

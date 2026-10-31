@@ -1,23 +1,31 @@
 import { useRef, useState } from 'react'
 import { ApiError } from '../lib/api'
+import AceptaPolitica from './AceptaPolitica'
 import { errorRut, formatearRut } from '../lib/rut'
 
 const MENSAJES = {
   rut_registrado: { rut: 'Ya existe una empresa registrada con ese RUT.' },
 }
 
-function validar(f) {
+function validar(f, conPolitica) {
   const e = {}
   if (!f.nombre.trim()) e.nombre = 'Escribe el nombre de tu empresa.'
   const rut = errorRut(f.rut)
   if (rut) e.rut = rut
+  if (conPolitica && !f.politica) e.politica = 'Para crear tu empresa tienes que aceptar la política de privacidad.'
   return e
 }
 
 // Datos de la empresa: nombre, RUT y giro (opcional). Lo usan el registro (HU17) y Mi empresa (HU04).
 // onGuardar recibe { nombre, rut, giro } y lanza ApiError si el backend rechaza algo.
-export default function EmpresaForm({ inicial, textoBoton, onGuardar, onCancelar }) {
-  const [f, setF] = useState(() => ({ nombre: inicial?.nombre ?? '', rut: inicial?.rut ?? '', giro: inicial?.giro ?? '' }))
+// conPolitica (solo en el registro): agrega la casilla obligatoria de la política de privacidad.
+export default function EmpresaForm({ inicial, textoBoton, onGuardar, onCancelar, conPolitica = false }) {
+  const [f, setF] = useState(() => ({
+    nombre: inicial?.nombre ?? '',
+    rut: inicial?.rut ?? '',
+    giro: inicial?.giro ?? '',
+    politica: false,
+  }))
   const [errores, setErrores] = useState({})
   const [general, setGeneral] = useState(null)
   const [enviando, setEnviando] = useState(false)
@@ -31,11 +39,12 @@ export default function EmpresaForm({ inicial, textoBoton, onGuardar, onCancelar
   async function enviar(ev) {
     ev.preventDefault()
     if (enCurso.current) return
-    const e = validar(f)
+    const e = validar(f, conPolitica)
     setErrores(e)
     setGeneral(null)
     if (Object.keys(e).length) {
-      document.getElementById(`emp-${Object.keys(e)[0]}`)?.focus()
+      const primero = Object.keys(e)[0]
+      document.getElementById(primero === 'politica' ? 'acepta-politica' : `emp-${primero}`)?.focus()
       return
     }
     enCurso.current = true
@@ -88,6 +97,9 @@ export default function EmpresaForm({ inicial, textoBoton, onGuardar, onCancelar
         'Giro',
         { maxLength: 150, placeholder: 'Ej.: venta de comida', onChange: (e) => set('giro', e.target.value) },
         <span className="opcional"> (opcional)</span>,
+      )}
+      {conPolitica && (
+        <AceptaPolitica marcada={f.politica} onCambio={(v) => set('politica', v)} error={errores.politica} />
       )}
       {general && <p className="acceso-aviso">{general}</p>}
       <div className="form-acts">

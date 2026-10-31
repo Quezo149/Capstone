@@ -520,3 +520,30 @@ tfoot td {
     transition-delay: 0s !important;
   }
 }
+
+/* Casilla de la política de privacidad (components/AceptaPolitica.jsx) */
+.check-politica {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.check-politica input {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--brand);
+  cursor: pointer;
+}
+
+.check-politica a,
+.link-politica {
+  color: var(--brand);
+  font-weight: 700;
+}

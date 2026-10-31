@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './styles/tokens.css'
 import './styles/animations.css'
 import './styles/app.css'
+import { capturarAcceso } from './lib/acceso'
 import { despertarServidor } from './lib/api'
 import { capturarInvitacion } from './lib/invitacion'
 import Raiz from './Raiz.jsx'
@@ -11,6 +12,7 @@ import { ToastProvider } from './state/Toasts'
 
 // Antes de todo: si se abrió un link de invitación, guardar el token (ver lib/invitacion.js)
 capturarInvitacion()
+capturarAcceso()
 despertarServidor()
 
 createRoot(document.getElementById('root')).render(
