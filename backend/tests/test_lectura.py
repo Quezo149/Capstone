@@ -9,7 +9,7 @@ from types import SimpleNamespace as N
 
 import pytest
 
-from app.core.lectura import detectar_tipo, interpretar, proveedor_respaldo, rut_emisor
+from app.core.lectura import MODELO_PDF, detectar_tipo, interpretar, proveedor_respaldo, rut_emisor
 
 
 @pytest.mark.parametrize(
@@ -156,3 +156,69 @@ def test_total_poco_claro_pide_revisar():
     r = interpretar(resultado("KCINCO SPA\n$ 2.200", {"Total": campo(0.51, value_currency=N(amount=2200.0))}))
     assert r["confianza"]["monto"] == "media"
     assert "poco claro" in r["motivos"]["monto"]
+
+
+# ---------- Facturas en PDF (prebuilt-invoice) ----------
+# Campos como los devolvió prebuilt-invoice con los PDF ficticios de prueba (27-10-2026).
+
+
+def _factura(texto, **extra):
+    campos = {
+        "InvoiceTotal": campo(0.93, value_currency=N(amount=4879000.0)),
+        "InvoiceDate": campo(0.95, value_date=date(2026, 10, 24)),
+        "VendorName": campo(0.92, value_string="CONSTRUCTORA E INGENIERÍA VIAL DEL\nNORTE S.A."),
+        "VendorTaxId": campo(0.96, value_string="96.332.110-4"),
+        "CustomerName": campo(0.89, value_string="Minera y Maestranza Los Andes SpA"),
+        "CustomerTaxId": campo(0.96, value_string="76.234.900-0"),
+    }
+    campos.update(extra)
+    return resultado(texto, {k: v for k, v in campos.items() if v is not None})
+
+
+def test_factura_el_proveedor_es_el_emisor_no_el_cliente():
+    # Con prebuilt-receipt salía "Minera Los Andes" (el cliente) con ✓ y sin fecha
+    r = interpretar(_factura("FACTURA ELECTRONICA N° 9831\nSEÑOR(ES): Minera y Maestranza Los Andes SpA"), MODELO_PDF)
+    assert r["ok"]
+    assert r["datos"]["proveedor"] == "CONSTRUCTORA E INGENIERÍA VIAL DEL NORTE S.A."
+    assert r["datos"]["proveedor_rut"] == "96332110-4"
+    assert r["datos"]["fecha"] == "2026-10-24" and r["datos"]["monto"] == 4879000
+    assert r["datos"]["tipo_documento"] == "factura"
+    assert "proveedor_rut" not in r["motivos"] and "rut" in r["cajas"]
+
+
+def test_factura_de_compra_el_proveedor_es_el_vendedor():
+    # La emite la Cooperativa (quien compra); el vendedor va como receptor y a veces sin nombre
+    texto = "COOPERATIVA AGRÍCOLA Y LECHERA DEL SUR LTDA.\nFACTURA DE COMPRA ELECTRÓNICA N° 1049"
+    r = interpretar(
+        _factura(texto, CustomerName=campo(0.8, value_string="Esteban Soto Muñoz"), CustomerTaxId=campo(0.96, value_string="9.876.543-3")),
+        MODELO_PDF,
+    )
+    assert r["datos"]["proveedor"] == "Esteban Soto Muñoz"
+    assert r["datos"]["proveedor_rut"] == "9876543-3"
+    assert r["confianza"]["proveedor"] == "media" and "factura de compra" in r["motivos"]["proveedor"]
+
+    sin_nombre = interpretar(_factura(texto, CustomerName=None, CustomerTaxId=campo(0.96, value_string="9.876.543-3")), MODELO_PDF)
+    assert sin_nombre["datos"]["proveedor"] is None
+    assert "no encontramos su nombre" in sin_nombre["motivos"]["proveedor"]
+
+
+def test_factura_con_rut_de_emisor_invalido_avisa_y_no_toma_el_del_cliente():
+    texto = "FRÍO SUR SERVICIOS SPA\nR.U.T.: 76.771.304-1\nFACTURA ELECTRONICA\nCliente: Restaurante El Puerto Ltda. RUT: 77.401.220-6"
+    r = interpretar(
+        _factura(texto, VendorTaxId=campo(0.98, value_string="76.771.304-1"), CustomerTaxId=campo(0.98, value_string="77.401.220-6")),
+        MODELO_PDF,
+    )
+    assert r["datos"]["proveedor_rut"] is None
+    assert r["confianza"]["proveedor_rut"] == "media"
+    assert "76.771.304-1" in r["motivos"]["proveedor_rut"] and "no es válido" in r["motivos"]["proveedor_rut"]
+
+
+def test_factura_sin_rut_ni_nombre_de_emisor():
+    r = interpretar(_factura("FACTURA ELECTRONICA", VendorName=None, VendorTaxId=None), MODELO_PDF)
+    assert r["datos"]["proveedor"] is None and r["datos"]["proveedor_rut"] is None
+    assert r["motivos"]["proveedor_rut"] == "No encontramos el RUT del emisor."
+
+
+def test_factura_sin_total():
+    r = interpretar(_factura("FACTURA ELECTRONICA", InvoiceTotal=None), MODELO_PDF)
+    assert r["ok"] is False

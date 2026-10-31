@@ -1,7 +1,7 @@
 """
 Interpretación de lo que lee Azure AI Document Intelligence en una boleta o factura (HU08/HU09).
 
-Convierte la respuesta de `prebuilt-receipt` en los datos que la pantalla de revisión muestra
+Convierte la respuesta de `prebuilt-receipt` (fotos) o `prebuilt-invoice` (PDF) en los datos que la pantalla de revisión muestra
 prellenados: proveedor, RUT del emisor, fecha, monto, tipo de documento y descripción, cada uno
 con su confianza (alta | media), el motivo cuando pide revisar y dónde se leyó en la imagen.
 
@@ -9,6 +9,13 @@ Reglas probadas el 23-10-2026 con fotos reales (backend/scripts/probar_lectura.p
 - El tipo se detecta por el texto que exige el SII ("BOLETA ELECTRÓNICA"), no por el modelo.
 - El RUT se valida con dígito verificador: descarta lo que el OCR leyó mal.
 - La confianza del modelo no basta: leyó "market" con 99 % en una boleta de XS Market.
+
+Reglas de facturas en PDF, probadas el 27-10-2026 con prebuilt-invoice (es-CL):
+- El proveedor es el emisor (VendorName / VendorTaxId), nunca el receptor: prebuilt-receipt
+  tomaba al cliente como comercio y perdía la fecha.
+- En la factura de compra la emite quien compra: el proveedor es el vendedor, que va como receptor.
+- Un RUT de emisor con dígito verificador malo se avisa; no se reemplaza por otro RUT del texto
+  (era el del cliente).
 
 No llama a Azure ni a la base de datos: recibe el resultado ya analizado.
 """
@@ -20,6 +27,10 @@ from app.core.rut import normalizar_rut
 
 # Desde aquí un dato se muestra como "Leído por IA"; bajo eso, "Revisa este dato"
 UMBRAL_ALTA = 0.85
+
+# Modelo de Document Intelligence según el archivo (POST /documentos/extraer)
+MODELO_FOTO = "prebuilt-receipt"
+MODELO_PDF = "prebuilt-invoice"
 
 
 def normalizar(texto: str) -> str:
@@ -43,6 +54,7 @@ _VALIDO_COMO = re.compile(r"VALIDO COMO (BOLETA|FACTURA)")
 _PALABRA = re.compile(r"\b(BOLETA|FACTURA)\b")
 # Comprobante de venta sin la palabra boleta (Pronto Copec): probablemente boleta, a revisar
 _COMPROBANTE = re.compile(r"COMPROBANTE DE VENTA")
+_FACTURA_COMPRA = re.compile(r"\bFACT(?:URA)?\.? DE COMPRA\b")
 
 
 def detectar_tipo(texto: str) -> tuple[str, str, str | None]:
@@ -93,6 +105,17 @@ _RAZON_SOCIAL = re.compile(r"R(?:AZON)?\.?\s?SOCIAL\s*:\s*(.+(?:\n(?![A-Z][\w. ]
 _DOMINIO = re.compile(r"\bWWW\.([A-Z0-9-]+)\.CL\b", re.IGNORECASE)
 
 
+def rut_de_campo(campo) -> tuple[str | None, str | None]:
+    """RUT de un campo de prebuilt-invoice (VendorTaxId): (normalizado, motivo si hay que revisarlo)."""
+    valor = (campo.value_string or campo.content) if campo else None
+    if not valor:
+        return None, "No encontramos el RUT del emisor."
+    try:
+        return normalizar_rut(valor), None
+    except ValueError:
+        return None, f'El RUT del emisor ("{" ".join(valor.split())}") no es válido: revísalo en el documento.'
+
+
 def proveedor_respaldo(texto: str) -> str | None:
     """Si el modelo no encuentra el comercio: la razón social impresa, o el dominio web."""
     if m := _RAZON_SOCIAL.search(texto):
@@ -125,9 +148,9 @@ def _caja_linea(pagina, patron: str, ancho, alto):
     return None
 
 
-def interpretar(resultado) -> dict:
+def interpretar(resultado, modelo: str = MODELO_FOTO) -> dict:
     """
-    Recibe el AnalyzeResult de `prebuilt-receipt` y devuelve:
+    Recibe el AnalyzeResult de `prebuilt-receipt` o `prebuilt-invoice` (según `modelo`) y devuelve:
       { ok, motivo?, datos: {proveedor, proveedor_rut, fecha, monto, tipo_documento, descripcion},
         confianza: {campo: alta|media}, motivos: {campo: texto}, cajas: {campo: [x, y, w, h]} }
     ok = False cuando no hay total: la pantalla ofrece registrar a mano.
@@ -138,7 +161,16 @@ def interpretar(resultado) -> dict:
     documento = resultado.documents[0] if resultado.documents else None
     campos = (documento.fields if documento else None) or {}
 
-    total, fecha, comercio = campos.get("Total"), campos.get("TransactionDate"), campos.get("MerchantName")
+    es_pdf = modelo == MODELO_PDF
+    compra = es_pdf and bool(_FACTURA_COMPRA.search(normalizar(texto)))
+    if es_pdf:
+        total = campos.get("InvoiceTotal") or campos.get("AmountDue")
+        fecha = campos.get("InvoiceDate")
+        # En la factura de compra el vendedor (nuestro proveedor) aparece como receptor
+        lado = "Customer" if compra else "Vendor"
+        comercio, campo_rut = campos.get(f"{lado}Name"), campos.get(f"{lado}TaxId")
+    else:
+        total, fecha, comercio = campos.get("Total"), campos.get("TransactionDate"), campos.get("MerchantName")
     if not total or not total.value_currency or total.value_currency.amount is None:
         return {"ok": False, "motivo": "No alcanzamos a leer el total. Prueba con otra foto o regístralo a mano."}
 
@@ -165,6 +197,11 @@ def interpretar(resultado) -> dict:
             motivos["proveedor"] = "El nombre parece incompleto (una sola palabra, a veces es parte del logo)."
         else:
             confianza["proveedor"] = nivel(comercio.confidence)
+    elif es_pdf:
+        # Sin respaldo por razón social: en una factura la primera puede ser la del cliente
+        datos["proveedor"] = None
+        confianza["proveedor"] = "media"
+        motivos["proveedor"] = "No encontramos el nombre del emisor."
     else:
         datos["proveedor"] = proveedor_respaldo(texto)
         confianza["proveedor"] = "media"
@@ -174,13 +211,29 @@ def interpretar(resultado) -> dict:
         else:
             motivos["proveedor"] = "No encontramos el nombre del comercio."
 
-    datos["proveedor_rut"] = rut_emisor(texto)
-    if datos["proveedor_rut"]:
-        cuerpo = datos["proveedor_rut"].split("-")[0]
-        for linea in getattr(pagina, "lines", None) or []:
-            if cuerpo[-3:] in re.sub(r"\D", "", linea.content) and "-" in linea.content:
-                cajas["rut"] = _caja(linea.polygon, ancho, alto)
-                break
+    if compra:
+        confianza["proveedor"] = "media"
+        motivos["proveedor"] = (
+            "Es una factura de compra: la emite quien compra, así que el proveedor es el vendedor "
+            "que aparece como receptor. Confírmalo." if datos["proveedor"]
+            else "Es una factura de compra: el proveedor es el vendedor que aparece como receptor y no encontramos su nombre."
+        )
+
+    if es_pdf:
+        datos["proveedor_rut"], motivo_rut = rut_de_campo(campo_rut)
+        if motivo_rut:
+            confianza["proveedor_rut"] = "media"
+            motivos["proveedor_rut"] = motivo_rut
+        if campo_rut:
+            cajas["rut"] = _caja_campo(campo_rut, ancho, alto)
+    else:
+        datos["proveedor_rut"] = rut_emisor(texto)
+        if datos["proveedor_rut"]:
+            cuerpo = datos["proveedor_rut"].split("-")[0]
+            for linea in getattr(pagina, "lines", None) or []:
+                if cuerpo[-3:] in re.sub(r"\D", "", linea.content) and "-" in linea.content:
+                    cajas["rut"] = _caja(linea.polygon, ancho, alto)
+                    break
 
     tipo, conf_tipo, evidencia = detectar_tipo(texto)
     datos["tipo_documento"] = tipo

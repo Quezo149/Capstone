@@ -58,14 +58,38 @@ def _error(status_code: int, codigo: str, mensaje: str) -> HTTPException:
     return HTTPException(status_code=status_code, detail={"codigo": codigo, "mensaje": mensaje})
 
 
-_SELECT = """
-    SELECT id, nombre, tipo, color, CASE WHEN empresa_id IS NULL THEN 1 ELSE 0 END AS predefinida
-    FROM dbo.categorias
+# `oculta`: la empresa la ocultó (0011_categorias_ocultas.sql). RLS deja ver solo sus filas.
+_OCULTA = "EXISTS (SELECT 1 FROM dbo.categorias_ocultas o WHERE o.categoria_id = c.id)"
+
+_SELECT = f"""
+    SELECT c.id, c.nombre, c.tipo, c.color, CASE WHEN c.empresa_id IS NULL THEN 1 ELSE 0 END AS predefinida,
+           CASE WHEN {_OCULTA} THEN 1 ELSE 0 END AS oculta
+    FROM dbo.categorias c
 """
 
 
 def _json(row) -> dict:
-    return {"id": str(row.id), "nombre": row.nombre, "tipo": row.tipo, "color": row.color, "predefinida": bool(row.predefinida)}
+    return {
+        "id": str(row.id),
+        "nombre": row.nombre,
+        "tipo": row.tipo,
+        "color": row.color,
+        "predefinida": bool(row.predefinida),
+        "oculta": bool(row.oculta),
+    }
+
+
+def _visibles(db: Session, tipo: str) -> int:
+    """Categorías de ese tipo que la empresa ve al registrar: predefinidas no ocultas + propias."""
+    return db.execute(
+        text(f"SELECT COUNT(*) FROM dbo.categorias c WHERE c.tipo = :tipo AND NOT {_OCULTA}"), {"tipo": tipo}
+    ).scalar_one()
+
+
+def _ultima_visible(tipo: str) -> HTTPException:
+    # El empleado no crea categorías (D2): sin ninguna visible no podría registrar
+    nombre = "gastos" if tipo == "gasto" else "ingresos"
+    return _error(status.HTTP_409_CONFLICT, "ultima_visible", f"Debe quedar al menos una categoría de {nombre}.")
 
 
 def _nombre_repetido(db: Session, tipo: str, nombre: str, excepto: str | None = None) -> bool:
@@ -89,7 +113,7 @@ def _nombre_repetido(db: Session, tipo: str, nombre: str, excepto: str | None = 
 def _propia(db: Session, categoria_id: str):
     """La categoría a modificar: 404 si no existe o es de otra empresa, 403 si es predefinida."""
     row = db.execute(
-        text(f"{_SELECT} WHERE id = TRY_CAST(:id AS UNIQUEIDENTIFIER)"), {"id": categoria_id}
+        text(f"{_SELECT} WHERE c.id = TRY_CAST(:id AS UNIQUEIDENTIFIER)"), {"id": categoria_id}
     ).first()
     if row is None:
         raise _error(status.HTTP_404_NOT_FOUND, "no_encontrada", "Categoría no encontrada.")
@@ -107,7 +131,7 @@ def listar_categorias(user: CurrentUser = Depends(require_permiso("categorias.ve
     Predefinidas (empresa_id NULL) + propias de la empresa. Sin WHERE por empresa:
     lo filtra RLS (seguridad.politica_categorias, 0007_rls.sql).
     """
-    rows = db.execute(text(f"{_SELECT} ORDER BY tipo DESC, predefinida DESC, nombre")).all()
+    rows = db.execute(text(f"{_SELECT} ORDER BY c.tipo DESC, predefinida DESC, c.nombre")).all()
     return [_json(r) for r in rows]
 
 
@@ -125,7 +149,7 @@ def crear_categoria(
             text(
                 """
                 INSERT INTO dbo.categorias (empresa_id, nombre, tipo, color)
-                OUTPUT inserted.id, inserted.nombre, inserted.tipo, inserted.color, 0 AS predefinida
+                OUTPUT inserted.id, inserted.nombre, inserted.tipo, inserted.color, 0 AS predefinida, 0 AS oculta
                 VALUES (:empresa_id, :nombre, :tipo, :color)
                 """
             ),
@@ -173,9 +197,11 @@ def eliminar_categoria(
 ):
     """
     Solo si ningún movimiento la usa, ni siquiera uno anulado: borrarla dejaría movimientos
-    (o su historial) sin categoría.
+    (o su historial) sin categoría. Tampoco la última visible de su tipo (ver _ultima_visible).
     """
     actual = _propia(db, categoria_id)
+    if _visibles(db, actual.tipo) <= 1:
+        raise _ultima_visible(actual.tipo)
     try:
         db.execute(text("DELETE FROM dbo.categorias WHERE id = :id"), {"id": actual.id})
         db.commit()
@@ -185,3 +211,47 @@ def eliminar_categoria(
             status.HTTP_409_CONFLICT, "categoria_en_uso", "No se puede eliminar: la categoría está en uso."
         ) from exc
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+class Visibilidad(BaseModel):
+    oculta: bool
+
+
+@router.put("/{categoria_id}/oculta")
+def ocultar_categoria(
+    categoria_id: str,
+    datos: Visibilidad,
+    user: CurrentUser = Depends(require_permiso("categorias.gestionar")),
+    db: Session = Depends(get_db),
+):
+    """
+    Mejora a HU14 (28-10-2026): ocultar o volver a mostrar una predefinida en la empresa. No se
+    borra ni cambia para las demás empresas; los movimientos que la usan la siguen mostrando.
+    Repetir la misma acción no da error.
+    """
+    row = db.execute(text(f"{_SELECT} WHERE c.id = TRY_CAST(:id AS UNIQUEIDENTIFIER)"), {"id": categoria_id}).first()
+    if row is None:
+        raise _error(status.HTTP_404_NOT_FOUND, "no_encontrada", "Categoría no encontrada.")
+    if not row.predefinida:
+        raise _error(
+            status.HTTP_422_UNPROCESSABLE_CONTENT, "solo_predefinidas", "Las categorías propias se editan o se eliminan."
+        )
+    if datos.oculta and not row.oculta:
+        if _visibles(db, row.tipo) <= 1:
+            raise _ultima_visible(row.tipo)
+        try:
+            db.execute(
+                text(
+                    "INSERT INTO dbo.categorias_ocultas (empresa_id, categoria_id, ocultada_por)"
+                    " VALUES (:empresa_id, :categoria_id, :usuario_id)"
+                ),
+                {"empresa_id": user.empresa_id, "categoria_id": str(row.id), "usuario_id": user.usuario_id},
+            )
+            db.commit()
+        except IntegrityError:  # otra pestaña la ocultó al mismo tiempo: ya está oculta
+            db.rollback()
+    elif not datos.oculta and row.oculta:
+        # RLS: el DELETE solo alcanza la fila de esta empresa
+        db.execute(text("DELETE FROM dbo.categorias_ocultas WHERE categoria_id = :id"), {"id": str(row.id)})
+        db.commit()
+    return {**_json(row), "oculta": datos.oculta}

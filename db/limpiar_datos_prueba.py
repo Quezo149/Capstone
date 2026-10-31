@@ -28,6 +28,7 @@ from run_migrations import get_connection
 # Orden de borrado según las claves foráneas (hijos antes que padres)
 PASOS = [
     ("invitaciones", "DELETE FROM dbo.invitaciones"),
+    ("categorías ocultas", "DELETE FROM dbo.categorias_ocultas"),
     ("movimientos", "DELETE FROM dbo.movimientos"),
     ("categorías propias", "DELETE FROM dbo.categorias WHERE empresa_id IS NOT NULL"),
     ("membresías (usuarios_empresa)", "DELETE FROM dbo.usuarios_empresa"),
@@ -42,6 +43,7 @@ CONTEOS = {
     "categorías propias": "SELECT COUNT(*) FROM dbo.categorias WHERE empresa_id IS NOT NULL",
     "movimientos": "SELECT COUNT(*) FROM dbo.movimientos",
     "invitaciones": "SELECT COUNT(*) FROM dbo.invitaciones",
+    "categorías ocultas": "SELECT COUNT(*) FROM dbo.categorias_ocultas",
     "-- se conservan --": None,
     "categorías predefinidas": "SELECT COUNT(*) FROM dbo.categorias WHERE empresa_id IS NULL",
     "piloto_interesados (landing)": "SELECT COUNT(*) FROM dbo.piloto_interesados",

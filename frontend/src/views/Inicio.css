@@ -229,6 +229,19 @@
   gap: 20px;
 }
 
+.quick-acts {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-alt {
+  color: var(--on-deep);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .quick > div {
   display: grid;
   gap: 8px;
@@ -289,10 +302,34 @@
   }
 }
 
-/* Bajo 400px dos montos de 7 dígitos no caben lado a lado */
+/* Bajo 400px: Ingresos y Gastos siguen lado a lado con el monto más chico (18px mono:
+   "$ 12.847.300" mide ~130px y cada columna deja ~135px); el saldo va debajo a todo el ancho */
 @media (max-width: 400px) {
   .kpis {
-    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .kpi,
+  .kpi-deep {
+    gap: 4px;
+    padding: 12px 14px;
+  }
+
+  .kpi-l {
+    font-size: 11.5px;
+  }
+
+  .kpi-v {
+    font-size: 18px;
+  }
+
+  .kpi-deep .kpi-v {
+    font-size: 24px;
+  }
+
+  .kpi-d {
+    font-size: 12px;
+    line-height: 1.35;
   }
 }
 
@@ -301,4 +338,343 @@
   opacity: 1;
   cursor: default;
   color: inherit;
+}
+
+/* ---------- HU18: selector de mes y dona ---------- */
+/* Selector de mes: en pantallas anchas va en la línea del título; si no cabe, baja a la derecha */
+.inicio-head > div:first-child {
+  flex: 1 1 520px;
+}
+
+.inicio-head > .mes-nav {
+  margin-left: auto;
+}
+
+.page-head > .mes-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+}
+
+.mes-nav .icon-btn {
+  width: 34px;
+  height: 34px;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.mes-nav .icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.mes-nav-l {
+  min-width: 128px;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* La tarjeta del gráfico un poco más ancha que la de movimientos: le da aire a la dona */
+@media (min-width: 1081px) {
+  .grid-2 {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  }
+}
+
+/* Las dos tarjetas miden lo mismo: el gráfico se centra en la altura que deja la otra */
+.grid-2 > .card {
+  display: flex;
+  flex-direction: column;
+}
+
+.por-cat {
+  --dona: 210px;
+  flex: 1;
+  display: grid;
+  grid-template-columns: var(--dona) minmax(0, 1fr);
+  align-items: center;
+  align-content: center;
+  gap: 32px;
+}
+
+.dona,
+.dona-wrap {
+  width: var(--dona);
+  height: var(--dona);
+}
+
+.dona {
+  overflow: visible;
+}
+
+.dona-wrap {
+  position: relative;
+}
+
+.dona-tramo {
+  cursor: pointer;
+  outline: none;
+  transform-box: view-box;
+  transform-origin: center;
+  transition:
+    transform 0.25s cubic-bezier(0.2, 0.9, 0.3, 1.2),
+    stroke-width 0.25s,
+    opacity 0.25s;
+  animation: donaIn 0.9s cubic-bezier(0.2, 0.9, 0.3, 1) var(--d) both;
+}
+
+/* El tramo activo se levanta (crece hacia afuera) y los demás se atenúan */
+.dona.con-activo .dona-tramo {
+  opacity: 0.35;
+}
+
+.dona .dona-tramo.activo {
+  opacity: 1;
+  stroke-width: 22;
+  transform: scale(1.07);
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.35));
+}
+
+@keyframes donaIn {
+  from {
+    opacity: 0;
+    stroke-dasharray: 0 400;
+  }
+}
+
+/* El hueco de la dona es ~61 % del diámetro: el texto vive en el 54 % central */
+.dona-centro {
+  position: absolute;
+  inset: 23%;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.dona-l {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dona-cat {
+  color: var(--ink);
+}
+
+.dona-cat::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-radius: 99px;
+  background: var(--c);
+  vertical-align: 1px;
+}
+
+/* "Resto": rayas en tonos neutros (ninguna categoría tiene rayas) y en el centro los colores de
+   las categorías que junta */
+.rayas-fondo {
+  fill: var(--paper);
+}
+
+.rayas-linea {
+  fill: var(--muted);
+}
+
+.dona-resto {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink);
+}
+
+.dona-puntos {
+  display: inline-flex;
+}
+
+.dona-puntos i {
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--surface);
+  border-radius: 99px;
+}
+
+.dona-puntos i + i {
+  margin-left: -3px;
+}
+
+.dona-v {
+  margin-top: 4px;
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: calc(var(--dona) * 0.09);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* "$ 1.116.000" no cabe al mismo tamaño que "$ 389.500" */
+.dona-v.largo {
+  font-size: calc(var(--dona) * 0.075);
+}
+
+.dona-p {
+  margin-top: 2px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* Cada categoría de la lista se toca entera: fila con margen interno y fondo al seleccionarla */
+.cats li {
+  margin: -6px -8px;
+  padding: 6px 8px;
+  border-radius: var(--r-m);
+  cursor: pointer;
+  transition:
+    opacity 0.25s,
+    background 0.2s;
+}
+
+.cats li.atenuada {
+  opacity: 0.45;
+}
+
+.cats li.activa {
+  background: color-mix(in srgb, var(--c) 12%, transparent);
+}
+
+.cats li.activa .bar i {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 35%, transparent);
+}
+
+.cats li:focus-visible {
+  outline-offset: 0;
+}
+
+/* En pantallas táctiles no hay "pasar el puntero": se avisa que se puede tocar */
+.por-cat-hint {
+  display: none;
+  grid-column: 1 / -1;
+  margin: -12px 0 0;
+  font-size: 12.5px;
+  text-align: center;
+}
+
+@media (hover: none) {
+  .por-cat-hint {
+    display: block;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dona-tramo {
+    animation: none;
+    transition: none;
+  }
+}
+
+.cat-pct {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Celular y tarjetas angostas: la dona arriba, grande y centrada; la lista debajo */
+@media (max-width: 520px) {
+  .por-cat {
+    --dona: min(64vw, 230px);
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 24px;
+  }
+
+  .por-cat .cats {
+    width: 100%;
+  }
+}
+
+/* Mientras llega el resumen de otro mes se ve el anterior, atenuado */
+.inicio-datos {
+  display: contents;
+}
+
+.inicio-datos.cargando > * {
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+
+/* ---------- Dashboard en el celular ---------- */
+@media (max-width: 720px) {
+  /* El selector de mes, a todo el ancho y con el mes al centro */
+  .inicio-head > .mes-nav {
+    margin-left: 0;
+    flex-basis: 100%;
+  }
+
+  .mes-nav-l {
+    flex: 1;
+  }
+
+  /* Botones de la tarjeta "Nuevo": a todo el ancho, uno sobre otro */
+  .quick-acts {
+    flex: 1 1 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .quick-acts .btn {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .card {
+    padding: 16px 14px;
+  }
+
+  /* "Últimos movimientos" y "Ver todos" en la misma línea */
+  .card-head {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .card-head h2 {
+    font-size: 18px;
+  }
+
+  .card-head .btn {
+    flex: none;
+    padding-inline: 6px;
+  }
+
+  /* Más espacio para la descripción: el monto ocupaba casi un tercio */
+  .recent button {
+    gap: 8px;
+  }
+
+  .recent .mono {
+    font-size: 13.5px;
+  }
+
+  /* La descripción usa hasta dos líneas antes de cortarse con "…" */
+  .recent-t strong {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    white-space: normal;
+    line-height: 1.25;
+  }
 }

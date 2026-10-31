@@ -14,7 +14,11 @@ export class ApiError extends Error {
 
 function leerError(status, cuerpo) {
   const d = cuerpo?.detail
-  if (d && typeof d === 'object' && !Array.isArray(d)) return new ApiError(status, d.codigo, d.mensaje)
+  if (d && typeof d === 'object' && !Array.isArray(d)) {
+    const err = new ApiError(status, d.codigo, d.mensaje)
+    err.detalle = d // datos extra del error (por ejemplo, el movimiento de un posible_duplicado)
+    return err
+  }
   // 422 de FastAPI: lista de errores por campo → { campo: mensaje }
   if (Array.isArray(d)) {
     const campos = Object.fromEntries(d.map((e) => [e.loc?.at(-1), e.msg?.replace(/^Value error, /, '')]))
@@ -26,17 +30,24 @@ function leerError(status, cuerpo) {
 }
 
 // publica: sin sesión (por ejemplo, la vista del link de invitación antes de iniciar sesión)
-export async function api(ruta, { method = 'GET', body, publica = false } = {}) {
+// archivo: { campo, blob, nombre } → se envía como multipart/form-data (POST /documentos/extraer)
+export async function api(ruta, { method = 'GET', body, publica = false, archivo } = {}) {
   const token = publica ? null : await obtenerToken()
   let r
   try {
+    let cuerpo = body ? JSON.stringify(body) : undefined
+    if (archivo) {
+      // Sin Content-Type: el navegador lo pone con el "boundary" del multipart
+      cuerpo = new FormData()
+      cuerpo.append(archivo.campo, archivo.blob, archivo.nombre)
+    }
     r = await fetch(`${BASE}${ruta}`, {
       method,
       headers: {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(body ? { 'Content-Type': 'application/json' } : {}),
       },
-      body: body ? JSON.stringify(body) : undefined,
+      body: cuerpo,
     })
   } catch {
     throw new ApiError(0, 'sin_conexion', 'No pudimos conectarnos. Revisa tu conexión a internet.')

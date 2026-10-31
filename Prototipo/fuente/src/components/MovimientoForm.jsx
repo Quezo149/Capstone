@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { TIPOS_DOCUMENTO } from '../data/categorias'
 import { nuevoId } from '../data/movimientos'
 import { useCategorias } from '../state/Categorias'
+import { useMovimientos } from '../state/Movimientos'
+import { useSesion } from '../state/Sesion'
 import { clp, desglosarIva, hoyISO, leerMonto } from '../lib/format'
 import Icon from './Icon'
 import Seg from './Seg'
@@ -60,6 +62,39 @@ function MotivoIa({ ia, campo, corregidos }) {
   return motivo ? <span className="hint ia-motivo">{motivo}</span> : null
 }
 
+// PROTOTIPO A+B: el tipo no tiene ninguna categoría visible (no debería pasar: la API no deja
+// ocultar la última, pero puede venir de datos anteriores). El admin las recupera aquí mismo, sin
+// perder lo escrito; los demás roles no gestionan categorías (D2).
+function SinCategorias({ tipo }) {
+  const { puede } = useSesion()
+  const { categoriasDe, ocultar } = useCategorias()
+  const [enviando, setEnviando] = useState(false)
+  const ocultas = categoriasDe(tipo).filter((c) => c.oculta)
+  const nombre = tipo === 'gasto' ? 'gasto' : 'ingreso'
+  async function mostrar() {
+    setEnviando(true)
+    try {
+      for (const c of ocultas) await ocultar(c.id, false)
+    } finally {
+      setEnviando(false)
+    }
+  }
+  return (
+    <div className="mf-sin-cats" role="status">
+      <strong>No hay categorías de {nombre} visibles.</strong>
+      {puede('categorias.gestionar') ? (
+        ocultas.length > 0 && (
+          <button type="button" className="btn btn-ghost btn-sm" onClick={mostrar} disabled={enviando}>
+            Mostrar las ocultas ({ocultas.length})
+          </button>
+        )
+      ) : (
+        <span>Pídele al administrador que active alguna en Categorías.</span>
+      )}
+    </div>
+  )
+}
+
 // Formulario de alta y edición. `inicial` = movimiento a editar, o null para uno nuevo.
 // onGuardar(datos, { otro }) → `otro` true cuando el usuario quiere seguir cargando.
 // PROTOTIPO HU09: `prellenado` + `ia` = datos leídos de una boleta, con su confianza y la
@@ -93,7 +128,27 @@ export default function MovimientoForm({ inicial, prellenado, ia, proveedores = 
   const enCurso = useRef(false)
   const montoRef = useRef(null)
 
-  const cats = useMemo(() => categoriasDe(f.tipo), [categoriasDe, f.tipo])
+  // PROTOTIPO A+B: primero las categorías que la empresa usa (y las propias); las predefinidas que
+  // nunca se usaron van bajo "Más categorías", y las ocultas no aparecen. El grupo se arma con la
+  // categoría que traía el formulario al abrirse (la del movimiento o la sugerida por la IA), no
+  // con la que se toca: así una categoría elegida desde "Más" no salta de lugar.
+  const { movs } = useMovimientos()
+  const [catInicial] = useState(() => f.categoria_id)
+  const [verTodas, setVerTodas] = useState(false)
+  const usos = useMemo(() => {
+    const u = {}
+    for (const m of movs) u[m.categoria_id] = (u[m.categoria_id] ?? 0) + 1
+    return u
+  }, [movs])
+  const { cats, plegadas } = useMemo(() => {
+    const disponibles = categoriasDe(f.tipo).filter((c) => !c.oculta || c.id === catInicial)
+    const ordenadas = [...disponibles].sort((a, b) => (usos[b.id] ?? 0) - (usos[a.id] ?? 0) || a.nombre.localeCompare(b.nombre, 'es'))
+    const aMano = ordenadas.filter((c) => usos[c.id] || !c.predefinida || c.id === catInicial)
+    // Empresa que recién parte: con tan pocas a mano se muestran todas
+    if (aMano.length < 4) return { cats: ordenadas, plegadas: 0 }
+    const resto = ordenadas.filter((c) => !aMano.includes(c))
+    return { cats: verTodas ? [...aMano, ...resto] : aMano, plegadas: resto.length }
+  }, [categoriasDe, f.tipo, usos, catInicial, verTodas])
   const set = (campo, valor) => {
     setF((x) => ({ ...x, [campo]: valor }))
     if (ia?.confianza?.[campo] && !corregidos.has(campo)) setCorregidos((c) => new Set(c).add(campo))
@@ -244,30 +299,39 @@ export default function MovimientoForm({ inicial, prellenado, ia, proveedores = 
           <span className="label" id="l-cat">
             Categoría
           </span>
-          <div
-            className="mf-cats"
-            role="radiogroup"
-            aria-labelledby="l-cat"
-            aria-describedby={errores.categoria_id ? 'e-cat' : undefined}
-            key={f.tipo}
-          >
-            {cats.map((c, i) => (
-              <button
-                key={c.id}
-                id={i === 0 ? 'f-categoria_id' : undefined}
-                type="button"
-                role="radio"
-                aria-checked={f.categoria_id === c.id}
-                className={`mf-cat${errores.categoria_id ? ' bad' : ''}`}
-                style={{ '--c': c.color, '--d': `${i * 25}ms` }}
-                onClick={() => set('categoria_id', c.id)}
-              >
-                <span className="dot" />
-                {c.nombre}
-                <Icon name="check" className="mf-cat-ok" />
-              </button>
-            ))}
-          </div>
+          {!cats.length ? (
+            <SinCategorias tipo={f.tipo} />
+          ) : (
+            <div
+              className="mf-cats"
+              role="radiogroup"
+              aria-labelledby="l-cat"
+              aria-describedby={errores.categoria_id ? 'e-cat' : undefined}
+              key={f.tipo}
+            >
+              {cats.map((c, i) => (
+                <button
+                  key={c.id}
+                  id={i === 0 ? 'f-categoria_id' : undefined}
+                  type="button"
+                  role="radio"
+                  aria-checked={f.categoria_id === c.id}
+                  className={`mf-cat${errores.categoria_id ? ' bad' : ''}`}
+                  style={{ '--c': c.color, '--d': `${i * 25}ms` }}
+                  onClick={() => set('categoria_id', c.id)}
+                >
+                  <span className="dot" />
+                  {c.nombre}
+                  <Icon name="check" className="mf-cat-ok" />
+                </button>
+              ))}
+              {plegadas > 0 && (
+                <button type="button" className="mf-cat mf-cat-mas" aria-expanded={verTodas} onClick={() => setVerTodas((v) => !v)}>
+                  {verTodas ? 'Mostrar menos' : `+ ${plegadas} más`}
+                </button>
+              )}
+            </div>
+          )}
           {errores.categoria_id ? (
             <span className="err" id="e-cat">
               {errores.categoria_id}
