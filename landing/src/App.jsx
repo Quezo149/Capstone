@@ -7,7 +7,7 @@ import Roles from './components/Roles'
 import Security from './components/Security'
 import Pricing from './components/Pricing'
 import Faq from './components/Faq'
-import SignupForm from './components/SignupForm'
+import FinalCta from './components/FinalCta'
 import Footer from './components/Footer'
 import PrivacyDialog from './components/PrivacyDialog'
 
@@ -24,7 +24,7 @@ function App() {
         <Security />
         <Pricing />
         <Faq />
-        <SignupForm />
+        <FinalCta />
       </main>
       <Footer />
       <PrivacyDialog />
