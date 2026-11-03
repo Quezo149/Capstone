@@ -2,6 +2,7 @@
 // de llamar a func-kontadoria. Imita las reglas del backend que se notan en pantalla:
 // permisos por rol (app/core/permisos.py), RLS del empleado e idempotencia.
 import { leerDb, guardarDb, nuevoId, PERSONAS, rolActual } from './proto'
+import { revisarEstructura, validar } from './importacion'
 
 export class ApiError extends Error {
   constructor(status, codigo, mensaje) {
@@ -22,6 +23,11 @@ const PERMISOS = {
   'movimientos.filtrar_usuario': ['admin', 'contador'],
   'usuarios.ver': ['admin', 'contador'],
   'usuarios.gestionar': ['admin'],
+  // Importación masiva (HU10–HU13, Sprint 4): el contador importa aunque no registre a mano (D1)
+  'importaciones.realizar': ['admin', 'contador'],
+  'importaciones.ver': ['admin', 'contador'],
+  // Solo en el prototipo por ahora: si pasa a producción se decide con el equipo
+  'importaciones.anular': ['admin', 'contador'],
 }
 const permisosDe = (rol) => Object.keys(PERMISOS).filter((p) => PERMISOS[p].includes(rol)).sort()
 
@@ -145,6 +151,83 @@ export async function api(ruta, { method = 'GET', body } = {}) {
     if (!m) throw noEncontrado()
     m.eliminado = false
     return fin(m)
+  }
+
+  // ---------- Importaciones (HU10–HU13) ----------
+  // validar no escribe nada (vista previa, HU12). Confirmar vuelve a validar el archivo completo
+  // en el "servidor" y guarda todo junto: la importación y sus movimientos válidos.
+  const revisar = (filas) => {
+    const estructura = revisarEstructura(filas)
+    if (!estructura.ok) return { estructura, filas: [] }
+    const r = validar(filas, estructura, { categorias: db.categorias, existentes: db.movimientos })
+    return { estructura, filas: r.filas }
+  }
+  const importaciones = () => (db.importaciones ??= [])
+  if (r('/importaciones/validar', 'POST')) {
+    exigir(rol, 'importaciones.realizar')
+    await espera(700)
+    return copia(revisar(body.filas))
+  }
+  if (r('/importaciones', 'POST')) {
+    exigir(rol, 'importaciones.realizar')
+    const repetida = body.client_request_id && importaciones().find((x) => x.client_request_id === body.client_request_id)
+    if (repetida) return copia(repetida)
+    const { estructura, filas } = revisar(body.filas)
+    if (!estructura.ok) throw new ApiError(422, 'estructura_invalida', 'El archivo no usa la estructura de la plantilla.')
+    if (filas.length > 2000) throw new ApiError(413, 'demasiadas_filas', 'La planilla tiene más de 2.000 filas.')
+    const validas = filas.filter((f) => f.datos)
+    if (!validas.length) throw new ApiError(422, 'sin_filas_validas', 'No hay filas válidas para importar.')
+    await espera(600)
+    const imp = {
+      id: nuevoId(),
+      client_request_id: body.client_request_id ?? null,
+      nombre_archivo: body.nombre,
+      tipo_archivo: body.tipo,
+      usuario_id: yo.id,
+      usuario_nombre: yo.nombre,
+      total_filas: filas.length,
+      filas_importadas: validas.length,
+      filas_con_error: filas.length - validas.length,
+      estado: validas.length === filas.length ? 'completada' : 'completada_con_errores',
+      creado_en: new Date().toISOString(),
+      anulada_en: null,
+    }
+    importaciones().unshift(imp)
+    for (const f of validas)
+      db.movimientos.push({
+        ...f.datos,
+        id: nuevoId(),
+        client_request_id: null,
+        origen: 'importacion_masiva',
+        importacion_id: imp.id,
+        documento: null,
+        usuario_id: yo.id,
+        usuario_nombre: yo.nombre,
+        creado_en: imp.creado_en,
+        eliminado: false,
+      })
+    return fin(imp)
+  }
+  if (r('/importaciones')) {
+    exigir(rol, 'importaciones.ver')
+    return copia(importaciones())
+  }
+  if ((p = r('/importaciones/:id/anular', 'POST'))) {
+    exigir(rol, 'importaciones.anular')
+    const imp = importaciones().find((x) => x.id === p.id)
+    if (!imp) throw noEncontrado()
+    if (imp.anulada_en) throw new ApiError(409, 'ya_anulada', 'Esta importación ya está anulada.')
+    for (const m of db.movimientos) if (m.importacion_id === imp.id) m.eliminado = true
+    Object.assign(imp, { anulada_en: new Date().toISOString(), anulada_por: yo.nombre })
+    return fin(imp)
+  }
+  if ((p = r('/importaciones/:id/restaurar', 'POST'))) {
+    exigir(rol, 'importaciones.anular')
+    const imp = importaciones().find((x) => x.id === p.id)
+    if (!imp) throw noEncontrado()
+    for (const m of db.movimientos) if (m.importacion_id === imp.id) m.eliminado = false
+    Object.assign(imp, { anulada_en: null, anulada_por: null })
+    return fin(imp)
   }
 
   // ---------- Empresa (HU04) ----------

@@ -41,8 +41,9 @@ export default function Shell({ ruta, onNuevo, children, pie }) {
   const { perfil, salir, puede } = useSesion()
   const secciones = SECCIONES.filter((s) => !s.permiso || puede(s.permiso))
   // En el celular la barra inferior lleva 4 secciones y el botón "+" al centro
-  // El contador no carga boletas: en su lugar ve Categorías
-  const movil = ['inicio', 'movimientos', puede('movimientos.registrar') ? 'cargar' : 'categorias', 'reportes'].map((id) =>
+  // El contador no carga boletas: en su lugar ve Importar planilla (PROTOTIPO Sprint 4)
+  const tercera = puede('movimientos.registrar') ? 'cargar' : puede('importaciones.realizar') ? 'importar' : 'categorias'
+  const movil = ['inicio', 'movimientos', tercera, 'reportes'].map((id) =>
     SECCIONES.find((s) => s.id === id),
   )
 

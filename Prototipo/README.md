@@ -1,4 +1,4 @@
-# KontadorIA — Prototipo del Sprint 3
+# KontadorIA — Prototipo (Sprints 3 y 4)
 
 Copia de la app real (`/frontend`) **con datos falsos**, para mostrar cómo se verán las historias
 del Sprint 3 antes de construirlas. No llama al backend, no pide iniciar sesión con Microsoft y
@@ -9,6 +9,20 @@ nada sale del navegador: los datos se guardan en `localStorage`.
 | **HU08** Cargar boleta o factura | Sección **Cargar boleta**: arrastrar, elegir archivo o sacar foto (en el celular), indicador de lectura y, si falla, paso al formulario manual con el documento adjunto. |
 | **HU09** Validar lo extraído | Formulario prellenado con marcas *Leído por IA* / *Revisa este dato* / *Corregido*, categoría sugerida por historial del proveedor, vista "Lo que leyó la IA" sobre el documento, **Confirmar y guardar** o **Cancelar** sin guardar nada. |
 | **HU18** Dashboard | Selector de mes, gráfico de dona por categoría con sus colores, saldo del mes y últimos movimientos del mes elegido. El colaborador solo ve lo suyo. |
+
+### Sprint 4: importación masiva (sección **Importar planilla**, solo Dueño y Contador)
+
+| Historia | Qué muestra el prototipo |
+|---|---|
+| **HU10** Importar CSV/XLSX | Plantilla descargable (Excel con listas de tipo y categoría, o CSV), subir o arrastrar un `.csv`/`.xlsx` (hasta 2 MB y 2.000 filas). Si el archivo no trae las columnas de la plantilla, lo dice y muestra cuáles faltan o sobran. |
+| **HU11** Validar filas | Cada fila queda *Lista* o con su motivo: fecha inválida o futura, monto no numérico, negativo o con decimales, tipo distinto de ingreso/gasto, categoría inexistente o de otro tipo, sin descripción. Las filas con error se descargan en un CSV con una columna `error`. Aviso (no bloquea) si una fila parece repetida. |
+| **HU12** Revisar antes de confirmar | Resumen (filas, listas, con error, montos a sumar), filtro Todas / Con error / Listas, **Importar N movimientos** o **Cancelar** sin guardar nada. |
+| **HU13** Historial | Fecha y hora, archivo, quién importó, filas importadas / totales, resultado. **Anular** quita de una vez los movimientos de una importación (permiso `importaciones.anular`: está en el prototipo; si pasa a producción se decide con el equipo). |
+
+Los movimientos importados quedan con origen `importacion_masiva`, a nombre de quien importó, y
+se marcan con el ícono de planilla en Movimientos. Ejemplos listos: caja chica con errores, ventas
+con tarjeta (todo bien) y una cartola del banco (no usa la plantilla). Con un archivo propio la
+lectura y la validación son **reales** (en el navegador; en la app real las hará el backend).
 
 Además: los movimientos que vienen de foto o PDF muestran su ícono en la lista y el documento
 adjunto al editarlos; el registro manual ofrece el atajo "¿Tienes la boleta?".
@@ -64,7 +78,7 @@ npm run build    # compila y copia el resultado a Prototipo/
 
 Archivos propios del prototipo: `src/lib/proto.js` (datos falsos), `src/lib/api.js` (API simulada),
 `src/auth/msal.js` (sesión simulada), `src/lib/documentos.js` (documentos y lectura simulada),
-`src/views/Cargar.jsx`, `src/components/VisorDocumento.jsx` y `src/components/ProtoBar.jsx`.
+`src/views/Cargar.jsx`, `src/views/Importar.jsx`, `src/lib/importacion.js`, `src/components/VisorDocumento.jsx` y `src/components/ProtoBar.jsx`.
 Los cambios a `MovimientoForm.jsx`, `Inicio.jsx`, `Movimientos.jsx` y `App.jsx` están marcados con
 `PROTOTIPO`.
 

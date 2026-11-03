@@ -232,6 +232,12 @@ export default function Movimientos({ onNuevo, onEditar }) {
                               <Icon name={m.origen === 'pdf' ? 'receipt' : 'camera'} />
                             </span>
                           )}
+                          {/* PROTOTIPO Sprint 4: importado desde planilla */}
+                          {m.origen === 'importacion_masiva' && (
+                            <span className="doc-ic" title="Importado desde una planilla">
+                              <Icon name="sheet" />
+                            </span>
+                          )}
                         </span>
                       </td>
                       <td className={`num mono ${m.tipo === 'ingreso' ? 'amt-in' : 'amt-out'}`}>
@@ -267,6 +273,7 @@ export default function Movimientos({ onNuevo, onEditar }) {
                         {fechaCorta(m.fecha)} · {c.nombre}
                         {porUsuario && ` · ${m.usuario_nombre}`}
                         {m.documento && ` · ${m.origen === 'pdf' ? 'PDF' : 'Foto'}`}
+                        {m.origen === 'importacion_masiva' && ' · Planilla'}
                       </small>
                     </span>
                     <span className={`mono ${m.tipo === 'ingreso' ? 'amt-in' : 'amt-out'}`}>{clpSigno(m.monto, m.tipo)}</span>

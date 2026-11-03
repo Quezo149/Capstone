@@ -259,6 +259,7 @@ export default function Inicio({ onNuevo, onEditar }) {
                         <small>
                           {fechaCorta(m.fecha)} · {c.nombre}
                           {m.documento && ` · ${m.origen === 'pdf' ? 'PDF' : 'Foto'}`}
+                          {m.origen === 'importacion_masiva' && ' · Planilla'}
                         </small>
                       </span>
                       <span className={`mono ${m.tipo === 'ingreso' ? 'amt-in' : 'amt-out'}`}>{clpSigno(m.monto, m.tipo)}</span>

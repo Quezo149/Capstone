@@ -14,4 +14,4 @@ export const TIPOS_DOCUMENTO = [
 export const nombreDocumento = (id) => TIPOS_DOCUMENTO.find((t) => t.id === id)?.nombre ?? id
 
 // Mismos valores que el enum `origen`
-export const ORIGENES = { manual: 'Manual', foto: 'Foto', pdf: 'PDF', importacion_masiva: 'Excel' }
+export const ORIGENES = { manual: 'Manual', foto: 'Foto', pdf: 'PDF', importacion_masiva: 'Planilla' }

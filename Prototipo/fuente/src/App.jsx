@@ -12,6 +12,7 @@ import Cargar from './views/Cargar'
 import Categorias from './views/Categorias'
 import DatosLocales from './views/DatosLocales'
 import Equipo from './views/Equipo'
+import Importar from './views/Importar'
 import Inicio from './views/Inicio'
 import MiEmpresa from './views/MiEmpresa'
 import Movimientos from './views/Movimientos'
@@ -85,6 +86,18 @@ export default function App() {
   else if (ruta === 'categorias') vista = <Categorias />
   else if (ruta === 'equipo' && puede('usuarios.ver')) vista = <Equipo />
   else if (ruta === 'cargar' && registra) vista = <Cargar proveedores={proveedores} />
+  // PROTOTIPO Sprint 4: importación masiva (HU10–HU13)
+  else if (ruta === 'importar' && puede('importaciones.realizar')) vista = <Importar />
+  else if (ruta === 'importar')
+    vista = (
+      <div className="card nores">
+        <h2>Tu rol no importa planillas</h2>
+        <p className="muted">La importación desde Excel es para el dueño y el contador. Tú puedes registrar tus gastos a mano o con la foto de la boleta.</p>
+        <a className="btn btn-primary" href="#/cargar">
+          Cargar boleta
+        </a>
+      </div>
+    )
   else if (cargando) vista = <p className="muted">Cargando movimientos…</p>
   else if (error && (ruta === 'inicio' || ruta === 'movimientos'))
     vista = (
