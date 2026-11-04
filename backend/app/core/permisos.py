@@ -25,6 +25,13 @@ PERMISOS: dict[str, tuple[str, ...]] = {
     # Usuarios de la empresa (HU02)
     "usuarios.ver": ("admin", "contador"),
     "usuarios.gestionar": ("admin",),
+    # Importación masiva desde CSV/XLSX (HU10–HU13, Sprint 4). El contador importa aunque no
+    # registre movimientos a mano (D1): suele ser quien tiene la planilla. Los movimientos
+    # importados quedan a su nombre (movimientos.usuario_id) y ligados a la importación.
+    "importaciones.realizar": ("admin", "contador"),  # plantilla, vista previa y confirmar
+    "importaciones.ver": ("admin", "contador"),  # historial y filas con error (HU13)
+    # importaciones.anular (anular una importación completa) está solo en el prototipo:
+    # si pasa a producción se decide con el equipo.
 }
 
 

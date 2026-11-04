@@ -81,6 +81,18 @@ def test_usuarios_solo_de_la_empresa(client, tokens):
     assert not any(otra["oid"][:8] in e for e in emails)
 
 
+def test_importaciones_solo_admin_y_contador():
+    """
+    HU10–HU13 (Sprint 4). Mientras no existan los endpoints, se fija la tabla: admin y contador
+    importan y ven el historial; el empleado no. El contador importa aunque no registre a mano
+    (D1). Cuando estén los endpoints, entran a ACCIONES y a la matriz de arriba.
+    """
+    for permiso in ("importaciones.realizar", "importaciones.ver"):
+        assert set(PERMISOS[permiso]) == {"admin", "contador"}, permiso
+    assert "contador" not in PERMISOS["movimientos.registrar"]
+    assert "importaciones.anular" not in PERMISOS  # solo en el prototipo, pendiente con el equipo
+
+
 def test_todos_los_permisos_tienen_roles_validos():
     for permiso, roles in PERMISOS.items():
         assert roles and set(roles) <= {"admin", "contador", "empleado"}, permiso
