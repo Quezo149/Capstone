@@ -161,11 +161,17 @@ export async function leerArchivo(archivo) {
 const vacia = (fila) => fila.every((c) => !String(c ?? '').trim())
 
 // Estructura: el encabezado debe traer las columnas de la plantilla (en cualquier orden)
+// Columna que agrega el archivo de filas con error (descargarErrores): quien corrige ese archivo
+// y lo vuelve a subir no tiene que borrarla. Se ignora; cualquier otra columna de más se rechaza.
+const COLUMNA_ERROR = 'error'
+
 export function revisarEstructura(filas) {
   const idx = filas.findIndex((f) => !vacia(f))
   const encabezado = idx < 0 ? [] : filas[idx].map(normalizar)
   const faltan = COLUMNAS.filter((c) => !encabezado.includes(c.clave)).map((c) => c.nombre)
-  const sobran = (idx < 0 ? [] : filas[idx]).filter((h, i) => h && !COLUMNAS.some((c) => c.clave === encabezado[i]))
+  const sobran = (idx < 0 ? [] : filas[idx]).filter(
+    (h, i) => h && encabezado[i] !== COLUMNA_ERROR && !COLUMNAS.some((c) => c.clave === encabezado[i]),
+  )
   return { ok: idx >= 0 && faltan.length === 0 && sobran.length === 0, faltan, sobran, encabezado: idx < 0 ? [] : filas[idx], fila: idx }
 }
 
@@ -301,7 +307,7 @@ export function descargarPlantillaCsv() {
 
 // HU11: las filas con error, con su motivo, para corregirlas y volver a subirlas
 export function descargarErrores(nombreArchivo, filas) {
-  const cabeza = [...COLUMNAS.map((c) => c.nombre), 'error'].join(';')
+  const cabeza = [...COLUMNAS.map((c) => c.nombre), COLUMNA_ERROR].join(';')
   const cuerpo = filas
     .filter((f) => f.errores.length)
     .map((f) => [...COLUMNAS.map((c) => f.valores[c.clave]), `Fila ${f.n}: ${f.errores.join(' ')}`].map(celdaCsv).join(';'))
