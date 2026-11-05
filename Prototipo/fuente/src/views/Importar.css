@@ -124,7 +124,7 @@
 /* ---------- Ejemplos ---------- */
 .im-ejemplos ul {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   margin: 0;
   padding: 0;
@@ -565,16 +565,387 @@
   margin: 0;
 }
 
+/* ---------- Plantilla recomendada ---------- */
+.im-plantilla-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.im-plantilla .hint {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* ---------- Mapeo de una planilla propia ---------- */
+.im-mapeo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  margin-top: 16px;
+}
+
+.im-mapeo-izq {
+  display: grid;
+  gap: 16px;
+}
+
+.im-mapeo-der {
+  position: sticky;
+  top: 16px;
+}
+
+.im-bloque {
+  display: grid;
+  gap: 14px;
+}
+
+.im-bloque h2,
+.im-bloque p {
+  margin: 0;
+}
+
+.im-campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px;
+}
+
+.im-modos {
+  display: grid;
+  gap: 8px;
+}
+
+.im-modo {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-m);
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.im-modo.on {
+  border-color: var(--brand);
+  background: var(--brand-tint);
+}
+
+.im-modo input {
+  margin-top: 3px;
+  accent-color: var(--brand);
+}
+
+.im-formatos summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.im-formatos .im-campos {
+  margin-top: 12px;
+}
+
+.im-catmap {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  overflow: hidden;
+}
+
+.im-catmap li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+}
+
+.im-catmap li + li {
+  border-top: 1px solid var(--line);
+}
+
+.im-catmap li.falta {
+  background: color-mix(in srgb, var(--gasto-tint) 55%, transparent);
+}
+
+.im-catmap li > span {
+  display: grid;
+  min-width: 0;
+}
+
+.im-catmap strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.im-catmap svg {
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  transform: rotate(90deg);
+}
+
+.im-catmap .input {
+  min-height: 38px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.im-faltan {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.im-faltan li {
+  display: flex;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.im-faltan svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--gasto);
+}
+
+.im-previa-lista {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  overflow: hidden;
+}
+
+.im-previa-lista li {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.im-previa-lista li + li {
+  border-top: 1px solid var(--line);
+}
+
+.im-previa-lista li.mal {
+  background: color-mix(in srgb, var(--gasto-tint) 55%, transparent);
+}
+
+.im-previa-lista .cat-chip {
+  justify-self: start;
+}
+
+.im-previa-lista .im-mal {
+  font-size: 13px;
+}
+
+.im-tip {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.im-tip svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--brand);
+}
+
+.im-tip a {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.im-recordar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.im-recordar input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand);
+}
+
+.im-recordar .input {
+  width: 240px;
+  min-height: 38px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.im-barra .err {
+  margin: 0;
+  color: var(--gasto);
+  font-weight: 700;
+}
+
+/* ---------- Revisión de una planilla propia ---------- */
+.im-rev-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+
+.im-formato {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.im-formato > svg {
+  width: 16px;
+  height: 16px;
+  color: var(--brand);
+}
+
+.im-ignoradas {
+  font-size: 14px;
+}
+
+.im-ignoradas summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.im-ignoradas ul {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.im-nota {
+  display: block;
+  margin-top: 2px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.im-recordado {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.im-recordado svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--ingreso);
+}
+
+/* ---------- Formatos guardados ---------- */
+.im-formatos-guardados ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.im-formatos-guardados li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.im-formato-ic {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--mint);
+  color: var(--brand);
+}
+
+.im-formato-ic svg {
+  width: 20px;
+  height: 20px;
+}
+
+.im-formato-txt {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.im-formato-txt small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1080px) {
-  .im-tiles {
+  .im-tiles,
+  .im-ejemplos ul {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .im-mapeo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .im-mapeo-der {
+    position: static;
   }
 }
 
 @media (max-width: 860px) {
-  .im-grid {
+  .im-grid,
+  .im-campos,
+  .im-formatos-guardados ul {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .im-catmap li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .im-catmap li > svg {
+    display: none;
+  }
+
+  .im-recordar .input {
+    width: 100%;
   }
 
   .im-ejemplos ul {

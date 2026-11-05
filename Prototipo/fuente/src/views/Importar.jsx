@@ -3,7 +3,26 @@ import Icon from '../components/Icon'
 import Seg from '../components/Seg'
 import { api } from '../lib/api'
 import { clpSigno, fechaCorta } from '../lib/format'
-import { COLUMNAS, MAX_FILAS, MAX_MB, descargarErrores, descargarPlantillaCsv, ejemplos, leerArchivo } from '../lib/importacion'
+import {
+  CAMPOS,
+  COLUMNAS,
+  campoDeEncabezado,
+  MAX_FILAS,
+  MAX_MB,
+  descargarErrores,
+  descargarPlantillaCsv,
+  detectarEncabezado,
+  detectarFormatos,
+  ejemplos,
+  faltantesMapeo,
+  interpretar,
+  leerArchivo,
+  leerFecha,
+  letraColumna,
+  mapeoDesde,
+  sugerirCategorias,
+  valoresCategoria,
+} from '../lib/importacion'
 import { leerDb } from '../lib/proto'
 import { useCategorias } from '../state/Categorias'
 import { useMovimientos } from '../state/Movimientos'
@@ -12,14 +31,28 @@ import { useToast } from '../state/Toasts'
 import './Importar.css'
 
 // PROTOTIPO HU10 (importar CSV/XLSX) + HU11 (validar filas) + HU12 (revisar antes de confirmar)
-// + HU13 (historial). Pasos: elegir → validando → revisar | estructura → hecho.
+// + HU13 (historial) + planillas propias (mapeo de columnas y formatos guardados).
+// Pasos: elegir → validando → (mapear) → revisar → hecho.
+//   · La plantilla de KontadorIA y los formatos ya guardados pasan directo a revisar.
+//   · Una planilla propia nueva pasa por mapear: se confirman sus columnas una sola vez.
 const PASOS = [
   ['leyendo', 'Abriendo la planilla'],
-  ['estructura', 'Revisando las columnas'],
+  ['estructura', 'Reconociendo las columnas'],
   ['filas', 'Validando cada fila'],
 ]
 const plantillaXlsx = `${import.meta.env.BASE_URL}plantilla-kontadoria.xlsx`
 const nuevoRequestId = () => crypto.randomUUID?.() ?? `r-${Date.now()}-${Math.random().toString(36).slice(2)}`
+const pausa = (ms) => new Promise((r) => setTimeout(r, ms))
+
+// "control-caja-el-fogon-10-2026.xlsx" → "Control caja el fogon"
+const nombreSugerido = (archivo) => {
+  const base = archivo
+    .replace(/\.(csv|xlsx)$/i, '')
+    .replace(/[-_ ]?\d{1,2}[-_]\d{4}$/, '')
+    .replace(/[-_]+/g, ' ')
+    .trim()
+  return base ? base[0].toUpperCase() + base.slice(1) : 'Mi planilla'
+}
 
 export default function Importar() {
   const { recargar } = useMovimientos()
@@ -27,19 +60,22 @@ export default function Importar() {
   const { aviso } = useToast()
   const [etapa, setEtapa] = useState('elegir')
   const [paso, setPaso] = useState(null)
-  const [archivo, setArchivo] = useState(null) // { nombre, tipo, filas }
-  const [res, setRes] = useState(null) // { estructura, filas }
+  const [archivo, setArchivo] = useState(null) // { nombre, tipo, hojas }
+  const [analisis, setAnalisis] = useState(null) // { hoja, mapeo, plantilla, perfil, alias }
+  const [res, setRes] = useState(null) // { filas, ignoradas, mapeo, hoja, perfil }
   const [hecha, setHecha] = useState(null)
   const [error, setError] = useState(null)
   const [arrastrando, setArrastrando] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [historial, setHistorial] = useState(null)
+  const [formatos, setFormatos] = useState(null)
   const requestId = useRef(null)
   const input = useRef(null)
   const listaEjemplos = useMemo(() => ejemplos(leerDb().movimientos), [])
 
   const cargarHistorial = useCallback(() => {
     if (puede('importaciones.ver')) api('/importaciones').then(setHistorial)
+    api('/importaciones/perfiles').then(setFormatos)
   }, [puede])
   useEffect(cargarHistorial, [cargarHistorial])
 
@@ -48,29 +84,38 @@ export default function Importar() {
     setArchivo(a)
     setEtapa('validando')
     setPaso('leyendo')
-    await new Promise((r) => setTimeout(r, 350))
+    await pausa(300)
     setPaso('estructura')
-    await new Promise((r) => setTimeout(r, 350))
+    const an = await api('/importaciones/analizar', { method: 'POST', body: { nombre: a.nombre, tipo: a.tipo, hojas: a.hojas } })
+    setAnalisis(an)
+    // Plantilla o formato ya guardado: directo a revisar. Planilla nueva: a confirmar columnas.
+    if (an.plantilla || an.perfil) return validarCon(a, an.mapeo, an.hoja, an.perfil ? { id: an.perfil.id, nombre: an.perfil.nombre } : null)
+    setEtapa('mapear')
+  }
+
+  async function validarCon(a, mapeo, hoja, perfil) {
+    setEtapa('validando')
     setPaso('filas')
-    const r = await api('/importaciones/validar', { method: 'POST', body: { nombre: a.nombre, tipo: a.tipo, filas: a.filas } })
+    const filas = a.hojas[hoja].filas
+    const r = await api('/importaciones/validar', { method: 'POST', body: { nombre: a.nombre, tipo: a.tipo, filas, mapeo } })
     if (r.filas.length > MAX_FILAS) {
       setError(`La planilla tiene ${r.filas.length.toLocaleString('es-CL')} filas. El máximo es ${MAX_FILAS.toLocaleString('es-CL')}: divídela en dos archivos.`)
       return setEtapa('elegir')
     }
-    if (r.estructura.ok && !r.filas.length) {
-      setError('La planilla tiene las columnas correctas, pero no trae ninguna fila con datos.')
-      return setEtapa('elegir')
+    if (!r.filas.length) {
+      setError('Reconocimos las columnas, pero la planilla no trae ninguna fila con datos.')
+      return setEtapa(mapeo.plantilla ? 'elegir' : 'mapear')
     }
     requestId.current = nuevoRequestId() // uno por vista previa: confirmar dos veces no duplica
-    setRes(r)
-    setEtapa(r.estructura.ok ? 'revisar' : 'estructura')
+    setRes({ ...r, mapeo, hoja, perfil })
+    setEtapa('revisar')
   }
 
   async function elegirArchivo(f) {
     if (!f) return
     try {
-      const { tipo, filas } = await leerArchivo(f)
-      procesar({ nombre: f.name, tipo, filas })
+      const { tipo, hojas } = await leerArchivo(f)
+      procesar({ nombre: f.name, tipo, hojas })
     } catch (e) {
       setError(e.message)
     }
@@ -80,6 +125,7 @@ export default function Importar() {
     setEtapa('elegir')
     setRes(null)
     setArchivo(null)
+    setAnalisis(null)
     setPaso(null)
     if (input.current) input.current.value = ''
   }
@@ -89,12 +135,25 @@ export default function Importar() {
     aviso('Importación cancelada: no se guardó nada')
   }
 
+  // Desde la revisión: volver a las columnas con lo que se usó (también para un formato guardado)
+  function cambiarColumnas() {
+    setAnalisis((an) => ({ ...an, mapeo: res.mapeo, hoja: res.hoja, perfil: res.perfil }))
+    setEtapa('mapear')
+  }
+
   async function confirmar() {
     setGuardando(true)
     try {
       const imp = await api('/importaciones', {
         method: 'POST',
-        body: { nombre: archivo.nombre, tipo: archivo.tipo, filas: archivo.filas, client_request_id: requestId.current },
+        body: {
+          nombre: archivo.nombre,
+          tipo: archivo.tipo,
+          filas: archivo.hojas[res.hoja].filas,
+          mapeo: res.mapeo,
+          perfil: res.perfil,
+          client_request_id: requestId.current,
+        },
       })
       await recargar()
       cargarHistorial()
@@ -122,6 +181,12 @@ export default function Importar() {
     }
   }
 
+  async function olvidarFormato(f) {
+    await api(`/importaciones/perfiles/${f.id}`, { method: 'DELETE' })
+    cargarHistorial()
+    aviso(`Formato «${f.nombre}» olvidado: la próxima vez se vuelven a elegir sus columnas`)
+  }
+
   if (etapa === 'validando') {
     const actual = PASOS.findIndex(([x]) => x === paso)
     return (
@@ -146,55 +211,31 @@ export default function Importar() {
     )
   }
 
-  if (etapa === 'estructura') {
-    const { faltan, sobran, encabezado } = res.estructura
+  if (etapa === 'mapear')
     return (
-      <>
-        <Cabecera eyebrow="Importar planilla" titulo="Esta planilla no usa la plantilla" bajada="No se guardó nada. Copia tus datos en la plantilla y vuelve a subirla." />
-        <div className="im-grid">
-          <div className="card im-estructura">
-            <ArchivoChip archivo={archivo} />
-            <h2>Columnas de tu archivo</h2>
-            <ul className="im-cols">
-              {encabezado.filter(Boolean).map((h, i) => (
-                <li key={i} className={sobran.includes(h) ? 'mal' : ''}>
-                  {h}
-                </li>
-              ))}
-            </ul>
-            {faltan.length > 0 && (
-              <p className="im-motivo">
-                <Icon name="x" />
-                <span>
-                  Faltan: <strong>{faltan.join(', ')}</strong>.
-                </span>
-              </p>
-            )}
-            {sobran.length > 0 && (
-              <p className="im-motivo">
-                <Icon name="x" />
-                <span>
-                  No son de la plantilla: <strong>{sobran.join(', ')}</strong>.
-                </span>
-              </p>
-            )}
-            <div className="im-acts">
-              <button type="button" className="btn btn-ghost" onClick={volver}>
-                Probar con otro archivo
-              </button>
-              <a className="btn btn-primary" href={plantillaXlsx} download>
-                <Icon name="in" />
-                Descargar plantilla
-              </a>
-            </div>
-          </div>
-          <Plantilla />
-        </div>
-      </>
+      <Mapeo
+        archivo={archivo}
+        analisis={analisis}
+        error={error}
+        onVolver={volver}
+        onListo={(mapeo, hoja, perfil) => {
+          setError(null)
+          validarCon(archivo, mapeo, hoja, perfil)
+        }}
+      />
     )
-  }
 
-  if (etapa === 'revisar') return <Revision archivo={archivo} filas={res.filas} guardando={guardando} onConfirmar={confirmar} onCancelar={cancelar} />
+  if (etapa === 'revisar')
+    return (
+      <Revision
+        archivo={archivo}
+        res={res}
+        guardando={guardando}
+        onConfirmar={confirmar}
+        onCancelar={cancelar}
+        onCambiarColumnas={res.mapeo.plantilla ? null : cambiarColumnas}
+      />
+    )
 
   if (etapa === 'hecho') {
     return (
@@ -211,6 +252,14 @@ export default function Importar() {
             Desde <strong>{hecha.nombre_archivo}</strong>
             {hecha.filas_con_error > 0 && ` · ${hecha.filas_con_error} filas con error quedaron fuera`}. Quedó registrada en el historial.
           </p>
+          {res?.perfil?.guardar && (
+            <p className="im-recordado">
+              <Icon name="check" />
+              <span>
+                Guardamos el formato <strong>«{res.perfil.nombre}»</strong>: la próxima planilla igual se importa sin elegir columnas.
+              </span>
+            </p>
+          )}
           <div className="im-acts">
             <button type="button" className="btn btn-ghost" onClick={volver}>
               Importar otra planilla
@@ -227,7 +276,11 @@ export default function Importar() {
 
   return (
     <>
-      <Cabecera eyebrow="Importar planilla" titulo="Trae tus movimientos desde Excel" bajada="Sube un CSV o XLSX con la plantilla. Revisas el resultado antes de guardar." />
+      <Cabecera
+        eyebrow="Importar planilla"
+        titulo="Trae tus movimientos desde Excel"
+        bajada="Con nuestra plantilla es inmediato. Si ya tienes tu propia planilla, súbela tal cual: reconocemos sus columnas y recordamos el formato."
+      />
       <div className="im-grid">
         <div
           className={`card im-drop${arrastrando ? ' sobre' : ''}`}
@@ -247,7 +300,7 @@ export default function Importar() {
           </span>
           <h2>Sube tu planilla</h2>
           <p className="muted">
-            Arrástrala aquí o elígela. CSV o XLSX de hasta {MAX_MB} MB y {MAX_FILAS.toLocaleString('es-CL')} filas.
+            Arrástrala aquí o elígela. La plantilla o la tuya, en CSV o XLSX de hasta {MAX_MB} MB y {MAX_FILAS.toLocaleString('es-CL')} filas.
           </p>
           <button type="button" className="btn btn-primary" onClick={() => input.current.click()}>
             <Icon name="plus" />
@@ -263,6 +316,8 @@ export default function Importar() {
         <Plantilla />
       </div>
 
+      {formatos?.length > 0 && <Formatos lista={formatos} onOlvidar={olvidarFormato} />}
+
       <section className="im-ejemplos">
         <div className="card-head">
           <h2>¿No tienes una planilla a mano? Prueba con un ejemplo</h2>
@@ -273,7 +328,7 @@ export default function Importar() {
               <button type="button" onClick={() => procesar(ej)}>
                 <span className={`im-ej-ic ${ej.tipo}`}>
                   <Icon name="sheet" />
-                  <span className={`chip ${ej.falla ? 'warn' : ''}`}>{ej.tipo.toUpperCase()}</span>
+                  <span className={`chip ${ej.propia ? 'line' : ''}`}>{ej.propia ? 'Formato propio' : ej.tipo.toUpperCase()}</span>
                 </span>
                 <strong>{ej.titulo}</strong>
                 <small>{ej.detalle}</small>
@@ -289,25 +344,410 @@ export default function Importar() {
   )
 }
 
-// HU11 + HU12: resumen, filas con su estado y confirmar o cancelar
-function Revision({ archivo, filas, guardando, onConfirmar, onCancelar }) {
+// ---------------------------------------------------------------------------------------------
+// Planilla propia: confirmar hoja, encabezado, columnas, cómo viene el monto y las categorías
+// ---------------------------------------------------------------------------------------------
+
+const MODOS = [
+  { id: 'tipo', label: 'Una columna de monto y otra que dice ingreso o gasto' },
+  { id: 'cargo_abono', label: 'Gastos e ingresos en columnas separadas (cargos y abonos)' },
+  { id: 'signo', label: 'Una columna de monto: negativo es gasto, positivo es ingreso' },
+  { id: 'fijo', label: 'Una columna de monto, y todas las filas son del mismo tipo' },
+]
+const CAMPOS_POR_MODO = { tipo: ['monto', 'tipo'], cargo_abono: ['cargo', 'abono'], signo: ['monto'], fijo: ['monto'] }
+
+function Mapeo({ archivo, analisis, error, onVolver, onListo }) {
+  const { categorias } = useCategorias()
+  const { movs } = useMovimientos()
+  const [hoja, setHoja] = useState(analisis.hoja)
+  const [mapeo, setMapeo] = useState(analisis.mapeo)
+  const [guardar, setGuardar] = useState(true)
+  const [nombre, setNombre] = useState(() => analisis.perfil?.nombre ?? nombreSugerido(archivo.nombre))
+  const filas = archivo.hojas[hoja].filas
+  const ctx = useMemo(() => ({ categorias, alias: analisis.alias ?? {}, existentes: movs }), [categorias, analisis.alias, movs])
+
+  // Columnas disponibles: las del encabezado y las que traen datos aunque no tengan nombre
+  const encabezado = useMemo(() => filas[mapeo.encabezado] ?? [], [filas, mapeo.encabezado])
+  const datos = useMemo(() => filas.slice(mapeo.encabezado + 1).filter((f) => f.some((c) => String(c ?? '').trim())), [filas, mapeo.encabezado])
+  const ancho = useMemo(() => Math.max(encabezado.length, ...datos.slice(0, 50).map((f) => f.length)), [encabezado, datos])
+  const columnas = useMemo(
+    () =>
+      Array.from({ length: ancho }, (_, i) => {
+        const nombre = String(encabezado[i] ?? '').trim()
+        let muestra = datos.map((f) => String(f[i] ?? '').trim()).find(Boolean)
+        // Una fecha de Excel llega como número (46328): se muestra como fecha
+        if (muestra && /^\d{5}(\.\d+)?$/.test(muestra) && campoDeEncabezado(nombre) === 'fecha') muestra = fechaCorta(leerFecha(muestra))
+        return { i, nombre, muestra }
+      }).filter((c) => c.nombre || c.muestra),
+    [ancho, datos, encabezado],
+  )
+
+  const opcionesEncabezado = useMemo(
+    () =>
+      filas
+        .slice(0, 30)
+        .map((f, i) => ({ i, texto: f.map((c) => String(c ?? '').trim()).filter(Boolean).slice(0, 4).join(' · ') }))
+        .filter((o) => o.texto),
+    [filas],
+  )
+
+  const valores = useMemo(() => valoresCategoria(filas, mapeo), [filas, mapeo])
+  const faltan = faltantesMapeo(mapeo)
+  const vista = useMemo(() => (faltan.length ? null : interpretar(filas, mapeo, ctx)), [faltan.length, filas, mapeo, ctx])
+  const sinAsignar = valores.filter((v) => !mapeo.catValores[v.clave])
+
+  function cambiarHoja(h) {
+    const f = archivo.hojas[h].filas
+    const d = detectarEncabezado(f)
+    setHoja(h)
+    setMapeo(mapeoDesde(f, d.fila >= 0 ? d.fila : Math.max(0, f.findIndex((x) => x.some((c) => String(c ?? '').trim()))), ctx))
+  }
+
+  // Al cambiar una columna se recalculan los formatos y, si es la de categoría, sus valores
+  function setCol(campo, i) {
+    setMapeo((m) => {
+      const cols = { ...m.cols }
+      for (const k of Object.keys(cols)) if (cols[k] === i && i >= 0) cols[k] = -1 // una columna, un campo
+      cols[campo] = i
+      const nuevo = { ...m, cols, ...detectarFormatos(filas, { ...m, cols }) }
+      if (campo === 'categoria') nuevo.catValores = { ...sugerirCategorias(valoresCategoria(filas, nuevo), ctx), ...m.catValores }
+      return nuevo
+    })
+  }
+
+  const set = (cambios) => setMapeo((m) => ({ ...m, ...cambios }))
+
+  const selectColumna = (campo) => {
+    const def = CAMPOS.find((c) => c.clave === campo)
+    return (
+      <div className="field" key={campo}>
+        <label htmlFor={`col-${campo}`}>{def.nombre}</label>
+        <select id={`col-${campo}`} className="input" value={mapeo.cols[campo]} onChange={(e) => setCol(campo, +e.target.value)} aria-invalid={campo === 'fecha' && mapeo.cols.fecha < 0}>
+          <option value={-1}>— No está en mi planilla —</option>
+          {columnas.map((c) => (
+            <option key={c.i} value={c.i}>
+              {letraColumna(c.i)} · {c.nombre || '(sin nombre)'}
+              {c.muestra ? `  —  ej.: ${c.muestra.slice(0, 28)}` : ''}
+            </option>
+          ))}
+        </select>
+        <span className="hint">{def.ayuda}</span>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <Cabecera
+        eyebrow="Tu planilla"
+        titulo={analisis.reconocido === false ? 'Indícanos qué es cada columna' : 'Revisa cómo leímos tus columnas'}
+        bajada="Lo haces una sola vez: guardamos el formato y la próxima planilla igual se importa directo. No se guarda ningún movimiento todavía."
+      />
+      <ArchivoChip archivo={archivo} />
+
+      <div className="im-mapeo">
+        <div className="im-mapeo-izq">
+          <section className="card im-bloque">
+            <h2>1. Dónde están los datos</h2>
+            <div className="im-campos">
+              {archivo.hojas.length > 1 && (
+                <div className="field">
+                  <label htmlFor="m-hoja">Hoja</label>
+                  <select id="m-hoja" className="input" value={hoja} onChange={(e) => cambiarHoja(+e.target.value)}>
+                    {archivo.hojas.map((h, i) => (
+                      <option key={i} value={i}>
+                        {h.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div className="field">
+                <label htmlFor="m-enc">Fila con los nombres de las columnas</label>
+                <select id="m-enc" className="input" value={mapeo.encabezado} onChange={(e) => setMapeo(mapeoDesde(filas, +e.target.value, ctx))}>
+                  {opcionesEncabezado.map((o) => (
+                    <option key={o.i} value={o.i}>
+                      Fila {o.i + 1}: {o.texto.slice(0, 60)}
+                    </option>
+                  ))}
+                </select>
+                <span className="hint">Lo de arriba (títulos, logo, nombre del local) se ignora.</span>
+              </div>
+            </div>
+          </section>
+
+          <section className="card im-bloque">
+            <h2>2. Qué es cada columna</h2>
+            <div className="im-campos">
+              {selectColumna('fecha')}
+              {selectColumna('descripcion')}
+              {selectColumna('proveedor')}
+              {selectColumna('categoria')}
+            </div>
+          </section>
+
+          <section className="card im-bloque">
+            <h2>3. Cómo vienen los montos</h2>
+            <div className="im-modos" role="radiogroup" aria-label="Cómo vienen los montos">
+              {MODOS.map((m) => (
+                <label key={m.id} className={`im-modo${mapeo.modo === m.id ? ' on' : ''}`}>
+                  <input type="radio" name="modo" checked={mapeo.modo === m.id} onChange={() => set({ modo: m.id })} />
+                  <span>{m.label}</span>
+                </label>
+              ))}
+            </div>
+            <div className="im-campos">
+              {CAMPOS_POR_MODO[mapeo.modo].map(selectColumna)}
+              {mapeo.modo === 'fijo' && (
+                <div className="field">
+                  <span className="label">Todas las filas son</span>
+                  <Seg
+                    label="Tipo de todas las filas"
+                    valor={mapeo.tipoFijo}
+                    onChange={(t) => set({ tipoFijo: t })}
+                    opciones={[
+                      { id: 'gasto', label: 'Gastos' },
+                      { id: 'ingreso', label: 'Ingresos' },
+                    ]}
+                  />
+                </div>
+              )}
+            </div>
+            <details className="im-formatos">
+              <summary>Formato de fechas y números</summary>
+              <div className="im-campos">
+                <div className="field">
+                  <label htmlFor="m-fecha">Las fechas vienen como</label>
+                  <select id="m-fecha" className="input" value={mapeo.fecha} onChange={(e) => set({ fecha: e.target.value })}>
+                    <option value="dmy">Día / mes / año (05-10-2026)</option>
+                    <option value="mdy">Mes / día / año (10-05-2026)</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="m-monto">Los montos vienen como</label>
+                  <select id="m-monto" className="input" value={mapeo.monto} onChange={(e) => set({ monto: e.target.value })}>
+                    <option value="cl">1.234.567 (punto para miles)</option>
+                    <option value="us">1,234,567 (coma para miles)</option>
+                  </select>
+                </div>
+              </div>
+            </details>
+          </section>
+
+          <section className="card im-bloque">
+            <h2>4. Tus categorías</h2>
+            {mapeo.cols.categoria >= 0 ? (
+              <>
+                <p className="muted">
+                  Asocia cada categoría de tu planilla con una de KontadorIA. Lo recordamos para las próximas.
+                  {sinAsignar.length > 0 && (
+                    <strong className="amt-out">
+                      {' '}
+                      {sinAsignar.length === 1 ? 'Falta 1 por asociar' : `Faltan ${sinAsignar.length} por asociar`}: esas filas quedarían con error.
+                    </strong>
+                  )}
+                </p>
+                <ul className="im-catmap">
+                  {valores.map((v) => (
+                    <li key={v.clave} className={mapeo.catValores[v.clave] ? '' : 'falta'}>
+                      <span>
+                        <strong>{v.texto}</strong>
+                        <small className="muted">
+                          {v.filas} {v.filas === 1 ? 'fila' : 'filas'}
+                        </small>
+                      </span>
+                      <Icon name="out" />
+                      <SelectCategoria
+                        id={`cat-${v.clave}`}
+                        valor={mapeo.catValores[v.clave] ?? ''}
+                        vacio="Elegir…"
+                        onChange={(id) => set({ catValores: { ...mapeo.catValores, [v.clave]: id || null } })}
+                      />
+                    </li>
+                  ))}
+                </ul>
+                <p className="hint muted">Si una fila viene sin categoría, se usa la de abajo.</p>
+              </>
+            ) : (
+              <p className="muted">Tu planilla no trae categoría. Si el proveedor ya tiene movimientos, usamos la categoría que usas con él; si no, estas:</p>
+            )}
+            <div className="im-campos">
+              {['gasto', 'ingreso'].map((tipo) => (
+                <div className="field" key={tipo}>
+                  <label htmlFor={`def-${tipo}`}>{tipo === 'gasto' ? 'Gastos sin categoría' : 'Ingresos sin categoría'}</label>
+                  <SelectCategoria
+                    id={`def-${tipo}`}
+                    tipo={tipo}
+                    valor={mapeo.catDefecto?.[tipo] ?? ''}
+                    vacio="Elegir…"
+                    onChange={(id) => set({ catDefecto: { ...mapeo.catDefecto, [tipo]: id || null } })}
+                  />
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <aside className="im-mapeo-der">
+          <section className="card im-bloque im-previa">
+            <h2>Así quedarían</h2>
+            {faltan.length ? (
+              <ul className="im-faltan">
+                {faltan.map((f) => (
+                  <li key={f}>
+                    <Icon name="x" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <>
+                <p className="muted">
+                  <strong className="amt-in">{vista.filas.filter((f) => f.datos).length} listas</strong>
+                  {' · '}
+                  <strong className={vista.filas.some((f) => f.errores.length) ? 'amt-out' : ''}>{vista.filas.filter((f) => f.errores.length).length} con error</strong>
+                  {vista.ignoradas.length > 0 && ` · ${vista.ignoradas.length} ignoradas (totales, saldos o títulos)`}
+                </p>
+                <ul className="im-previa-lista">
+                  {vista.filas.slice(0, 6).map((f) => (
+                    <PreviaFila key={f.n} fila={f} />
+                  ))}
+                </ul>
+                {vista.filas.length > 6 && <p className="hint muted">y {vista.filas.length - 6} filas más en la revisión.</p>}
+              </>
+            )}
+            <p className="im-tip">
+              <Icon name="spark" />
+              <span>
+                ¿Empiezas una planilla nueva? La{' '}
+                <a href={plantillaXlsx} download>
+                  plantilla de KontadorIA
+                </a>{' '}
+                se importa sin este paso.
+              </span>
+            </p>
+          </section>
+        </aside>
+      </div>
+
+      <div className="im-barra">
+        <label className="im-recordar">
+          <input type="checkbox" checked={guardar} onChange={(e) => setGuardar(e.target.checked)} />
+          <span>{analisis.perfil ? 'Actualizar el formato' : 'Recordar este formato como'}</span>
+          <input className="input" value={nombre} onChange={(e) => setNombre(e.target.value)} disabled={!guardar} aria-label="Nombre del formato" maxLength={60} />
+        </label>
+        {error && (
+          <p className="err" role="alert">
+            {error}
+          </p>
+        )}
+        <div className="im-acts">
+          <button type="button" className="btn btn-ghost" onClick={onVolver}>
+            Volver
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={faltan.length > 0}
+            onClick={() => onListo(mapeo, hoja, { id: guardar ? (analisis.perfil?.id ?? null) : null, guardar, nombre: nombre.trim() || 'Mi planilla' })}
+          >
+            <Icon name="check" />
+            Revisar las filas
+          </button>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function SelectCategoria({ id, valor, onChange, tipo, vacio }) {
+  const { categorias } = useCategorias()
+  const grupo = (t) => categorias.filter((c) => c.tipo === t && !c.oculta)
+  return (
+    <select id={id} className="input" value={valor} onChange={(e) => onChange(e.target.value)} aria-invalid={!valor}>
+      <option value="">{vacio}</option>
+      {(tipo ? [tipo] : ['gasto', 'ingreso']).map((t) => (
+        <optgroup key={t} label={t === 'gasto' ? 'Gastos' : 'Ingresos'}>
+          {grupo(t).map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.nombre}
+            </option>
+          ))}
+        </optgroup>
+      ))}
+    </select>
+  )
+}
+
+function PreviaFila({ fila: f }) {
   const { categoria } = useCategorias()
+  const c = f.datos && categoria(f.datos.categoria_id)
+  return (
+    <li className={f.errores.length ? 'mal' : ''}>
+      <div className="im-lista-top">
+        <span className="mono muted">
+          Fila {f.n} · {f.datos ? fechaCorta(f.datos.fecha) : f.valores.fecha || '—'}
+        </span>
+        <span className={`mono ${f.datos ? (f.datos.tipo === 'ingreso' ? 'amt-in' : 'amt-out') : 'muted'}`}>{f.datos ? clpSigno(f.datos.monto, f.datos.tipo) : f.valores.monto || '—'}</span>
+      </div>
+      <strong>{f.datos?.descripcion || f.valores.descripcion || 'Sin descripción'}</strong>
+      {c ? (
+        <span className="cat-chip" style={{ '--c': c.color }}>
+          <span className="dot" />
+          {c.nombre}
+        </span>
+      ) : null}
+      {f.errores.length > 0 && <Estado fila={f} />}
+    </li>
+  )
+}
+
+// ---------------------------------------------------------------------------------------------
+// HU11 + HU12: resumen, filas con su estado y confirmar o cancelar
+// ---------------------------------------------------------------------------------------------
+function Revision({ archivo, res, guardando, onConfirmar, onCancelar, onCambiarColumnas }) {
+  const { categoria } = useCategorias()
+  const { filas, ignoradas = [], mapeo, hoja, perfil } = res
   const [filtro, setFiltro] = useState(() => (filas.some((f) => f.errores.length) ? 'error' : 'todas'))
   const validas = filas.filter((f) => f.datos)
   const conError = filas.length - validas.length
   const avisos = validas.filter((f) => f.aviso).length
   const suma = (tipo) => validas.filter((f) => f.datos.tipo === tipo).reduce((s, f) => s + f.datos.monto, 0)
   const vistas = filas.filter((f) => (filtro === 'error' ? f.errores.length : filtro === 'validas' ? f.datos : true))
+  const encabezado = archivo.hojas[hoja].filas[mapeo.encabezado] ?? []
 
   return (
     <>
       <Cabecera eyebrow="Revisión" titulo="Revisa antes de importar" bajada="Solo se guardan las filas sin errores, y solo cuando confirmes." />
-      <ArchivoChip archivo={archivo} />
+      <div className="im-rev-top">
+        <ArchivoChip archivo={archivo} />
+        {mapeo.plantilla ? (
+          <span className="chip">Plantilla KontadorIA</span>
+        ) : (
+          <span className="im-formato">
+            <Icon name="sheet" />
+            {perfil?.id && !perfil.guardar ? (
+              <span>
+                Reconocimos tu formato <strong>«{perfil.nombre}»</strong>
+              </span>
+            ) : (
+              <span>Formato propio{perfil?.guardar ? ` · se guardará como «${perfil.nombre}»` : ''}</span>
+            )}
+            {onCambiarColumnas && (
+              <button type="button" className="btn btn-text btn-sm" onClick={onCambiarColumnas}>
+                <Icon name="pen" />
+                Cambiar columnas
+              </button>
+            )}
+          </span>
+        )}
+      </div>
 
       <div className="im-tiles">
         <div className="card im-tile">
           <span>Filas en el archivo</span>
           <strong className="mono">{filas.length}</strong>
+          {ignoradas.length > 0 && <small>+ {ignoradas.length} ignoradas</small>}
         </div>
         <div className="card im-tile ok">
           <span>Listas para importar</span>
@@ -335,13 +775,29 @@ function Revision({ archivo, filas, guardando, onConfirmar, onCancelar }) {
             <strong>
               {conError} {conError === 1 ? 'fila tiene' : 'filas tienen'} errores y no se van a importar.
             </strong>{' '}
-            Descárgalas con su motivo, corrígelas y súbelas en otra planilla.
+            Descárgalas con su motivo (en tus mismas columnas), corrígelas y vuelve a subirlas.
           </p>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => descargarErrores(archivo.nombre, filas)}>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => descargarErrores(archivo.nombre, filas, encabezado)}>
             <Icon name="in" />
             Descargar filas con error
           </button>
         </div>
+      )}
+
+      {ignoradas.length > 0 && (
+        <details className="card im-ignoradas">
+          <summary>
+            {ignoradas.length === 1 ? '1 fila ignorada' : `${ignoradas.length} filas ignoradas`}: totales, saldos o títulos que no son movimientos
+          </summary>
+          <ul>
+            {ignoradas.map((x) => (
+              <li key={x.n}>
+                <span className="mono muted">Fila {x.n}</span> {x.motivo}
+                {x.texto && <span className="muted"> · {x.texto}</span>}
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
 
       <div className="im-filtros">
@@ -378,7 +834,7 @@ function Revision({ archivo, filas, guardando, onConfirmar, onCancelar }) {
                   <td className="num mono muted">{f.n}</td>
                   <td className="mono im-fecha">{f.datos ? fechaCorta(f.datos.fecha) : f.valores.fecha || '—'}</td>
                   <td>
-                    <strong>{f.valores.descripcion || <span className="muted">Sin descripción</span>}</strong>
+                    <strong>{f.datos?.descripcion || f.valores.descripcion || <span className="muted">Sin descripción</span>}</strong>
                     {f.valores.proveedor && <small className="sub">{f.valores.proveedor}</small>}
                   </td>
                   <td>
@@ -390,6 +846,7 @@ function Revision({ archivo, filas, guardando, onConfirmar, onCancelar }) {
                     ) : (
                       <span className="muted">{f.valores.categoria || '—'}</span>
                     )}
+                    {c && f.valores.categoria && normalizarSimple(f.valores.categoria) !== normalizarSimple(c.nombre) && <small className="sub">en tu planilla: {f.valores.categoria}</small>}
                   </td>
                   <td className={`num mono ${f.datos ? (f.datos.tipo === 'ingreso' ? 'amt-in' : 'amt-out') : 'muted'}`}>
                     {f.datos ? clpSigno(f.datos.monto, f.datos.tipo) : f.valores.monto || '—'}
@@ -415,9 +872,9 @@ function Revision({ archivo, filas, guardando, onConfirmar, onCancelar }) {
                 {f.datos ? clpSigno(f.datos.monto, f.datos.tipo) : f.valores.monto || '—'}
               </span>
             </div>
-            <strong>{f.valores.descripcion || 'Sin descripción'}</strong>
+            <strong>{f.datos?.descripcion || f.valores.descripcion || 'Sin descripción'}</strong>
             <small className="muted">
-              {[f.valores.fecha, f.valores.categoria, f.valores.proveedor].filter(Boolean).join(' · ')}
+              {[f.valores.fecha, f.datos ? categoria(f.datos.categoria_id).nombre : f.valores.categoria, f.valores.proveedor].filter(Boolean).join(' · ')}
             </small>
             <Estado fila={f} />
           </li>
@@ -448,6 +905,13 @@ function Revision({ archivo, filas, guardando, onConfirmar, onCancelar }) {
   )
 }
 
+const normalizarSimple = (s) =>
+  String(s ?? '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .trim()
+
 function Estado({ fila }) {
   if (fila.errores.length)
     return (
@@ -468,19 +932,25 @@ function Estado({ fila }) {
   return (
     <span className="im-ok">
       <Icon name="check" />
-      Lista
+      <span>
+        Lista
+        {fila.nota && <small className="im-nota">{fila.nota}</small>}
+      </span>
     </span>
   )
 }
 
-// HU10: la plantilla con sus columnas fijas
+// HU10: la plantilla con sus columnas fijas (camino recomendado)
 function Plantilla() {
   const { categorias } = useCategorias()
   const visibles = categorias.filter((c) => !c.oculta)
   return (
     <div className="card im-plantilla">
-      <h2>Usa la plantilla</h2>
-      <p className="muted">Seis columnas, en este orden. La primera fila es el encabezado.</p>
+      <div className="im-plantilla-head">
+        <h2>Usa la plantilla</h2>
+        <span className="chip">Recomendada</span>
+      </div>
+      <p className="muted">Se importa directo, sin configurar nada. Seis columnas; la primera fila es el encabezado.</p>
       <ul className="im-plantilla-cols">
         {COLUMNAS.map((c) => (
           <li key={c.clave}>
@@ -517,7 +987,62 @@ function Plantilla() {
           Plantilla CSV
         </button>
       </div>
+      <p className="hint muted">¿Ya llevas tu propia planilla? Súbela igual: la reconocemos.</p>
     </div>
+  )
+}
+
+// Formatos propios guardados por la empresa
+function Formatos({ lista, onOlvidar }) {
+  const [confirmando, setConfirmando] = useState(null)
+  return (
+    <section className="im-formatos-guardados">
+      <div className="card-head">
+        <h2>Tus formatos guardados</h2>
+        <span className="muted">Una planilla con estas columnas se importa sin elegirlas de nuevo</span>
+      </div>
+      <ul>
+        {lista.map((f) => (
+          <li key={f.id} className="card">
+            <span className="im-formato-ic">
+              <Icon name="sheet" />
+            </span>
+            <span className="im-formato-txt">
+              <strong>{f.nombre}</strong>
+              <small className="muted">
+                {f.huella.split('|').slice(0, 5).join(' · ')}
+                {f.huella.split('|').length > 5 ? ' …' : ''}
+              </small>
+              <small className="muted">
+                Usado {f.usos} {f.usos === 1 ? 'vez' : 'veces'} · creado por {f.creado_por}
+              </small>
+            </span>
+            {confirmando === f.id ? (
+              <span className="im-confirmar">
+                <button type="button" className="btn btn-text btn-sm" onClick={() => setConfirmando(null)}>
+                  No
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger btn-sm"
+                  onClick={() => {
+                    setConfirmando(null)
+                    onOlvidar(f)
+                  }}
+                >
+                  Sí, olvidar
+                </button>
+              </span>
+            ) : (
+              <button type="button" className="btn btn-text btn-sm" onClick={() => setConfirmando(f.id)}>
+                <Icon name="trash" />
+                Olvidar
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
@@ -561,6 +1086,7 @@ function Historial({ lista, onAnular, resaltar }) {
                       <Icon name="sheet" />
                       <strong>{imp.nombre_archivo}</strong>
                     </span>
+                    {imp.formato && <small className="sub muted">{imp.formato}</small>}
                   </td>
                   <td>{imp.usuario_nombre}</td>
                   <td className="num mono">
@@ -635,4 +1161,3 @@ function Cabecera({ eyebrow, titulo, bajada }) {
     </div>
   )
 }
-

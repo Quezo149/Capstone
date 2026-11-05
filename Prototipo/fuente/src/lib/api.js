@@ -2,7 +2,7 @@
 // de llamar a func-kontadoria. Imita las reglas del backend que se notan en pantalla:
 // permisos por rol (app/core/permisos.py), RLS del empleado e idempotencia.
 import { leerDb, guardarDb, nuevoId, PERSONAS, rolActual } from './proto'
-import { revisarEstructura, validar } from './importacion'
+import { aliasNuevos, analizar, faltantesMapeo, huella, interpretar } from './importacion'
 
 export class ApiError extends Error {
   constructor(status, codigo, mensaje) {
@@ -153,36 +153,71 @@ export async function api(ruta, { method = 'GET', body } = {}) {
     return fin(m)
   }
 
-  // ---------- Importaciones (HU10–HU13) ----------
-  // validar no escribe nada (vista previa, HU12). Confirmar vuelve a validar el archivo completo
-  // en el "servidor" y guarda todo junto: la importación y sus movimientos válidos.
-  const revisar = (filas) => {
-    const estructura = revisarEstructura(filas)
-    if (!estructura.ok) return { estructura, filas: [] }
-    const r = validar(filas, estructura, { categorias: db.categorias, existentes: db.movimientos })
-    return { estructura, filas: r.filas }
-  }
+  // ---------- Importaciones (HU10–HU13 + planillas propias) ----------
+  // analizar y validar no escriben nada (vista previa, HU12). Confirmar vuelve a validar el
+  // archivo completo en el "servidor" y guarda todo junto: la importación, sus movimientos
+  // válidos, el formato (si se pidió recordarlo) y las categorías que el usuario asoció.
   const importaciones = () => (db.importaciones ??= [])
+  const perfiles = () => (db.perfilesImportacion ??= [])
+  const alias = () => (db.empresa.aliasCategorias ??= {})
+  const categoriasConOcultas = () => db.categorias.map((c) => ({ ...c, oculta: ocultas().includes(c.id) }))
+  const revisar = (filas, mapeo) => {
+    if (!mapeo || faltantesMapeo(mapeo).length) throw new ApiError(422, 'mapeo_incompleto', 'Faltan columnas por elegir.')
+    return interpretar(filas, mapeo, { categorias: categoriasConOcultas(), existentes: db.movimientos })
+  }
+  if (r('/importaciones/analizar', 'POST')) {
+    exigir(rol, 'importaciones.realizar')
+    await espera(300)
+    const a = analizar(body.hojas, { categorias: categoriasConOcultas(), alias: alias(), perfiles: perfiles(), existentes: db.movimientos })
+    return copia({ ...a, alias: alias() })
+  }
   if (r('/importaciones/validar', 'POST')) {
     exigir(rol, 'importaciones.realizar')
-    await espera(700)
-    return copia(revisar(body.filas))
+    await espera(500)
+    return copia(revisar(body.filas, body.mapeo))
+  }
+  if (r('/importaciones/perfiles')) {
+    exigir(rol, 'importaciones.realizar')
+    return copia(perfiles())
+  }
+  if ((p = r('/importaciones/perfiles/:id', 'DELETE'))) {
+    exigir(rol, 'importaciones.realizar')
+    db.perfilesImportacion = perfiles().filter((x) => x.id !== p.id)
+    return fin({ ok: true })
   }
   if (r('/importaciones', 'POST')) {
     exigir(rol, 'importaciones.realizar')
     const repetida = body.client_request_id && importaciones().find((x) => x.client_request_id === body.client_request_id)
     if (repetida) return copia(repetida)
-    const { estructura, filas } = revisar(body.filas)
-    if (!estructura.ok) throw new ApiError(422, 'estructura_invalida', 'El archivo no usa la estructura de la plantilla.')
+    const { filas } = revisar(body.filas, body.mapeo)
     if (filas.length > 2000) throw new ApiError(413, 'demasiadas_filas', 'La planilla tiene más de 2.000 filas.')
     const validas = filas.filter((f) => f.datos)
     if (!validas.length) throw new ApiError(422, 'sin_filas_validas', 'No hay filas válidas para importar.')
     await espera(600)
+    // Formato propio: se recuerda (o se actualiza) para reconocerlo la próxima vez
+    let formato = null
+    if (!body.mapeo.plantilla) {
+      Object.assign(alias(), aliasNuevos(body.mapeo, db.categorias))
+      const h = huella(body.filas[body.mapeo.encabezado])
+      const config = { ...body.mapeo }
+      delete config.catValores // las categorías se recuerdan aparte (alias), para toda la empresa
+      delete config.encabezado // la fila del encabezado se busca por la huella
+      // Con id: el formato que se reconoció (o que se está corrigiendo). Sin id: uno nuevo, si se pidió.
+      let perfil = body.perfil?.id ? perfiles().find((x) => x.id === body.perfil.id) : body.perfil?.guardar ? perfiles().find((x) => x.huella === h) : null
+      if (perfil)
+        Object.assign(perfil, { huella: h, mapeo: config, usos: perfil.usos + 1, usado_en: new Date().toISOString(), ...(body.perfil.guardar && body.perfil.nombre ? { nombre: body.perfil.nombre } : {}) })
+      else if (body.perfil?.guardar) {
+        perfil = { id: nuevoId(), nombre: body.perfil.nombre || 'Mi planilla', huella: h, mapeo: config, usos: 1, creado_por: yo.nombre, creado_en: new Date().toISOString(), usado_en: new Date().toISOString() }
+        perfiles().unshift(perfil)
+      }
+      formato = perfil?.nombre ?? 'Planilla propia'
+    }
     const imp = {
       id: nuevoId(),
       client_request_id: body.client_request_id ?? null,
       nombre_archivo: body.nombre,
       tipo_archivo: body.tipo,
+      formato: formato ?? 'Plantilla KontadorIA',
       usuario_id: yo.id,
       usuario_nombre: yo.nombre,
       total_filas: filas.length,
