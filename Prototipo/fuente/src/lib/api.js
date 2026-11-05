@@ -2,6 +2,7 @@
 // de llamar a func-kontadoria. Imita las reglas del backend que se notan en pantalla:
 // permisos por rol (app/core/permisos.py), RLS del empleado e idempotencia.
 import { leerDb, guardarDb, nuevoId, PERSONAS, rolActual } from './proto'
+import { aliasNuevos, analizar, faltantesMapeo, huella, interpretar } from './importacion'
 
 export class ApiError extends Error {
   constructor(status, codigo, mensaje) {
@@ -22,6 +23,11 @@ const PERMISOS = {
   'movimientos.filtrar_usuario': ['admin', 'contador'],
   'usuarios.ver': ['admin', 'contador'],
   'usuarios.gestionar': ['admin'],
+  // Importación masiva (HU10–HU13, Sprint 4): el contador importa aunque no registre a mano (D1)
+  'importaciones.realizar': ['admin', 'contador'],
+  'importaciones.ver': ['admin', 'contador'],
+  // Solo en el prototipo por ahora: si pasa a producción se decide con el equipo
+  'importaciones.anular': ['admin', 'contador'],
 }
 const permisosDe = (rol) => Object.keys(PERMISOS).filter((p) => PERMISOS[p].includes(rol)).sort()
 
@@ -145,6 +151,118 @@ export async function api(ruta, { method = 'GET', body } = {}) {
     if (!m) throw noEncontrado()
     m.eliminado = false
     return fin(m)
+  }
+
+  // ---------- Importaciones (HU10–HU13 + planillas propias) ----------
+  // analizar y validar no escriben nada (vista previa, HU12). Confirmar vuelve a validar el
+  // archivo completo en el "servidor" y guarda todo junto: la importación, sus movimientos
+  // válidos, el formato (si se pidió recordarlo) y las categorías que el usuario asoció.
+  const importaciones = () => (db.importaciones ??= [])
+  const perfiles = () => (db.perfilesImportacion ??= [])
+  const alias = () => (db.empresa.aliasCategorias ??= {})
+  const categoriasConOcultas = () => db.categorias.map((c) => ({ ...c, oculta: ocultas().includes(c.id) }))
+  const revisar = (filas, mapeo) => {
+    if (!mapeo || faltantesMapeo(mapeo).length) throw new ApiError(422, 'mapeo_incompleto', 'Faltan columnas por elegir.')
+    return interpretar(filas, mapeo, { categorias: categoriasConOcultas(), existentes: db.movimientos })
+  }
+  if (r('/importaciones/analizar', 'POST')) {
+    exigir(rol, 'importaciones.realizar')
+    await espera(300)
+    const a = analizar(body.hojas, { categorias: categoriasConOcultas(), alias: alias(), perfiles: perfiles(), existentes: db.movimientos })
+    return copia({ ...a, alias: alias() })
+  }
+  if (r('/importaciones/validar', 'POST')) {
+    exigir(rol, 'importaciones.realizar')
+    await espera(500)
+    return copia(revisar(body.filas, body.mapeo))
+  }
+  if (r('/importaciones/perfiles')) {
+    exigir(rol, 'importaciones.realizar')
+    return copia(perfiles())
+  }
+  if ((p = r('/importaciones/perfiles/:id', 'DELETE'))) {
+    exigir(rol, 'importaciones.realizar')
+    db.perfilesImportacion = perfiles().filter((x) => x.id !== p.id)
+    return fin({ ok: true })
+  }
+  if (r('/importaciones', 'POST')) {
+    exigir(rol, 'importaciones.realizar')
+    const repetida = body.client_request_id && importaciones().find((x) => x.client_request_id === body.client_request_id)
+    if (repetida) return copia(repetida)
+    const { filas } = revisar(body.filas, body.mapeo)
+    if (filas.length > 2000) throw new ApiError(413, 'demasiadas_filas', 'La planilla tiene más de 2.000 filas.')
+    const validas = filas.filter((f) => f.datos)
+    if (!validas.length) throw new ApiError(422, 'sin_filas_validas', 'No hay filas válidas para importar.')
+    await espera(600)
+    // Formato propio: se recuerda (o se actualiza) para reconocerlo la próxima vez
+    let formato = null
+    if (!body.mapeo.plantilla) {
+      Object.assign(alias(), aliasNuevos(body.mapeo, db.categorias))
+      const h = huella(body.filas[body.mapeo.encabezado])
+      const config = { ...body.mapeo }
+      delete config.catValores // las categorías se recuerdan aparte (alias), para toda la empresa
+      delete config.encabezado // la fila del encabezado se busca por la huella
+      // Con id: el formato que se reconoció (o que se está corrigiendo). Sin id: uno nuevo, si se pidió.
+      let perfil = body.perfil?.id ? perfiles().find((x) => x.id === body.perfil.id) : body.perfil?.guardar ? perfiles().find((x) => x.huella === h) : null
+      if (perfil)
+        Object.assign(perfil, { huella: h, mapeo: config, usos: perfil.usos + 1, usado_en: new Date().toISOString(), ...(body.perfil.guardar && body.perfil.nombre ? { nombre: body.perfil.nombre } : {}) })
+      else if (body.perfil?.guardar) {
+        perfil = { id: nuevoId(), nombre: body.perfil.nombre || 'Mi planilla', huella: h, mapeo: config, usos: 1, creado_por: yo.nombre, creado_en: new Date().toISOString(), usado_en: new Date().toISOString() }
+        perfiles().unshift(perfil)
+      }
+      formato = perfil?.nombre ?? 'Planilla propia'
+    }
+    const imp = {
+      id: nuevoId(),
+      client_request_id: body.client_request_id ?? null,
+      nombre_archivo: body.nombre,
+      tipo_archivo: body.tipo,
+      formato: formato ?? 'Plantilla KontadorIA',
+      usuario_id: yo.id,
+      usuario_nombre: yo.nombre,
+      total_filas: filas.length,
+      filas_importadas: validas.length,
+      filas_con_error: filas.length - validas.length,
+      estado: validas.length === filas.length ? 'completada' : 'completada_con_errores',
+      creado_en: new Date().toISOString(),
+      anulada_en: null,
+    }
+    importaciones().unshift(imp)
+    for (const f of validas)
+      db.movimientos.push({
+        ...f.datos,
+        id: nuevoId(),
+        client_request_id: null,
+        origen: 'importacion_masiva',
+        importacion_id: imp.id,
+        documento: null,
+        usuario_id: yo.id,
+        usuario_nombre: yo.nombre,
+        creado_en: imp.creado_en,
+        eliminado: false,
+      })
+    return fin(imp)
+  }
+  if (r('/importaciones')) {
+    exigir(rol, 'importaciones.ver')
+    return copia(importaciones())
+  }
+  if ((p = r('/importaciones/:id/anular', 'POST'))) {
+    exigir(rol, 'importaciones.anular')
+    const imp = importaciones().find((x) => x.id === p.id)
+    if (!imp) throw noEncontrado()
+    if (imp.anulada_en) throw new ApiError(409, 'ya_anulada', 'Esta importación ya está anulada.')
+    for (const m of db.movimientos) if (m.importacion_id === imp.id) m.eliminado = true
+    Object.assign(imp, { anulada_en: new Date().toISOString(), anulada_por: yo.nombre })
+    return fin(imp)
+  }
+  if ((p = r('/importaciones/:id/restaurar', 'POST'))) {
+    exigir(rol, 'importaciones.anular')
+    const imp = importaciones().find((x) => x.id === p.id)
+    if (!imp) throw noEncontrado()
+    for (const m of db.movimientos) if (m.importacion_id === imp.id) m.eliminado = false
+    Object.assign(imp, { anulada_en: null, anulada_por: null })
+    return fin(imp)
   }
 
   // ---------- Empresa (HU04) ----------

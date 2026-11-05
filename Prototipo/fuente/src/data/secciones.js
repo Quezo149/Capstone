@@ -4,6 +4,8 @@ export const SECCIONES = [
   { id: 'inicio', label: 'Inicio', icon: 'home', listo: true },
   { id: 'movimientos', label: 'Movimientos', corto: 'Movim.', icon: 'list', listo: true },
   { id: 'cargar', label: 'Cargar boleta', corto: 'Cargar', icon: 'camera', listo: true, permiso: 'movimientos.registrar' },
+  // PROTOTIPO Sprint 4: importación masiva (HU10–HU13), solo admin y contador
+  { id: 'importar', label: 'Importar planilla', corto: 'Importar', icon: 'sheet', listo: true, permiso: 'importaciones.realizar' },
   { id: 'revisar', label: 'Por revisar', icon: 'checkc' },
   { id: 'reportes', label: 'Reportes', icon: 'chart' },
   { id: 'categorias', label: 'Categorías', icon: 'tag', listo: true },

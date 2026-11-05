@@ -1,4 +1,4 @@
-# KontadorIA — Prototipo del Sprint 3
+# KontadorIA — Prototipo (Sprints 3 y 4)
 
 Copia de la app real (`/frontend`) **con datos falsos**, para mostrar cómo se verán las historias
 del Sprint 3 antes de construirlas. No llama al backend, no pide iniciar sesión con Microsoft y
@@ -9,6 +9,22 @@ nada sale del navegador: los datos se guardan en `localStorage`.
 | **HU08** Cargar boleta o factura | Sección **Cargar boleta**: arrastrar, elegir archivo o sacar foto (en el celular), indicador de lectura y, si falla, paso al formulario manual con el documento adjunto. |
 | **HU09** Validar lo extraído | Formulario prellenado con marcas *Leído por IA* / *Revisa este dato* / *Corregido*, categoría sugerida por historial del proveedor, vista "Lo que leyó la IA" sobre el documento, **Confirmar y guardar** o **Cancelar** sin guardar nada. |
 | **HU18** Dashboard | Selector de mes, gráfico de dona por categoría con sus colores, saldo del mes y últimos movimientos del mes elegido. El colaborador solo ve lo suyo. |
+
+### Sprint 4: importación masiva (sección **Importar planilla**, solo Dueño y Contador)
+
+| Historia | Qué muestra el prototipo |
+|---|---|
+| **HU10** Importar CSV/XLSX | Plantilla descargable (Excel con listas de tipo y categoría, o CSV), subir o arrastrar un `.csv`/`.xlsx` (hasta 2 MB y 2.000 filas). La **plantilla es el camino recomendado**: se reconoce sola y pasa directo a la revisión. |
+| **Planilla propia** (propuesta) | Si el archivo no es la plantilla, no se rechaza: se busca el encabezado aunque no esté en la fila 1 (títulos, logo), en la hoja que corresponda, y se reconocen las columnas por sinónimos (Glosa, Ítem, Valor, Cargos/Abonos…). El usuario confirma o corrige: qué es cada columna, cómo vienen los montos (monto + tipo, cargos y abonos, monto con signo o todo del mismo tipo), formato de fechas y números, y a qué categoría corresponde cada ítem de su planilla (con sugerencias). Sin columna de categoría se usa la del proveedor según el historial o una por defecto. Se ignoran filas de totales, saldos y títulos. El formato y las categorías asociadas **se recuerdan**: la próxima planilla con las mismas columnas va directo a la revisión (**Tus formatos guardados**, con opción de olvidarlos). |
+| **HU11** Validar filas | Cada fila queda *Lista* o con su motivo: fecha inválida o futura, monto no numérico o negativo (los decimales se redondean con una nota), tipo distinto de ingreso/gasto, categoría inexistente o de otro tipo, sin descripción. Las filas con error se descargan en un CSV con las mismas columnas del archivo más una columna `error` (protegido contra fórmulas de Excel). Aviso (no bloquea) si una fila parece repetida. |
+| **HU12** Revisar antes de confirmar | Resumen (filas, listas, con error, montos a sumar), filtro Todas / Con error / Listas, **Importar N movimientos** o **Cancelar** sin guardar nada. |
+| **HU13** Historial | Fecha y hora, archivo, quién importó, filas importadas / totales, resultado. **Anular** quita de una vez los movimientos de una importación (permiso `importaciones.anular`: está en el prototipo; si pasa a producción se decide con el equipo). |
+
+Los movimientos importados quedan con origen `importacion_masiva`, a nombre de quien importó, y
+se marcan con el ícono de planilla en Movimientos. Ejemplos listos: caja chica con errores, ventas
+con tarjeta (todo bien), la planilla propia de un local (título, sus ítems, ingresos y egresos
+separados, fila de total) y una cartola del banco (cargos, abonos y saldos). Con un archivo propio la
+lectura y la validación son **reales** (en el navegador; en la app real las hará el backend).
 
 Además: los movimientos que vienen de foto o PDF muestran su ícono en la lista y el documento
 adjunto al editarlos; el registro manual ofrece el atajo "¿Tienes la boleta?".
@@ -64,7 +80,7 @@ npm run build    # compila y copia el resultado a Prototipo/
 
 Archivos propios del prototipo: `src/lib/proto.js` (datos falsos), `src/lib/api.js` (API simulada),
 `src/auth/msal.js` (sesión simulada), `src/lib/documentos.js` (documentos y lectura simulada),
-`src/views/Cargar.jsx`, `src/components/VisorDocumento.jsx` y `src/components/ProtoBar.jsx`.
+`src/views/Cargar.jsx`, `src/views/Importar.jsx`, `src/lib/importacion.js`, `src/components/VisorDocumento.jsx` y `src/components/ProtoBar.jsx`.
 Los cambios a `MovimientoForm.jsx`, `Inicio.jsx`, `Movimientos.jsx` y `App.jsx` están marcados con
 `PROTOTIPO`.
 
