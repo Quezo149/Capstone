@@ -210,7 +210,6 @@ export default function Equipo() {
     <section className="eq-page rise">
       <div className="page-head">
         <div>
-          <span className="eyebrow">Configuración</span>
           <h1>Equipo</h1>
         </div>
         {admin && (

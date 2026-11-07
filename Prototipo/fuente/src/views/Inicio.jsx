@@ -163,11 +163,11 @@ export default function Inicio({ onNuevo, onEditar }) {
         </div>
         <div className="mes-nav" role="group" aria-label="Mes que se muestra">
           <button type="button" className="icon-btn" onClick={() => setMes(mesAnt)} disabled={mes <= primerMes} aria-label="Mes anterior">
-            <span aria-hidden="true">‹</span>
+            <span className="mes-flecha izq" aria-hidden="true" />
           </button>
           <span className="mes-nav-l cap">{mesLargo(mes)}</span>
           <button type="button" className="icon-btn" onClick={() => setMes(moverMes(mes, 1))} disabled={esActual} aria-label="Mes siguiente">
-            <span aria-hidden="true">›</span>
+            <span className="mes-flecha der" aria-hidden="true" />
           </button>
           {!esActual && (
             <button type="button" className="btn btn-text btn-sm" onClick={() => setMes(mesHoy)}>
@@ -194,7 +194,8 @@ export default function Inicio({ onNuevo, onEditar }) {
       <section className="grid-2" key={`g-${mes}`}>
         <div className="card rise" style={{ '--d': '200ms' }}>
           <div className="card-head">
-            <h2>¿En qué {esActual ? 'gastaste' : 'se gastó'}?</h2>
+            {/* El colaborador solo ve lo suyo; dueño y contador ven el gasto de todo el equipo */}
+            <h2>¿En qué {empleado ? 'gastaste' : 'se gastó'}?</h2>
             <span className="muted cap">{nombreMes(mes)}</span>
           </div>
           {porCategoria.length ? (
@@ -278,8 +279,7 @@ export default function Inicio({ onNuevo, onEditar }) {
         <section className="deep-card quick rise" style={{ '--d': '320ms' }}>
           <div>
             <span className="eyebrow">Nuevo · Lectura con IA</span>
-            <h2>Saca una foto a la boleta y nosotros la leemos.</h2>
-            <p>La IA completa proveedor, fecha y total, y te sugiere la categoría. Tú solo revisas y confirmas.</p>
+            <h2>Saca una foto a la boleta y la IA completa los datos.</h2>
           </div>
           <a className="btn quick-btn" href="#/cargar">
             <Icon name="camera" />

@@ -15,15 +15,15 @@ nada sale del navegador: los datos se guardan en `localStorage`.
 | Historia | Qué muestra el prototipo |
 |---|---|
 | **HU10** Importar CSV/XLSX | Plantilla descargable (Excel con listas de tipo y categoría, o CSV), subir o arrastrar un `.csv`/`.xlsx` (hasta 2 MB y 2.000 filas). La **plantilla es el camino recomendado**: se reconoce sola y pasa directo a la revisión. |
-| **Planilla propia** (propuesta) | Si el archivo no es la plantilla, no se rechaza: se busca el encabezado aunque no esté en la fila 1 (títulos, logo), en la hoja que corresponda, y se reconocen las columnas por sinónimos (Glosa, Ítem, Valor, Cargos/Abonos…). El usuario confirma o corrige: qué es cada columna, cómo vienen los montos (monto + tipo, cargos y abonos, monto con signo o todo del mismo tipo), formato de fechas y números, y a qué categoría corresponde cada ítem de su planilla (con sugerencias). Sin columna de categoría se usa la del proveedor según el historial o una por defecto. Se ignoran filas de totales, saldos y títulos. El formato y las categorías asociadas **se recuerdan**: la próxima planilla con las mismas columnas va directo a la revisión (**Tus formatos guardados**, con opción de olvidarlos). |
+| **Planilla propia** (propuesta) | Tres pasos visibles: **Subir → Revisar → Listo**. La planilla se sube tal cual: se reconoce la hoja (las ocultas se ignoran), el encabezado aunque tenga título arriba y las columnas por sinónimos o, si no, por sus datos. El mapeo solo aparece si falta la fecha o el monto (o se adivinaron); si no, la revisión muestra **"Así entendimos tu planilla"** con 3 muestras por campo, "Revisa esto" en lo dudoso y **Cambiar columnas**. En la revisión: varias hojas con el mismo formato juntas, filas ocultas por filtro fuera (botón **Incluirlas**), celdas combinadas completadas, filas de totales (texto o `=SUMA`) omitidas, saldos que cuadran o no, categorías de la planilla asociadas ahí mismo (se recuerdan) y casillas para quitar filas. Re-subir el mismo archivo deja todo como "Ya importada" (huella por fila). Rechazos con instrucción por la firma del archivo: .xls, .ods, contraseña, PDF, imagen, página web, fórmulas sin resultado y libro diario Debe/Haber. El formato se recuerda (**Tus formatos guardados**). |
 | **HU11** Validar filas | Cada fila queda *Lista* o con su motivo: fecha inválida o futura, monto no numérico o negativo (los decimales se redondean con una nota), tipo distinto de ingreso/gasto, categoría inexistente o de otro tipo, sin descripción. Las filas con error se descargan en un CSV con las mismas columnas del archivo más una columna `error` (protegido contra fórmulas de Excel). Aviso (no bloquea) si una fila parece repetida. |
 | **HU12** Revisar antes de confirmar | Resumen (filas, listas, con error, montos a sumar), filtro Todas / Con error / Listas, **Importar N movimientos** o **Cancelar** sin guardar nada. |
 | **HU13** Historial | Fecha y hora, archivo, quién importó, filas importadas / totales, resultado. **Anular** quita de una vez los movimientos de una importación (permiso `importaciones.anular`: está en el prototipo; si pasa a producción se decide con el equipo). |
 
 Los movimientos importados quedan con origen `importacion_masiva`, a nombre de quien importó, y
-se marcan con el ícono de planilla en Movimientos. Ejemplos listos: caja chica con errores, ventas
-con tarjeta (todo bien), la planilla propia de un local (título, sus ítems, ingresos y egresos
-separados, fila de total) y una cartola del banco (cargos, abonos y saldos). Con un archivo propio la
+se marcan con el ícono de planilla en Movimientos. Hay 15 ejemplos en tres grupos (con la plantilla,
+planillas propias y casos especiales); los de .xls, contraseña y PDF son simulados (muestran el
+mismo mensaje que el archivo real). Archivos reales para probar las mejoras: `KontadorIA_Pruebas/planillas-mejoras/`. Con un archivo propio la
 lectura y la validación son **reales** (en el navegador; en la app real las hará el backend).
 
 Además: los movimientos que vienen de foto o PDF muestran su ícono en la lista y el documento
@@ -54,9 +54,15 @@ inventados.
 
 Barra amarilla abajo a la izquierda (sobre la barra inferior en el celular):
 
-- **Ver como**: Dueño, Contador o Colaborador. Cambia menús y permisos igual que en la app real
-  (el contador no carga boletas; el colaborador solo ve sus movimientos).
-- **↺**: vuelve a los datos de ejemplo.
+- **Ambiente**: *Demo* (empresa de ejemplo, con planillas y boletas de prueba) o *Producción* (como
+  la app real el primer día: se registra la empresa y se parte sin movimientos ni ejemplos). Cada
+  ambiente guarda sus datos por separado. También se elige abriendo la URL con `?produccion` o `?demo`.
+- **Ver como** (solo en Demo): Dueño, Contador o Colaborador. Cambia menús y permisos igual que en la
+  app real (el contador no carga boletas; el colaborador solo ve sus movimientos).
+- **Entrar como** (solo en Producción, cuando ya hay más de una persona): cambia entre el dueño y quienes
+  aceptaron una invitación. Para aceptar una, abre en el mismo navegador el link que da **Equipo →
+  Invitar** y pulsa «Unirme»: como no hay cuentas reales, se entra como la persona invitada.
+- **↺**: en Demo vuelve a los datos de ejemplo; en Producción borra todo y vuelve a registrar la empresa.
 
 ## Cómo abrirlo
 

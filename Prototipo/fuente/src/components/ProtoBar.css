@@ -45,15 +45,80 @@
   clip-path: inset(50%);
 }
 
+/* El botón para plegar solo existe en el celular */
+.proto-toggle {
+  display: none !important;
+}
+
+/* Celular: plegada es una etiqueta chica en el centro de la cabecera (Demo / Prod.); abierta,
+   la barra completa justo bajo la cabecera. Así no tapa el contenido ni el menú inferior. */
 @media (max-width: 860px) {
   .proto-bar {
-    max-width: none;
+    top: calc(19px + env(safe-area-inset-top, 0px));
+    bottom: auto;
     left: 50%;
-    bottom: calc(76px + env(safe-area-inset-bottom, 0px));
     transform: translateX(-50%);
-    white-space: nowrap;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+    border: 0;
   }
 
+  .proto-bar.prod:not(.abierta) {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .proto-bar > :not(.proto-toggle) {
+    display: none;
+  }
+
+  .proto-bar .proto-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 4px;
+    width: auto;
+    height: 26px;
+    padding: 0 10px;
+    background: var(--highlight);
+    color: var(--hl-ink);
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+  }
+
+  .proto-bar.prod .proto-toggle {
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--line);
+  }
+
+  .proto-bar .proto-toggle svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .proto-bar.abierta {
+    top: calc(70px + env(safe-area-inset-top, 0px));
+    left: 8px;
+    right: 8px;
+    transform: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 8px;
+    background: var(--highlight);
+    box-shadow: 0 8px 24px rgba(11, 38, 32, 0.25);
+    border-radius: var(--r-m);
+  }
+
+  .proto-bar.prod.abierta {
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+
+  .proto-bar.abierta > :not(.proto-titulo) {
+    display: flex;
+  }
 }
 
 .proto-bar button {
@@ -67,4 +132,17 @@
 .proto-bar button svg {
   width: 15px;
   height: 15px;
+}
+
+/* Producción: más discreta, para que la app se vea como el producto */
+.proto-bar.prod {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 14px rgba(11, 38, 32, 0.12);
+}
+
+.proto-bar.prod select,
+.proto-bar.prod button {
+  background: rgba(127, 127, 127, 0.12);
 }

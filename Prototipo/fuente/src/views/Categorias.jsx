@@ -161,7 +161,7 @@ function Fila({ c, admin, editando, usos, ultima, onEditar, onEliminar, onOculta
       </span>
       {c.predefinida ? (
         <span className="cat-acts">
-          <span className="chip line">Predefinida</span>
+          <span className="chip line solo-pc">Predefinida</span>
           {admin && (
             <button type="button" className="btn btn-text btn-sm" onClick={onOcultar} disabled={!c.oculta && ultima} title={c.oculta ? undefined : porQue}>
               {c.oculta ? 'Mostrar' : 'Ocultar'}
@@ -256,7 +256,6 @@ export default function Categorias() {
     <section className="cat-page rise">
       <div className="page-head">
         <div>
-          <span className="eyebrow">Configuración</span>
           <h1>Categorías</h1>
         </div>
         {admin && (

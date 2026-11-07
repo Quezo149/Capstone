@@ -84,7 +84,7 @@
 /* Mi empresa */
 .empresa-page {
   display: grid;
-  gap: 20px;
+  gap: var(--gap);
   max-width: 640px;
 }
 
@@ -118,12 +118,39 @@
 }
 
 /* Mi empresa → Categorías */
+/* Tarjetas que llevan a Categorías y Equipo: la flecha y el cambio al pasar/tocar dicen que se
+   pueden abrir (Mi empresa es la puerta a los ajustes del negocio) */
 .empresa-link {
   display: flex;
   align-items: center;
   gap: 14px;
   color: inherit;
   text-decoration: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.empresa-link::after {
+  content: '';
+  flex: none;
+  width: 9px;
+  height: 9px;
+  margin: 0 4px 0 auto;
+  border-top: 2px solid var(--muted);
+  border-right: 2px solid var(--muted);
+  transform: rotate(45deg);
+  transition: transform 0.15s;
+}
+
+.empresa-link:hover,
+.empresa-link:active {
+  border-color: color-mix(in srgb, var(--brand) 40%, var(--line));
+  background: color-mix(in srgb, var(--brand-tint) 45%, var(--surface));
+}
+
+.empresa-link:hover::after {
+  transform: translateX(2px) rotate(45deg);
 }
 
 .empresa-link svg {
