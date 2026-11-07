@@ -8,7 +8,6 @@ import { clp } from './lib/format'
 import { useMovimientos } from './state/Movimientos'
 import { useSesion } from './state/Sesion'
 import { useToast } from './state/Toasts'
-import Cargar from './views/Cargar'
 import Categorias from './views/Categorias'
 import DatosLocales from './views/DatosLocales'
 import Equipo from './views/Equipo'
@@ -17,6 +16,7 @@ import Inicio from './views/Inicio'
 import MiEmpresa from './views/MiEmpresa'
 import Movimientos from './views/Movimientos'
 import Pronto from './views/Pronto'
+import Subir from './views/Subir'
 
 // Herramientas de prueba (cargar ejemplo / borrar todo): ocultas para que la app se vea
 // como producto. Se muestran solo abriendo la URL con ?debug  →  http://localhost:5173/?debug
@@ -85,7 +85,8 @@ export default function App() {
   if (ruta === 'empresa') vista = <MiEmpresa />
   else if (ruta === 'categorias') vista = <Categorias />
   else if (ruta === 'equipo' && puede('usuarios.ver')) vista = <Equipo />
-  else if (ruta === 'cargar' && registra) vista = <Cargar proveedores={proveedores} />
+  // En el celular, Cargar también sube planillas (selector arriba, ver views/Subir.jsx)
+  else if (ruta === 'cargar' && registra) vista = <Subir proveedores={proveedores} importa={puede('importaciones.realizar')} />
   // PROTOTIPO Sprint 4: importación masiva (HU10–HU13)
   else if (ruta === 'importar' && puede('importaciones.realizar')) vista = <Importar />
   else if (ruta === 'importar')

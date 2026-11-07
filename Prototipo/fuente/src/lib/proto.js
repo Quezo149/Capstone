@@ -2,8 +2,30 @@
 // Reemplaza a func-kontadoria + Azure SQL. Ningún dato sale del navegador.
 import { hoyISO, moverMes } from './format'
 
-const KEY = 'kontadoria-proto-db-v1'
 const ROL_KEY = 'kontadoria-proto-rol'
+const MODO_KEY = 'kontadoria-proto-modo'
+
+// PROTOTIPO: dos "ambientes" con datos separados.
+//   demo        → empresa de ejemplo con movimientos, planillas y boletas de prueba
+//   produccion  → como la app real el primer día: registrar la empresa y partir de cero, sin ejemplos
+// Se cambia desde la barra del prototipo o abriendo la URL con ?produccion / ?demo.
+function leerModo() {
+  try {
+    const url = new URL(window.location.href)
+    for (const m of ['produccion', 'demo']) {
+      if (!url.searchParams.has(m)) continue
+      localStorage.setItem(MODO_KEY, m)
+      url.searchParams.delete(m)
+      window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+    }
+    return localStorage.getItem(MODO_KEY) === 'produccion' ? 'produccion' : 'demo'
+  } catch {
+    return 'demo'
+  }
+}
+export const MODO = leerModo()
+export const esProduccion = MODO === 'produccion'
+const KEY = esProduccion ? 'kontadoria-proto-db-prod-v1' : 'kontadoria-proto-db-v1'
 
 // Personas de ejemplo (inventadas): una por rol, para el selector "Ver como"
 export const PERSONAS = {
@@ -60,7 +82,11 @@ function documentoDe(origen, item, { proveedor, fecha, monto }) {
   return null
 }
 
+// Producción: sin empresa (la primera sesión pasa por "Registra tu empresa") y sin movimientos
+const vacia = () => ({ empresa: null, usuarios: [], categorias: PREDEFINIDAS, movimientos: [], invitaciones: [] })
+
 function semilla() {
+  if (esProduccion) return vacia()
   const hoy = hoyISO()
   const mesActual = hoy.slice(0, 7)
   const movimientos = []
@@ -118,9 +144,11 @@ export function guardarDb() {
   } catch {
     /* sin almacenamiento: los cambios viven hasta recargar */
   }
+  window.dispatchEvent(new Event('proto-db')) // la barra del prototipo se actualiza (equipo, sesión)
 }
 
 export function rolActual() {
+  if (esProduccion) return 'admin' // quien registra la empresa queda como dueño
   try {
     const r = localStorage.getItem(ROL_KEY)
     if (r in PERSONAS) return r
@@ -130,12 +158,53 @@ export function rolActual() {
   return 'admin'
 }
 
+// Persona que aceptó una invitación en este navegador (guardada en la base de cada ambiente).
+// null = se usa la persona de ejemplo del rol elegido (demo) o el dueño (producción).
+export function usuarioSesion(db) {
+  return db.usuarios?.find((u) => u.id === db.sesionUsuarioId) ?? null
+}
+
+// Cambiar de persona entre los miembros del equipo (barra del prototipo)
+export function entrarComo(id) {
+  const d = leerDb()
+  d.sesionUsuarioId = id
+  guardarDb()
+  window.location.hash = '#/inicio'
+  window.location.reload()
+}
+
 export function verComo(rol) {
+  if (db) {
+    db.sesionUsuarioId = null // vuelve a las personas de ejemplo
+    guardarDb()
+  }
   try {
     localStorage.setItem(ROL_KEY, rol)
   } catch {
     /* sin almacenamiento */
   }
+  window.location.reload()
+}
+
+// Lavado sin recargar: borra la base falsa, el rol, la sesión y la invitación pendiente (el tema
+// elegido se mantiene). La próxima lectura vuelve a armar la empresa de ejemplo.
+export function borrarDatos() {
+  try {
+    for (const k of [KEY, ROL_KEY, 'kontadoria-proto-sesion', 'kontadoria-invitacion']) localStorage.removeItem(k)
+  } catch {
+    /* sin almacenamiento */
+  }
+  db = null
+}
+
+export function cambiarModo(modo) {
+  try {
+    localStorage.setItem(MODO_KEY, modo)
+    localStorage.removeItem('kontadoria-proto-sesion') // cada ambiente parte con su propia sesión
+  } catch {
+    /* sin almacenamiento */
+  }
+  window.location.hash = '#/inicio'
   window.location.reload()
 }
 

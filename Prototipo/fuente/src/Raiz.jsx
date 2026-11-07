@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import App from './App.jsx'
-import { invitacionPendiente } from './lib/invitacion'
+import { capturarInvitacion, invitacionPendiente } from './lib/invitacion'
 import { CategoriasProvider } from './state/Categorias'
 import { MovimientosProvider } from './state/Movimientos'
 import { useSesion } from './state/Sesion'
@@ -13,6 +13,15 @@ export default function Raiz() {
   const { estado, perfil } = useSesion()
   // Link de invitación abierto (HU02): tiene prioridad hasta aceptarlo o descartarlo
   const [invitacion, setInvitacion] = useState(invitacionPendiente)
+  // Link pegado en una pestaña ya abierta: solo cambia el hash y la página no se recarga
+  useEffect(() => {
+    const onHash = () => {
+      capturarInvitacion()
+      setInvitacion(invitacionPendiente())
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [])
   if (estado === 'cargando') return null
   if (invitacion && ['anonimo', 'sin_empresa', 'listo', 'desactivado'].includes(estado)) {
     return <Invitacion token={invitacion} onTerminar={() => setInvitacion(null)} />

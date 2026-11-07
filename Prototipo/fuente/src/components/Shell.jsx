@@ -4,14 +4,8 @@ import useTheme from '../hooks/useTheme'
 import { useSesion } from '../state/Sesion'
 import Icon from './Icon'
 import Logo from './Logo'
+import MenuEmpresa from './MenuEmpresa'
 import './Shell.css'
-
-const iniciales = (n) =>
-  n
-    .split(' ')
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join('')
 
 function NavLink({ s, actual, corto }) {
   const contenido = (
@@ -79,26 +73,20 @@ export default function Shell({ ruta, onNuevo, children, pie }) {
           <div className="top-actions">
             <button
               type="button"
-              className="icon-btn theme-btn"
+              className="icon-btn theme-btn solo-pc"
               onClick={toggle}
               aria-label={dark ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
               title={dark ? 'Tema claro' : 'Tema oscuro'}
             >
               <Icon name={dark ? 'sun' : 'moon'} key={dark ? 'sun' : 'moon'} />
             </button>
-            {/* Las iniciales son de la empresa: la app no muestra nombres de personas */}
-            <a
-              href="#/empresa"
-              className="avatar"
-              aria-current={ruta === 'empresa' ? 'page' : undefined}
-              aria-label={`Mi empresa: ${perfil.empresa_nombre}`}
-              title={`Mi empresa · ${perfil.empresa_nombre}`}
-            >
-              {iniciales(perfil.empresa_nombre)}
-            </a>
-            <button type="button" className="icon-btn" onClick={salir} aria-label="Cerrar sesión" title="Cerrar sesión">
-              <Icon name="logout" />
-            </button>
+            <MenuEmpresa
+              perfil={perfil}
+              ruta={ruta}
+              dark={dark}
+              onTema={toggle}
+              onSalir={salir}
+            />
           </div>
         </header>
         <main className="main" key={ruta}>
@@ -106,7 +94,8 @@ export default function Shell({ ruta, onNuevo, children, pie }) {
         </main>
       </div>
 
-      <nav className="bottom-nav" aria-label="Navegación principal">
+      {/* Sin el botón "+" (contador) quedan 4 secciones parejas, sin el hueco del centro */}
+      <nav className={`bottom-nav${onNuevo ? '' : ' sin-fab'}`} aria-label="Navegación principal">
         {movil.slice(0, 2).map((s) => (
           <NavLink key={s.id} s={s} actual={ruta} corto />
         ))}
@@ -114,9 +103,7 @@ export default function Shell({ ruta, onNuevo, children, pie }) {
           <button type="button" className="fab" onClick={onNuevo} aria-label="Nuevo movimiento">
             <Icon name="plus" />
           </button>
-        ) : (
-          <span aria-hidden="true" />
-        )}
+        ) : null}
         {movil.slice(2).map((s) => (
           <NavLink key={s.id} s={s} actual={ruta} corto />
         ))}

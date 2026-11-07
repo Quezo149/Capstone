@@ -35,7 +35,6 @@ export default function MiEmpresa() {
     <section className="empresa-page rise">
       <div className="page-head">
         <div>
-          <span className="eyebrow">Configuración</span>
           <h1>Mi empresa</h1>
         </div>
         <span className="chip line">Tu rol: {NOMBRE_ROL[perfil.rol]}</span>
@@ -79,7 +78,7 @@ export default function MiEmpresa() {
         )}
       </div>
 
-      {/* En el celular no hay barra lateral: este es el camino a Categorías y Equipo */}
+      {/* Mi empresa es la puerta a los ajustes del negocio (en el celular, el único camino) */}
       <a className="card empresa-link" href="#/categorias">
         <Icon name="tag" />
         <span>

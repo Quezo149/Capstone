@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import MovimientoForm from '../components/MovimientoForm'
 import { Documento } from '../components/VisorDocumento'
 import { EJEMPLOS, extraer, formatearRut, urlEjemplo } from '../lib/documentos'
+import { esProduccion } from '../lib/proto'
 import { clp, fechaLarga } from '../lib/format'
 import { useMovimientos } from '../state/Movimientos'
 import { useToast } from '../state/Toasts'
@@ -17,10 +18,12 @@ const PASOS = [
 ]
 const MAX_MB = 4
 
-export default function Cargar({ proveedores }) {
+export default function Cargar({ proveedores, onEtapa }) {
   const { crear } = useMovimientos()
   const { aviso } = useToast()
   const [etapa, setEtapa] = useState('elegir')
+  // Para Subir (celular): el selector boleta/planilla se esconde mientras hay algo en curso
+  useEffect(() => onEtapa?.(etapa), [etapa, onEtapa])
   const [paso, setPaso] = useState(null)
   const [vista, setVista] = useState(null) // documento que se muestra mientras se lee
   const [res, setRes] = useState(null)
@@ -63,7 +66,7 @@ export default function Cargar({ proveedores }) {
   if (etapa === 'leyendo') {
     return (
       <>
-        <Cabecera eyebrow="Cargar boleta" titulo="Leyendo tu documento…" />
+        <Cabecera titulo="Leyendo tu documento…" />
         <div className="cg-grid">
           <div className="card cg-doc cg-escaneando">
             <Documento documento={vista} altura="62vh" />
@@ -84,7 +87,7 @@ export default function Cargar({ proveedores }) {
               })}
             </ol>
             <p className="muted">
-              La lectura la hace Azure AI Document Intelligence. Suele tardar unos segundos; nada se guarda hasta que tú confirmes.
+              Suele tardar unos segundos.
             </p>
           </div>
         </div>
@@ -95,7 +98,7 @@ export default function Cargar({ proveedores }) {
   if (etapa === 'fallo') {
     return (
       <>
-        <Cabecera eyebrow="Cargar boleta" titulo="No pudimos leer este documento" />
+        <Cabecera titulo="No pudimos leer este documento" />
         <div className="cg-grid">
           <div className="card cg-doc">
             <Documento documento={res.documento} altura="56vh" />
@@ -137,12 +140,11 @@ export default function Cargar({ proveedores }) {
     return (
       <>
         <Cabecera
-          eyebrow={res.manual ? 'Registro manual' : 'Revisión'}
           titulo={res.manual ? 'Completa los datos a mano' : 'Revisa lo que leyó la IA'}
           bajada={
             res.manual
-              ? 'El documento queda guardado junto al movimiento.'
-              : 'Corrige lo que haga falta. No se guarda nada hasta que confirmes.'
+              ? 'El documento queda junto al movimiento.'
+              : 'Corrige lo necesario antes de guardar.'
           }
         />
         {res.simulado && (
@@ -178,8 +180,8 @@ export default function Cargar({ proveedores }) {
 
   return (
     <>
-      <Cabecera eyebrow="Cargar boleta" titulo="Saca una foto y nosotros la leemos" />
-      <div className="cg-grid">
+      <Cabecera titulo="Cargar boleta" bajada="Sube la foto o el PDF: la IA lee los datos y tú los confirmas." />
+      <div className="cg-grid cg-una-col">
         <div
           className={`card cg-drop${arrastrando ? ' sobre' : ''}`}
           onDragOver={(e) => {
@@ -197,7 +199,7 @@ export default function Cargar({ proveedores }) {
             <Icon name="camera" />
           </span>
           <h2>Sube tu boleta o factura</h2>
-          <p className="muted">Arrástrala aquí, saca una foto o elige un archivo. JPG, PNG o PDF de hasta {MAX_MB} MB.</p>
+          <p className="muted">JPG, PNG o PDF de hasta {MAX_MB} MB.</p>
           <div className="cg-acts">
             <button type="button" className="btn btn-primary cg-solo-movil" onClick={() => camara.current.click()}>
               <Icon name="camera" />
@@ -219,26 +221,10 @@ export default function Cargar({ proveedores }) {
           <input ref={camara} type="file" accept="image/*" capture="environment" hidden onChange={(e) => elegirArchivo(e.target.files[0])} />
           <input ref={archivo} type="file" accept="image/*,application/pdf" hidden onChange={(e) => elegirArchivo(e.target.files[0])} />
         </div>
-
-        <div className="card cg-como">
-          <h2>Así funciona</h2>
-          <ol>
-            <li>
-              <strong>Subes la foto o el PDF</strong>
-              <span>Desde el celular puedes sacar la foto al tiro.</span>
-            </li>
-            <li>
-              <strong>La IA lee los datos</strong>
-              <span>Proveedor, fecha, total, si es boleta o factura, y te sugiere una categoría.</span>
-            </li>
-            <li>
-              <strong>Tú revisas y confirmas</strong>
-              <span>Nada se guarda sin tu visto bueno. El documento queda adjunto al movimiento.</span>
-            </li>
-          </ol>
-        </div>
       </div>
 
+      {/* PROTOTIPO: en el modo producción no hay boletas de ejemplo */}
+      {!esProduccion && (
       <section className="cg-ejemplos">
         <div className="card-head">
           <h2>¿No tienes una boleta a mano? Prueba con un ejemplo</h2>
@@ -258,6 +244,7 @@ export default function Cargar({ proveedores }) {
           ))}
         </ul>
       </section>
+      )}
     </>
   )
 }
@@ -292,11 +279,10 @@ function AvisoDuplicado({ previo, datos, onDescartar }) {
   )
 }
 
-function Cabecera({ eyebrow, titulo, bajada }) {
+function Cabecera({ titulo, bajada }) {
   return (
     <div className="page-head">
       <div>
-        <span className="eyebrow">{eyebrow}</span>
         <h1>{titulo}</h1>
         {bajada && <p className="muted">{bajada}</p>}
       </div>
