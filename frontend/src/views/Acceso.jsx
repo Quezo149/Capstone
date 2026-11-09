@@ -23,7 +23,7 @@ export default function Acceso() {
     return (
       <Marco titulo="Tu acceso está desactivado" eyebrow="Sesión">
         <p className="acceso-aviso">
-          El administrador de tu empresa desactivó tu acceso a KontadorIA. Si crees que es un error, habla con él.
+          El dueño de tu empresa desactivó tu acceso a KontadorIA. Si crees que es un error, conversa con esa persona.
         </p>
         <div className="acceso-acts">
           <button type="button" className="btn btn-ghost" onClick={salir}>

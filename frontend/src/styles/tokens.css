@@ -47,6 +47,21 @@
   --r-pill: 999px;
 
   --wrap: 1160px;
+
+  /* Espacios: una sola escala para toda la app */
+  --gap-xs: 4px;
+  --gap-s: 8px;
+  --gap-m: 12px;
+  --gap: 16px; /* entre tarjetas de un mismo grupo */
+  --gap-l: 24px; /* entre secciones de una página */
+  --pad-card: 20px;
+}
+
+@media (max-width: 860px) {
+  :root {
+    --gap-l: 20px;
+    --pad-card: 16px;
+  }
 }
 
 @media (prefers-color-scheme: dark) {

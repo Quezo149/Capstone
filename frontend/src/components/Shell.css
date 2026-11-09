@@ -202,12 +202,12 @@
 .main {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: var(--gap-l);
   width: 100%;
   max-width: 1180px;
   /* En pantallas anchas se centra en el espacio que deja la barra lateral */
   margin-inline: auto;
-  padding: 28px 32px 56px;
+  padding: 24px 32px 56px;
   /* Cambio de sección: el contenido entra suave */
   animation: panelIn 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
@@ -284,6 +284,10 @@
 
   .bottom-nav .nav-item[aria-current='page'] svg {
     transform: translateY(-2px) scale(1.1);
+  }
+
+  .bottom-nav.sin-fab {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   /* Botón "+" flotante al centro */

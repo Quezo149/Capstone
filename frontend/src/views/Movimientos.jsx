@@ -88,11 +88,11 @@ export default function Movimientos({ onNuevo, onEditar, onVer }) {
     <>
       <div className="page-head">
         <div>
-          <span className="eyebrow">Movimientos</span>
-          <h1>Todo lo que entra y sale</h1>
+          <h1>Movimientos</h1>
         </div>
         {onNuevo && (
-          <button type="button" className="btn btn-primary" onClick={onNuevo}>
+          // En el celular ya está el botón + del menú inferior
+          <button type="button" className="btn btn-primary solo-pc" onClick={onNuevo}>
             <Icon name="plus" />
             Nuevo movimiento
           </button>
@@ -126,7 +126,7 @@ export default function Movimientos({ onNuevo, onEditar, onVer }) {
           <input
             className="input"
             type="search"
-            placeholder="Buscar movimientos"
+            placeholder="Buscar"
             value={f.q}
             onChange={(e) => set('q', e.target.value)}
             aria-label="Buscar movimientos"
@@ -138,6 +138,8 @@ export default function Movimientos({ onNuevo, onEditar, onVer }) {
           valor={f.tipo}
           onChange={(v) => setF((x) => ({ ...x, tipo: v, cat: v !== 'todos' && categoria(x.cat).tipo !== v ? 'todas' : x.cat }))}
         />
+        {/* En el celular, los tres selectores van en una fila que se desliza */}
+        <div className="toolbar-sel">
         <select className="input" value={f.cat} onChange={(e) => set('cat', e.target.value)} aria-label="Categoría">
           <option value="todas">Todas las categorías</option>
           {cats.map((c) => (
@@ -164,6 +166,7 @@ export default function Movimientos({ onNuevo, onEditar, onVer }) {
           ))}
           <option value="todos">Todos los meses</option>
         </select>
+        </div>
       </div>
 
       {filas.length === 0 ? (

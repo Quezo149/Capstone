@@ -2,8 +2,13 @@
 .cg-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  gap: 16px;
+  gap: var(--gap);
   align-items: start;
+}
+
+/* Solo la zona para soltar */
+.cg-una-col {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .cg-revisar {
@@ -21,8 +26,8 @@
 .cg-drop {
   display: grid;
   justify-items: center;
-  gap: 12px;
-  padding: 48px 24px;
+  gap: var(--gap-m);
+  padding: 40px 24px;
   border: 2px dashed var(--line);
   text-align: center;
   transition:
@@ -70,43 +75,16 @@
   }
 }
 
-/* ---------- Cómo funciona ---------- */
-.cg-como ol,
+/* Lista de pasos de la lectura (ver también "Pasos de lectura" más abajo) */
 .cg-pasos ol {
   display: grid;
-  gap: 16px;
-  margin: 16px 0 0;
+  gap: var(--gap);
+  margin: var(--gap) 0 0;
   padding: 0;
   list-style: none;
   counter-reset: paso;
 }
 
-.cg-como li {
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1fr);
-  gap: 2px 12px;
-  counter-increment: paso;
-}
-
-.cg-como li::before {
-  content: counter(paso);
-  grid-row: span 2;
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: var(--sand);
-  font-family: var(--font-mono);
-  font-weight: 600;
-}
-
-.cg-como li span {
-  color: var(--muted);
-  font-size: 14px;
-}
-
-/* ---------- Ejemplos ---------- */
 /* ---------- Documento ---------- */
 .cg-doc {
   position: relative;

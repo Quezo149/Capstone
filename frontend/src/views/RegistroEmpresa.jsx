@@ -20,7 +20,7 @@ export default function RegistroEmpresa() {
   return (
     <Marco titulo="Registra tu empresa" eyebrow="Último paso" ancha>
       <p className="muted">
-        Con estos datos identificamos a tu negocio. Quedarás como administrador y después podrás invitar a tu contador y a
+        Con estos datos identificamos a tu negocio. Quedarás como dueño y después podrás invitar a tu contador y a
         tu equipo.
       </p>
       <EmpresaForm textoBoton="Crear mi empresa" onGuardar={guardar} conPolitica />
