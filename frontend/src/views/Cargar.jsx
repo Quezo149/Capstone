@@ -23,10 +23,12 @@ const TIEMPOS = [0, 1200, 4500]
 // Lo que devuelve la IA en null no pisa los valores por defecto del formulario (fecha de hoy, etc.)
 const sinVacios = (datos) => Object.fromEntries(Object.entries(datos ?? {}).filter(([, v]) => v != null && v !== ''))
 
-export default function Cargar({ proveedores }) {
+// onEtapa: avisa a Subir en qué etapa va (el selector Boleta/Planilla se esconde con una lectura en curso)
+export default function Cargar({ proveedores, onEtapa }) {
   const { crear } = useMovimientos()
   const { aviso } = useToast()
   const [etapa, setEtapa] = useState('elegir')
+  useEffect(() => onEtapa?.(etapa), [etapa, onEtapa])
   const [paso, setPaso] = useState(null)
   const [vista, setVista] = useState(null) // documento en pantalla ({ imagen, cajas } | { pdf, url })
   const [res, setRes] = useState(null) // respuesta de POST /documentos/extraer (+ manual)

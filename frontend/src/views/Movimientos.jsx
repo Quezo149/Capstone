@@ -226,6 +226,12 @@ export default function Movimientos({ onNuevo, onEditar, onVer }) {
                               <span className="sr-only">{m.origen === 'pdf' ? 'Con PDF' : 'Con foto'}</span>
                             </span>
                           )}
+                          {m.origen === 'importacion_masiva' && (
+                            <span className="row-doc" title="Importado desde una planilla">
+                              <Icon name="sheet" />
+                              <span className="sr-only">Importado desde una planilla</span>
+                            </span>
+                          )}
                         </strong>
                         {(m.proveedor || porUsuario) && (
                           <small className="sub">
@@ -273,6 +279,7 @@ export default function Movimientos({ onNuevo, onEditar, onVer }) {
                         {fechaCorta(m.fecha)} · {c.nombre}
                         {porUsuario && ` · ${m.usuario_nombre}`}
                         {m.tiene_comprobante && ` · ${m.origen === 'pdf' ? 'PDF' : 'Foto'}`}
+                        {m.origen === 'importacion_masiva' && ' · Planilla'}
                       </small>
                     </span>
                     <span className={`mono ${m.tipo === 'ingreso' ? 'amt-in' : 'amt-out'}`}>{clpSigno(m.monto, m.tipo)}</span>
