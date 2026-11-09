@@ -89,7 +89,7 @@ function SinCategorias({ tipo }) {
           </button>
         )
       ) : (
-        <span>Pídele al administrador que active alguna en Categorías.</span>
+        <span>Pídele al dueño que active alguna en Categorías.</span>
       )}
     </div>
   )

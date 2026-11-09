@@ -357,16 +357,45 @@
   background: var(--surface);
 }
 
+/* Flechas redondas como el contenedor. Activa: fondo de marca y flecha gruesa; desactivada:
+   sin fondo y apagada, para que no se confundan */
 .mes-nav .icon-btn {
   width: 34px;
   height: 34px;
-  font-size: 22px;
-  line-height: 1;
+  border-color: transparent;
+  border-radius: 50%;
+  background: var(--brand-tint);
+  color: var(--brand);
+}
+
+.mes-nav .icon-btn:not(:disabled):hover {
+  border-color: transparent;
+  background: var(--brand);
+  color: var(--brand-ink);
 }
 
 .mes-nav .icon-btn:disabled {
-  opacity: 0.35;
+  background: transparent;
+  color: var(--muted);
+  opacity: 0.3;
   cursor: default;
+}
+
+/* Chevron dibujado con bordes: más nítido y grueso que los caracteres ‹ › */
+.mes-flecha {
+  width: 9px;
+  height: 9px;
+  border-top: 2.5px solid currentColor;
+  border-right: 2.5px solid currentColor;
+  border-radius: 1px;
+}
+
+.mes-flecha.izq {
+  transform: translateX(2px) rotate(-135deg);
+}
+
+.mes-flecha.der {
+  transform: translateX(-2px) rotate(45deg);
 }
 
 .mes-nav-l {

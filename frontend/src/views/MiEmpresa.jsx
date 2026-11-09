@@ -71,14 +71,14 @@ export default function MiEmpresa() {
               </div>
             ) : (
               <p className="muted" style={{ marginTop: 16 }}>
-                Solo el administrador puede modificar estos datos.
+                Solo el dueño puede modificar estos datos.
               </p>
             )}
           </>
         )}
       </div>
 
-      {/* En el celular no hay barra lateral: este es el camino a Categorías y Equipo */}
+      {/* Mi empresa es la puerta a los ajustes del negocio (en el celular, el único camino) */}
       <a className="card empresa-link" href="#/categorias">
         <Icon name="tag" />
         <span>

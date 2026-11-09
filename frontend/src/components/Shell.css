@@ -286,6 +286,10 @@
     transform: translateY(-2px) scale(1.1);
   }
 
+  .bottom-nav.sin-fab {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   /* Botón "+" flotante al centro */
   .fab {
     justify-self: center;

@@ -266,7 +266,7 @@ export default function Categorias() {
         )}
       </div>
 
-      {!admin && <p className="muted">Solo el administrador puede crear o modificar categorías.</p>}
+      {!admin && <p className="muted">Solo el dueño puede crear o modificar categorías.</p>}
       {error && <p className="acceso-aviso">{error}</p>}
       {cargando && <p className="muted">Cargando…</p>}
 

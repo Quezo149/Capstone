@@ -236,13 +236,13 @@ export default function Inicio({ onNuevo, onEditar, onVer }) {
       </div>
       <div className="mes-nav" role="group" aria-label="Mes que se muestra">
         <button type="button" className="icon-btn" onClick={() => irA(mesAnt)} disabled={mes <= primerMes} aria-label="Mes anterior">
-          <span aria-hidden="true">‹</span>
+          <span className="mes-flecha izq" aria-hidden="true" />
         </button>
         <span className="mes-nav-l cap" aria-live="polite">
           {mesLargo(mes)}
         </span>
         <button type="button" className="icon-btn" onClick={() => irA(moverMes(mes, 1))} disabled={esActual} aria-label="Mes siguiente">
-          <span aria-hidden="true">›</span>
+          <span className="mes-flecha der" aria-hidden="true" />
         </button>
         {!esActual && (
           <button type="button" className="btn btn-text btn-sm" onClick={() => irA(mesHoy)}>
