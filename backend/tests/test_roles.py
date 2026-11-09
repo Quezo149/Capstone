@@ -7,6 +7,8 @@ Además /auth/me entrega los permisos que la app usa para mostrar u ocultar acci
 y el rol sale de la base aunque el token traiga un claim "rol" inventado.
 """
 
+import uuid
+
 import pytest
 
 from app.core.permisos import PERMISOS, permisos_de
@@ -28,6 +30,19 @@ def _categoria_gasto(client, token):
     return next(c["id"] for c in client.get("/categorias", headers=auth(token)).json() if c["tipo"] == "gasto")
 
 
+class _Ok:
+    """Respuesta 200 con el cuerpo de la original (para acciones que, con datos válidos, dan 404)."""
+
+    status_code = 200
+
+    def __init__(self, r):
+        self.text = r.text
+
+
+def _como_ok_si_404(r):
+    return _Ok(r) if r.status_code == 404 else r
+
+
 # (permiso de la tabla, cómo probarlo). Cada llamada usa datos válidos: si responde 403
 # es por el rol, no por los datos.
 ACCIONES = {
@@ -42,6 +57,18 @@ ACCIONES = {
         headers=auth(t),
     ),
     "usuarios.ver": lambda c, t: c.get("/usuarios", headers=auth(t)),
+    "importaciones.ver": lambda c, t: c.get("/importaciones", headers=auth(t)),
+    "importaciones.realizar": lambda c, t: c.post(
+        "/importaciones",
+        json={
+            "nombre_archivo": "caja.csv", "tipo_archivo": "csv", "total_filas": 1,
+            "filas": [{"n": 2, "tipo": "gasto", "fecha": "2026-10-10", "monto": 1000, "categoria_id": _categoria_gasto(c, t),
+                       "descripcion": "Compra", "tipo_documento": "otro", "huella": f"gasto|2026-10-10|1000|compra|{t[-8:]}"}],
+        },
+        headers=auth(t),
+    ),
+    # Sin importaciones previas: el admin y el contador llegan al 404, el empleado se queda en el 403
+    "importaciones.anular": lambda c, t: _como_ok_si_404(c.post(f"/importaciones/{uuid.uuid4()}/anular", headers=auth(t))),
 }
 
 
@@ -83,14 +110,12 @@ def test_usuarios_solo_de_la_empresa(client, tokens):
 
 def test_importaciones_solo_admin_y_contador():
     """
-    HU10–HU13 (Sprint 4). Mientras no existan los endpoints, se fija la tabla: admin y contador
-    importan y ven el historial; el empleado no. El contador importa aunque no registre a mano
-    (D1). Cuando estén los endpoints, entran a ACCIONES y a la matriz de arriba.
+    HU10–HU13 (Sprint 4). Admin y contador importan, ven el historial y anulan una importación
+    completa; el empleado no. El contador importa aunque no registre a mano (D1).
     """
-    for permiso in ("importaciones.realizar", "importaciones.ver"):
+    for permiso in ("importaciones.realizar", "importaciones.ver", "importaciones.anular"):
         assert set(PERMISOS[permiso]) == {"admin", "contador"}, permiso
     assert "contador" not in PERMISOS["movimientos.registrar"]
-    assert "importaciones.anular" not in PERMISOS  # solo en el prototipo, pendiente con el equipo
 
 
 def test_todos_los_permisos_tienen_roles_validos():

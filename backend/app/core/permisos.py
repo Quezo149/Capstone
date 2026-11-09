@@ -30,8 +30,9 @@ PERMISOS: dict[str, tuple[str, ...]] = {
     # importados quedan a su nombre (movimientos.usuario_id) y ligados a la importación.
     "importaciones.realizar": ("admin", "contador"),  # plantilla, vista previa y confirmar
     "importaciones.ver": ("admin", "contador"),  # historial y filas con error (HU13)
-    # importaciones.anular (anular una importación completa) está solo en el prototipo:
-    # si pasa a producción se decide con el equipo.
+    # Anular (y restaurar) una importación completa: quien importa corrige su propio error, por
+    # ejemplo si subió la planilla equivocada. Anulación suave, como la de un movimiento (09-11-2026).
+    "importaciones.anular": ("admin", "contador"),
 }
 
 
