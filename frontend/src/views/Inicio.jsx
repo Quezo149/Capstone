@@ -304,7 +304,8 @@ export default function Inicio({ onNuevo, onEditar, onVer }) {
         <section className="grid-2" key={`g-${r.mes}`}>
           <div className="card rise" style={{ '--d': '200ms' }}>
             <div className="card-head">
-              <h2>¿En qué {r.en_curso ? 'gastaste' : 'se gastó'}?</h2>
+              {/* El colaborador solo ve lo suyo; dueño y contador ven el gasto de todo el equipo */}
+              <h2>¿En qué {empleado ? 'gastaste' : 'se gastó'}?</h2>
               <span className="muted cap">{nombreMes(r.mes)}</span>
             </div>
             {r.por_categoria.length ? (
@@ -386,9 +387,8 @@ export default function Inicio({ onNuevo, onEditar, onVer }) {
       {onNuevo && (
         <section className="deep-card quick rise" style={{ '--d': '320ms' }}>
           <div>
-            <span className="eyebrow">Nuevo</span>
-            <h2>Saca una foto a la boleta y nosotros la leemos.</h2>
-            <p>También funciona con el PDF de una factura. Tú revisas lo que leyó la IA y confirmas.</p>
+            <span className="eyebrow">Nuevo · Lectura con IA</span>
+            <h2>Saca una foto a la boleta y la IA completa los datos.</h2>
           </div>
           <div className="quick-acts">
             <a className="btn quick-btn" href="#/cargar">

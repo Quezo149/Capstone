@@ -35,7 +35,6 @@ export default function MiEmpresa() {
     <section className="empresa-page rise">
       <div className="page-head">
         <div>
-          <span className="eyebrow">Configuración</span>
           <h1>Mi empresa</h1>
         </div>
         <span className="chip line">Tu rol: {NOMBRE_ROL[perfil.rol]}</span>

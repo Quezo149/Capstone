@@ -41,12 +41,17 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px;
+  gap: var(--gap-s);
+}
+
+/* Escritorio: los selectores son parte de la misma fila */
+.toolbar-sel {
+  display: contents;
 }
 
 .search {
   position: relative;
-  flex: 1 1 260px;
+  flex: 1 1 160px;
   min-width: 0;
 }
 
@@ -289,14 +294,20 @@ tr.row:focus-visible .row-edit {
     flex: 1 1 100%;
   }
 
-  .toolbar select.input {
-    flex: 1 1 40%;
+  .toolbar-sel {
+    display: flex;
+    flex: 1 1 100%;
+    gap: var(--gap-s);
+    margin-inline: -16px;
+    padding-inline: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
   }
-}
 
-@media (max-width: 360px) {
-  .toolbar select.input {
-    flex-basis: 100%;
+  .toolbar .toolbar-sel select.input {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 70vw;
   }
 }
 
