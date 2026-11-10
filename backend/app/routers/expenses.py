@@ -79,9 +79,12 @@ def _error(status_code: int, codigo: str, mensaje: str) -> HTTPException:
 
 
 # Quién lo registró se muestra en el listado y alimenta el filtro por usuario (HU07).
+# importacion_id y huella_importacion (0014): con ellos la vista previa de una importación marca
+# las filas que ya se importaron antes.
 _SELECT = """
     SELECT m.id, m.empresa_id, m.usuario_id, m.categoria_id, m.tipo, m.fecha, m.monto, m.proveedor,
            m.descripcion, m.tipo_documento, m.origen, m.client_request_id, m.creado_en, m.proveedor_rut,
+           m.importacion_id, m.huella_importacion,
            CAST(CASE WHEN m.archivo_blob IS NULL THEN 0 ELSE 1 END AS BIT) AS tiene_comprobante,
            COALESCE(u.nombre, u.email) AS usuario_nombre
     FROM dbo.movimientos m

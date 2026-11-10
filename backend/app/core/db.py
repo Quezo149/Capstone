@@ -96,6 +96,9 @@ def _get_engine() -> Engine:
         _engine = create_engine(
             url,
             pool_pre_ping=True,
+            # Inserciones de muchas filas (importación masiva, hasta 2.000) en un solo viaje a la
+            # base en vez de uno por fila: con Azure SQL en otra región, la diferencia son segundos.
+            fast_executemany=True,
             connect_args={"timeout": settings.sql_login_timeout},  # login timeout de pyodbc
         )
         event.listen(_engine, "do_connect", _conectar_con_reintentos)
