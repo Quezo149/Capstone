@@ -321,8 +321,10 @@
   margin: 0;
 }
 
+/* Ancho de su contenido: las 4 columnas iguales miden lo que la etiqueta más larga ("Con error
+   (298)"), así el texto no se sale de la píldora. Si no cabe (celular), la fila se desliza */
 .im-filtros .seg {
-  max-width: 460px;
+  width: max-content;
 }
 
 .im-tabla td strong {
