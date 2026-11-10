@@ -210,7 +210,7 @@ export default function Importar({ onEtapa, incrustado = false }) {
       setEtapa('listo')
       aviso(`${imp.filas_importadas} movimientos importados`, { festejo: true })
     } catch (e) {
-      aviso(e.message)
+      aviso(e.message, { error: true })
     } finally {
       setGuardando(false)
     }
@@ -261,7 +261,7 @@ export default function Importar({ onEtapa, incrustado = false }) {
           accion: { label: 'Deshacer', onClick: () => anular(imp, true) },
         })
     } catch (e) {
-      aviso(e.message)
+      aviso(e.message, { error: true })
     }
   }
 

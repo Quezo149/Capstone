@@ -1,4 +1,7 @@
+import logging
 from typing import Annotated, Literal
+
+from azure.core.exceptions import AzureError
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from pydantic import BaseModel, StringConstraints, field_validator
@@ -6,10 +9,12 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core import almacenamiento
 from app.core.auth import CurrentUser, require_permiso
 from app.core.db import get_db
 
 router = APIRouter()
+log = logging.getLogger(__name__)
 
 Nombre = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)]
 # Mismo formato que ck_categorias_color (0005_categorias.sql): #rrggbb
@@ -61,9 +66,12 @@ def _error(status_code: int, codigo: str, mensaje: str) -> HTTPException:
 # `oculta`: la empresa la ocultó (0011_categorias_ocultas.sql). RLS deja ver solo sus filas.
 _OCULTA = "EXISTS (SELECT 1 FROM dbo.categorias_ocultas o WHERE o.categoria_id = c.id)"
 
+# `anulados`: movimientos eliminados (anulados, 0008) que la usan. No cuentan en la app, pero siguen
+# guardados: eliminar la categoría los borra para siempre, y la pantalla lo avisa antes. RLS aplica también en la subconsulta (el empleado cuenta solo los suyos).
 _SELECT = f"""
     SELECT c.id, c.nombre, c.tipo, c.color, CASE WHEN c.empresa_id IS NULL THEN 1 ELSE 0 END AS predefinida,
-           CASE WHEN {_OCULTA} THEN 1 ELSE 0 END AS oculta
+           CASE WHEN {_OCULTA} THEN 1 ELSE 0 END AS oculta,
+           (SELECT COUNT(*) FROM dbo.movimientos m WHERE m.categoria_id = c.id AND m.eliminado_en IS NOT NULL) AS anulados
     FROM dbo.categorias c
 """
 
@@ -76,6 +84,7 @@ def _json(row) -> dict:
         "color": row.color,
         "predefinida": bool(row.predefinida),
         "oculta": bool(row.oculta),
+        "anulados": int(row.anulados),
     }
 
 
@@ -149,7 +158,7 @@ def crear_categoria(
             text(
                 """
                 INSERT INTO dbo.categorias (empresa_id, nombre, tipo, color)
-                OUTPUT inserted.id, inserted.nombre, inserted.tipo, inserted.color, 0 AS predefinida, 0 AS oculta
+                OUTPUT inserted.id, inserted.nombre, inserted.tipo, inserted.color, 0 AS predefinida, 0 AS oculta, 0 AS anulados
                 VALUES (:empresa_id, :nombre, :tipo, :color)
                 """
             ),
@@ -192,24 +201,67 @@ def editar_categoria(
 @router.delete("/{categoria_id}", status_code=status.HTTP_204_NO_CONTENT)
 def eliminar_categoria(
     categoria_id: str,
+    borrar_eliminados: bool = False,
     user: CurrentUser = Depends(require_permiso("categorias.gestionar")),
     db: Session = Depends(get_db),
 ):
     """
-    Solo si ningún movimiento la usa, ni siquiera uno anulado: borrarla dejaría movimientos
-    (o su historial) sin categoría. Tampoco la última visible de su tipo (ver _ultima_visible).
+    No se elimina si algún movimiento VIGENTE la usa, ni la última visible de su tipo.
+    Movimientos ya eliminados (anulados, 0008): la app los guarda para "Deshacer", pero no deben
+    impedir eliminar la categoría (decisión del 09-11-2026). Si existen, el dueño tiene que
+    confirmarlo (`?borrar_eliminados=true`): esos movimientos se borran PARA SIEMPRE junto con
+    sus comprobantes, y ya no se pueden restaurar. Sin la confirmación → 409 con cuántos son.
+    También se borra lo que solo la recuerda: si estaba oculta y las categorías de planilla
+    asociadas a ella en una importación (categorias_alias, 0014).
     """
     actual = _propia(db, categoria_id)
-    if _visibles(db, actual.tipo) <= 1:
+    if not actual.oculta and _visibles(db, actual.tipo) <= 1:
         raise _ultima_visible(actual.tipo)
+    usos = db.execute(
+        text(
+            "SELECT SUM(CASE WHEN eliminado_en IS NULL THEN 1 ELSE 0 END) AS vigentes,"
+            " SUM(CASE WHEN eliminado_en IS NULL THEN 0 ELSE 1 END) AS anulados"
+            " FROM dbo.movimientos WHERE categoria_id = :id"
+        ),
+        {"id": actual.id},
+    ).first()
+    if usos.vigentes:
+        raise _error(status.HTTP_409_CONFLICT, "categoria_en_uso", "No se puede eliminar: hay movimientos con esta categoría.")
+    if usos.anulados and not borrar_eliminados:
+        n = usos.anulados
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "codigo": "categoria_con_eliminados",
+                "mensaje": f"La usan {n} {'movimiento eliminado' if n == 1 else 'movimientos eliminados'}: "
+                "confirma para borrarlos para siempre junto con la categoría.",
+                "eliminados": n,
+            },
+        )
+    # Comprobantes (foto o PDF) de los movimientos que se borran: se quitan del almacenamiento después
+    rutas = [
+        r.archivo_blob
+        for r in db.execute(
+            text("SELECT archivo_blob FROM dbo.movimientos WHERE categoria_id = :id AND archivo_blob IS NOT NULL"),
+            {"id": actual.id},
+        )
+    ]
     try:
+        db.execute(text("DELETE FROM dbo.movimientos WHERE categoria_id = :id AND eliminado_en IS NOT NULL"), {"id": actual.id})
+        db.execute(text("DELETE FROM dbo.categorias_alias WHERE categoria_id = :id"), {"id": actual.id})
+        db.execute(text("DELETE FROM dbo.categorias_ocultas WHERE categoria_id = :id"), {"id": actual.id})
         db.execute(text("DELETE FROM dbo.categorias WHERE id = :id"), {"id": actual.id})
         db.commit()
-    except IntegrityError as exc:  # fk_movimientos_categoria
+    except IntegrityError as exc:  # fk_movimientos_categoria: alguien la usó entre medio
         db.rollback()
         raise _error(
             status.HTTP_409_CONFLICT, "categoria_en_uso", "No se puede eliminar: la categoría está en uso."
         ) from exc
+    for ruta in rutas:
+        try:
+            almacenamiento.borrar(ruta)
+        except AzureError:
+            log.warning("No se pudo borrar el comprobante %s de un movimiento eliminado", ruta)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
@@ -225,17 +277,15 @@ def ocultar_categoria(
     db: Session = Depends(get_db),
 ):
     """
-    Mejora a HU14 (28-10-2026): ocultar o volver a mostrar una predefinida en la empresa. No se
-    borra ni cambia para las demás empresas; los movimientos que la usan la siguen mostrando.
-    Repetir la misma acción no da error.
+    Mejora a HU14 (28-10-2026): ocultar o volver a mostrar una categoría en la empresa. No se
+    borra (ni cambia para las demás empresas, si es predefinida); los movimientos que la usan la
+    siguen mostrando. Repetir la misma acción no da error.
+    Desde el 09-11-2026 también las propias: para dejar de usar una sin eliminarla (y sin perder
+    los movimientos que la usan).
     """
     row = db.execute(text(f"{_SELECT} WHERE c.id = TRY_CAST(:id AS UNIQUEIDENTIFIER)"), {"id": categoria_id}).first()
     if row is None:
         raise _error(status.HTTP_404_NOT_FOUND, "no_encontrada", "Categoría no encontrada.")
-    if not row.predefinida:
-        raise _error(
-            status.HTTP_422_UNPROCESSABLE_CONTENT, "solo_predefinidas", "Las categorías propias se editan o se eliminan."
-        )
     if datos.oculta and not row.oculta:
         if _visibles(db, row.tipo) <= 1:
             raise _ultima_visible(row.tipo)

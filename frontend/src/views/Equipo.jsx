@@ -192,7 +192,7 @@ export default function Equipo() {
       aviso(mensaje)
       if (u.id === perfil.usuario_id) await refrescar()
     } catch (e) {
-      aviso(e.message)
+      aviso(e.message, { error: true })
     }
   }
 
@@ -202,7 +202,7 @@ export default function Equipo() {
       setInvitaciones((l) => l.filter((x) => x.id !== inv.id))
       aviso('Invitación anulada')
     } catch (e) {
-      aviso(e.message)
+      aviso(e.message, { error: true })
     }
   }
 

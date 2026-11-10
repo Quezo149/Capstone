@@ -77,10 +77,10 @@ export default function App() {
     try {
       const m = await eliminar(panel.mov.id)
       cerrar()
-      const deshacer = () => restaurar(m).catch((e) => aviso(e.message))
+      const deshacer = () => restaurar(m).catch((e) => aviso(e.message, { error: true }))
       if (m) aviso('Movimiento eliminado', { accion: { label: 'Deshacer', onClick: deshacer } })
     } catch (e) {
-      aviso(e.message)
+      aviso(e.message, { error: true })
     }
   }
 
