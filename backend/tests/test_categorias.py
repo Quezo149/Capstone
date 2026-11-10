@@ -110,6 +110,66 @@ def test_eliminar_sin_uso_y_con_uso(client, empresa):
     assert r.status_code == 409 and r.json()["detail"]["codigo"] == "categoria_en_uso"
 
 
+def test_con_movimientos_eliminados_se_elimina_confirmando(client, empresa):
+    """
+    Eliminar un movimiento lo anula (0008) y la fila sigue apuntando a su categoría. Desde el
+    09-11-2026 eso no impide eliminar la categoría: GET /categorias dice cuántos son (`anulados`),
+    sin confirmar → 409 con el número, y con ?borrar_eliminados=true se borran para siempre junto
+    con la categoría. Uno vigente sigue impidiéndolo.
+    """
+    t = empresa["token"]
+    cat = _crear(client, t, nombre="Prueba").json()
+    assert cat["anulados"] == 0
+    nuevo = lambda: client.post(
+        "/movimientos",
+        json={"tipo": "gasto", "fecha": "2026-10-01", "monto": 5000, "categoria_id": cat["id"], "tipo_documento": "boleta"},
+        headers=auth(t),
+    ).json()
+    a, b = nuevo(), nuevo()
+    assert client.delete(f"/movimientos/{a['id']}", headers=auth(t)).status_code == 204
+    assert next(c for c in client.get("/categorias", headers=auth(t)).json() if c["id"] == cat["id"])["anulados"] == 1
+
+    # b sigue vigente: no se elimina aunque se confirme
+    r = client.delete(f"/categorias/{cat['id']}?borrar_eliminados=true", headers=auth(t))
+    assert r.status_code == 409 and r.json()["detail"]["codigo"] == "categoria_en_uso"
+
+    assert client.delete(f"/movimientos/{b['id']}", headers=auth(t)).status_code == 204
+    r = client.delete(f"/categorias/{cat['id']}", headers=auth(t))
+    assert r.status_code == 409 and r.json()["detail"]["codigo"] == "categoria_con_eliminados"
+    assert r.json()["detail"]["eliminados"] == 2
+    assert client.delete(f"/categorias/{cat['id']}?borrar_eliminados=true", headers=auth(t)).status_code == 204
+    assert all(c["id"] != cat["id"] for c in client.get("/categorias", headers=auth(t)).json())
+
+
+def test_contador_y_empleado_no_borran_eliminados(client, empresa, sql):
+    from tests.utils import agregar_miembro
+    cat = _crear(client, empresa["token"], nombre="Ajena").json()
+    for rol in ("contador", "empleado"):
+        m = agregar_miembro(sql, empresa["empresa"]["id"], rol)
+        assert client.delete(f"/categorias/{cat['id']}?borrar_eliminados=true", headers=auth(m["token"])).status_code == 403
+
+
+def test_oculta_sin_movimientos_se_elimina(client, empresa):
+    t = empresa["token"]
+    libre = _crear(client, t, nombre="Oculta sin uso").json()
+    client.put(f"/categorias/{libre['id']}/oculta", json={"oculta": True}, headers=auth(t))
+    assert client.delete(f"/categorias/{libre['id']}", headers=auth(t)).status_code == 204
+
+
+def test_eliminar_borra_sus_categorias_asociadas_de_importacion(client, empresa):
+    """Una asociación de planilla (categorias_alias, 0014) es una preferencia: no impide eliminar."""
+    t = empresa["token"]
+    cat = _crear(client, t, nombre="Asesorías", tipo="ingreso").json()
+    ventas = next(c["id"] for c in client.get("/categorias", headers=auth(t)).json() if c["nombre"] == "Ventas")
+    fila = {"n": 2, "tipo": "ingreso", "fecha": "2026-10-10", "monto": 1000, "categoria_id": ventas,
+            "descripcion": "x", "tipo_documento": "otro", "huella": "ingreso|2026-10-10|1000|x|0"}
+    r = client.post("/importaciones", json={"nombre_archivo": "a.csv", "tipo_archivo": "csv", "total_filas": 1,
+                                            "filas": [fila], "alias": {"asesorias": cat["id"]}}, headers=auth(t))
+    assert r.status_code == 201, r.text
+    assert client.delete(f"/categorias/{cat['id']}", headers=auth(t)).status_code == 204
+    assert client.get("/importaciones/alias", headers=auth(t)).json() == {}
+
+
 def test_categoria_de_otra_empresa_no_se_alcanza(client, empresa):
     otra = registrar_empresa(client, "Otra")
     ajena = _crear(client, otra["token"], nombre="Ajena").json()

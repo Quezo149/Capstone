@@ -224,3 +224,9 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* Segundo clic en eliminar: avisa que también se borran los movimientos ya eliminados */
+.cat-usos.cat-aviso {
+  color: var(--gasto);
+  font-weight: 700;
+}

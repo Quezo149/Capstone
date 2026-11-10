@@ -226,7 +226,7 @@ export default function Cargar({ proveedores, onEtapa }) {
           <AvisoDuplicado
             previo={repetido.previo}
             onDescartar={descartar}
-            onGuardarIgual={() => guardar(repetido.datos, { aceptarDuplicado: true }).catch((e) => aviso(e.message))}
+            onGuardarIgual={() => guardar(repetido.datos, { aceptarDuplicado: true }).catch((e) => aviso(e.message, { error: true }))}
           />
         ) : (
           res.duplicado && !res.manual && <AvisoDuplicado previo={res.duplicado} onDescartar={descartar} />

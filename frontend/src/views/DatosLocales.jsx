@@ -32,7 +32,7 @@ export default function DatosLocales() {
                 await cargarEjemplo()
                 aviso('Datos de ejemplo cargados', { festejo: true })
               } catch (e) {
-                aviso(e.message)
+                aviso(e.message, { error: true })
               }
             }}
           >
@@ -49,7 +49,7 @@ export default function DatosLocales() {
                 await borrarTodo()
                 aviso('Borramos todos los movimientos')
               } catch (e) {
-                aviso(e.message)
+                aviso(e.message, { error: true })
               }
             }}
           >

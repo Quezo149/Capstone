@@ -73,12 +73,15 @@ def test_solo_el_admin(client, empresa, rol):
 
 
 def test_propias_e_inexistentes(client, empresa):
-    propia = client.post(
-        "/categorias", json={"nombre": "Fletes", "tipo": "gasto", "color": "#2f5d8a"}, headers=auth(empresa["token"])
-    ).json()
-    r = client.put(f"/categorias/{propia['id']}/oculta", json={"oculta": True}, headers=auth(empresa["token"]))
-    assert r.status_code == 422 and r.json()["detail"]["codigo"] == "solo_predefinidas"
-    assert client.put("/categorias/no-existe/oculta", json={"oculta": True}, headers=auth(empresa["token"])).status_code == 404
+    """Desde el 09-11-2026 las propias también se ocultan (una con movimientos anulados no se puede eliminar)."""
+    t = empresa["token"]
+    propia = client.post("/categorias", json={"nombre": "Fletes", "tipo": "gasto", "color": "#2f5d8a"}, headers=auth(t)).json()
+    r = client.put(f"/categorias/{propia['id']}/oculta", json={"oculta": True}, headers=auth(t))
+    assert r.status_code == 200 and r.json()["oculta"] is True
+    assert next(c for c in client.get("/categorias", headers=auth(t)).json() if c["id"] == propia["id"])["oculta"] is True
+    r = client.put(f"/categorias/{propia['id']}/oculta", json={"oculta": False}, headers=auth(t))
+    assert r.status_code == 200 and r.json()["oculta"] is False
+    assert client.put("/categorias/no-existe/oculta", json={"oculta": True}, headers=auth(t)).status_code == 404
 
 
 def test_no_se_puede_ocultar_la_ultima_de_un_tipo(client, empresa):

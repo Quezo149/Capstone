@@ -50,6 +50,11 @@
   height: 22px;
 }
 
+/* Error: ✕ en el rojo de los gastos (más claro, para que se lea sobre el fondo oscuro del aviso) */
+.toast.error .toast-ic {
+  color: color-mix(in srgb, var(--gasto) 70%, white);
+}
+
 .toast-act {
   display: inline-flex;
   align-items: center;

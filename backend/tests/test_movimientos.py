@@ -271,9 +271,14 @@ def test_anulados_no_cuentan_en_filtros(client, empresa):
     assert {x["id"] for x in r.json()} == {b["id"]}
 
 
-def test_categoria_con_movimiento_anulado_no_se_elimina(client, empresa):
+def test_categoria_con_movimiento_anulado_se_elimina_confirmando(client, empresa):
     cat = client.post("/categorias", json={"nombre": "Temporal", "tipo": "gasto", "color": "#2f5d8a"}, headers=auth(empresa["token"])).json()
     m = _crear(client, empresa["token"], _mov(empresa, categoria_id=cat["id"])).json()
     client.delete(f"/movimientos/{m['id']}", headers=auth(empresa["token"]))
     r = client.delete(f"/categorias/{cat['id']}", headers=auth(empresa["token"]))
-    assert r.status_code == 409 and r.json()["detail"]["codigo"] == "categoria_en_uso"
+    # Desde el 09-11-2026: sin confirmar, 409 con cuántos eliminados la usan; confirmando, se borran
+    assert r.status_code == 409 and r.json()["detail"]["codigo"] == "categoria_con_eliminados"
+    assert r.json()["detail"]["eliminados"] == 1
+    r = client.delete(f"/categorias/{cat['id']}?borrar_eliminados=true", headers=auth(empresa["token"]))
+    assert r.status_code == 204
+    assert client.post(f"/movimientos/{m['id']}/restaurar", headers=auth(empresa["token"])).status_code == 404

@@ -1,6 +1,7 @@
 """
 limpiar_datos_prueba.py
-Borra los datos de negocio (empresas, usuarios, movimientos, categorías propias e invitaciones)
+Borra los datos de negocio (empresas, usuarios, movimientos, categorías propias, invitaciones e
+importaciones con sus formatos y categorías asociadas)
 para dejar la base limpia antes de abrir la app a clientes. Pensado para correrlo UNA vez, justo
 antes del piloto, cuando en Azure solo hay cuentas de prueba del equipo.
 
@@ -28,8 +29,11 @@ from run_migrations import get_connection
 # Orden de borrado según las claves foráneas (hijos antes que padres)
 PASOS = [
     ("invitaciones", "DELETE FROM dbo.invitaciones"),
+    ("categorías asociadas de planillas", "DELETE FROM dbo.categorias_alias"),  # 0014
+    ("formatos de planilla recordados", "DELETE FROM dbo.importacion_formatos"),  # 0014
     ("categorías ocultas", "DELETE FROM dbo.categorias_ocultas"),
     ("movimientos", "DELETE FROM dbo.movimientos"),
+    ("importaciones", "DELETE FROM dbo.importaciones"),  # 0013 (después de movimientos: FK)
     ("categorías propias", "DELETE FROM dbo.categorias WHERE empresa_id IS NOT NULL"),
     ("membresías (usuarios_empresa)", "DELETE FROM dbo.usuarios_empresa"),
     ("usuarios", "DELETE FROM dbo.usuarios"),
@@ -44,6 +48,9 @@ CONTEOS = {
     "movimientos": "SELECT COUNT(*) FROM dbo.movimientos",
     "invitaciones": "SELECT COUNT(*) FROM dbo.invitaciones",
     "categorías ocultas": "SELECT COUNT(*) FROM dbo.categorias_ocultas",
+    "importaciones": "SELECT COUNT(*) FROM dbo.importaciones",
+    "formatos de planilla recordados": "SELECT COUNT(*) FROM dbo.importacion_formatos",
+    "categorías asociadas de planillas": "SELECT COUNT(*) FROM dbo.categorias_alias",
     "-- se conservan --": None,
     "categorías predefinidas": "SELECT COUNT(*) FROM dbo.categorias WHERE empresa_id IS NULL",
     "piloto_interesados (landing)": "SELECT COUNT(*) FROM dbo.piloto_interesados",

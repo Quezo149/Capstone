@@ -141,15 +141,23 @@ function CategoriaForm({ inicial, onGuardar }) {
   )
 }
 
+// "3 movimientos", "Sin usar · 2 eliminados": los eliminados (anulados) no cuentan en la app, pero
+// siguen guardados (para "Deshacer"); eliminar la categoría también los borra, y se avisa antes
+function usoTexto(usos, anulados) {
+  const vigentes = usos ? `${usos} ${usos === 1 ? 'movimiento' : 'movimientos'}` : 'Sin usar'
+  return anulados ? `${vigentes} · ${anulados} ${anulados === 1 ? 'eliminado' : 'eliminados'}` : vigentes
+}
+
 function Fila({ c, admin, editando, usos, ultima, onEditar, onEliminar, onOcultar }) {
   const porQue = ultima ? `Debe quedar al menos una categoría de ${c.tipo === 'gasto' ? 'gastos' : 'ingresos'}` : undefined
-  // Eliminar pide un segundo clic dentro de 3 s
+  // Eliminar pide un segundo clic dentro de 3 s (6 s si además se borran movimientos eliminados,
+  // para alcanzar a leer el aviso)
   const [confirmar, setConfirmar] = useState(false)
   useEffect(() => {
     if (!confirmar) return
-    const t = setTimeout(() => setConfirmar(false), 3000)
+    const t = setTimeout(() => setConfirmar(false), c.anulados ? 6000 : 3000)
     return () => clearTimeout(t)
-  }, [confirmar])
+  }, [confirmar, c.anulados])
 
   return (
     <li className={editando ? 'activa' : ''}>
@@ -157,7 +165,13 @@ function Fila({ c, admin, editando, usos, ultima, onEditar, onEliminar, onOculta
       <span className="cat-nombre">
         {c.nombre}
         {/* cuánto se usa, para decidir qué ocultar */}
-        <small className="cat-usos">{usos ? `${usos} ${usos === 1 ? 'movimiento' : 'movimientos'}` : 'Sin usar'}</small>
+        {confirmar && c.anulados ? (
+          <small className="cat-usos cat-aviso" role="alert">
+            También se borran para siempre {c.anulados} {c.anulados === 1 ? 'movimiento eliminado' : 'movimientos eliminados'}
+          </small>
+        ) : (
+          <small className="cat-usos">{usoTexto(usos, c.anulados)}</small>
+        )}
       </span>
       {c.predefinida ? (
         <span className="cat-acts">
@@ -171,14 +185,20 @@ function Fila({ c, admin, editando, usos, ultima, onEditar, onEliminar, onOculta
       ) : (
         admin && (
           <span className="cat-acts">
-            <button type="button" className="icon-btn" onClick={onEditar} aria-label={`Editar ${c.nombre}`} title="Editar">
-              <Icon name="pen" />
+            {/* Ocultar (desde el 09-11-2026 también las propias): deja de aparecer al registrar sin eliminarla */}
+            <button type="button" className="btn btn-text btn-sm" onClick={onOcultar} disabled={!c.oculta && ultima} title={c.oculta ? undefined : porQue}>
+              {c.oculta ? 'Mostrar' : 'Ocultar'}
             </button>
+            {onEditar && (
+              <button type="button" className="icon-btn" onClick={onEditar} aria-label={`Editar ${c.nombre}`} title="Editar">
+                <Icon name="pen" />
+              </button>
+            )}
             <button
               type="button"
               className={`btn btn-sm ${confirmar ? 'btn-danger' : 'btn-text'}`}
               onClick={() => (confirmar ? onEliminar() : setConfirmar(true))}
-              disabled={ultima}
+              disabled={!c.oculta && ultima}
               title={porQue}
               aria-label={`Eliminar ${c.nombre}`}
             >
@@ -191,9 +211,10 @@ function Fila({ c, admin, editando, usos, ultima, onEditar, onEliminar, onOculta
   )
 }
 
-// predefinidas que el admin ocultó en esta empresa. No se borran: los movimientos
-// que ya las usan las siguen mostrando, y aquí se pueden volver a mostrar.
-function Ocultas({ lista, admin, usos, onOcultar }) {
+// Categorías que el admin ocultó en esta empresa (predefinidas y, desde el 09-11-2026, propias).
+// No se borran: los movimientos que ya las usan las siguen mostrando, y aquí se pueden volver a
+// mostrar. Una propia oculta sin movimientos también se puede eliminar desde aquí.
+function Ocultas({ lista, admin, usos, onOcultar, onEliminar }) {
   if (!lista.length) return null
   return (
     <details className="cat-ocultas">
@@ -202,7 +223,7 @@ function Ocultas({ lista, admin, usos, onOcultar }) {
       </summary>
       <ul className="cat-lista">
         {lista.map((c) => (
-          <Fila key={c.id} c={c} admin={admin} usos={usos[c.id]} onOcultar={() => onOcultar(c)} />
+          <Fila key={c.id} c={c} admin={admin} usos={usos[c.id]} onOcultar={() => onOcultar(c)} onEliminar={() => onEliminar(c)} />
         ))}
       </ul>
     </details>
@@ -234,10 +255,17 @@ export default function Categorias() {
 
   async function quitar(c) {
     try {
-      await eliminar(c.id)
-      aviso(`Eliminamos "${c.nombre}"`)
+      // El segundo clic ya mostró cuántos movimientos eliminados se borran con ella
+      await eliminar(c.id, { borrarEliminados: c.anulados > 0 })
+      aviso(
+        c.anulados === 1
+          ? `Eliminamos "${c.nombre}" y su movimiento eliminado`
+          : c.anulados
+            ? `Eliminamos "${c.nombre}" y sus ${c.anulados} movimientos eliminados`
+            : `Eliminamos "${c.nombre}"`,
+      )
     } catch (e) {
-      aviso(e.message)
+      aviso(e.message, { error: true })
     }
   }
 
@@ -246,7 +274,7 @@ export default function Categorias() {
       await ocultar(c.id, !c.oculta)
       aviso(c.oculta ? `"${c.nombre}" vuelve a aparecer al registrar` : `Ocultamos "${c.nombre}": ya no aparece al registrar`)
     } catch (e) {
-      aviso(e.message)
+      aviso(e.message, { error: true })
     }
   }
 
@@ -298,7 +326,7 @@ export default function Categorias() {
               <p className="muted cat-ultima">Debe quedar al menos una categoría de {t.id === 'gasto' ? 'gastos' : 'ingresos'} para poder registrar.</p>
             )}
             {/* las ocultas quedan aquí, plegadas, para volver a mostrarlas */}
-            <Ocultas lista={categorias.filter((c) => c.tipo === t.id && c.oculta)} admin={admin} usos={usos} onOcultar={alternar} />
+            <Ocultas lista={categorias.filter((c) => c.tipo === t.id && c.oculta)} admin={admin} usos={usos} onOcultar={alternar} onEliminar={quitar} />
           </div>
         ))}
       </div>
