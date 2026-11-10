@@ -1,0 +1,5 @@
+/* Selector boleta / planilla de Cargar en el celular (ver Subir.jsx) */
+.subir-sel {
+  display: grid;
+  width: 100%;
+}

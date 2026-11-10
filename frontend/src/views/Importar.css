@@ -1,0 +1,1536 @@
+/* HU10–HU13: importación masiva desde CSV/XLSX (ver Importar.jsx) */
+.im-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: var(--gap);
+  align-items: start;
+}
+
+.im-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* ---------- Zona para soltar ---------- */
+.im-drop {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--gap-m);
+  min-height: 100%;
+  padding: 40px 24px;
+  border: 2px dashed var(--line);
+  text-align: center;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.im-drop.sobre {
+  border-color: var(--brand);
+  background: var(--brand-tint);
+}
+
+.im-drop p {
+  max-width: 42ch;
+}
+
+.im-drop .err {
+  max-width: 46ch;
+  color: var(--gasto);
+  font-weight: 700;
+}
+
+.im-drop-ic,
+.im-hecho-ic {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: var(--brand-tint);
+  color: var(--brand);
+}
+
+.im-drop-ic svg,
+.im-hecho-ic svg {
+  width: 30px;
+  height: 30px;
+}
+
+/* ---------- Plantilla ---------- */
+.im-plantilla {
+  display: grid;
+  gap: 14px;
+}
+
+.im-plantilla h2,
+.im-plantilla p {
+  margin: 0;
+}
+
+.im-plantilla-cols {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  overflow: hidden;
+}
+
+.im-plantilla-cols li {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.im-plantilla-cols li + li {
+  border-top: 1px solid var(--line);
+}
+
+.im-plantilla-cols code {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.im-plantilla-cols small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 16ch;
+}
+
+.im-cats {
+  font-size: 14px;
+}
+
+.im-cats summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.im-cats p {
+  margin: 8px 0 0;
+  color: var(--muted);
+}
+
+/* ---------- Validando ---------- */
+.im-pasos {
+  display: grid;
+  gap: 16px;
+  max-width: 560px;
+}
+
+.im-pasos ol {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.im-pasos li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+}
+
+.im-pasos li.espera {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.im-pasos p {
+  margin: 0;
+}
+
+.im-paso-ic {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: var(--sand);
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+
+.im-pasos li.ok .im-paso-ic {
+  background: var(--brand);
+  color: var(--brand-ink);
+  animation: pop 0.35s both;
+}
+
+.im-paso-ic svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---------- Archivo ---------- */
+.im-archivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.im-archivo svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--brand);
+}
+
+.im-archivo strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.im-archivo-chip {
+  justify-self: start;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 6px 8px 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  font-size: 14px;
+}
+
+/* ---------- Estructura incorrecta ---------- */
+.im-estructura {
+  display: grid;
+  gap: 14px;
+}
+
+.im-estructura h2 {
+  margin: 0;
+}
+
+.im-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.im-cols li {
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-s);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+
+.im-cols li.mal {
+  border-color: var(--gasto);
+  background: var(--gasto-tint);
+  text-decoration: line-through;
+  text-decoration-color: var(--gasto);
+}
+
+.im-motivo {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+}
+
+.im-motivo svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  color: var(--gasto);
+}
+
+/* ---------- Resumen ---------- */
+.im-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.im-tile {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 14px 16px;
+}
+
+.im-tile > span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.im-tile strong {
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.im-tile small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.im-tile.ok {
+  border-color: color-mix(in srgb, var(--ingreso) 45%, var(--line));
+  background: var(--ingreso-tint);
+}
+
+.im-tile.mal {
+  border-color: color-mix(in srgb, var(--gasto) 45%, var(--line));
+  background: var(--gasto-tint);
+}
+
+.im-montos {
+  display: grid;
+  font-size: 16px !important;
+  gap: 2px;
+}
+
+.im-aviso-err {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-color: color-mix(in srgb, var(--gasto) 40%, var(--line));
+}
+
+.im-aviso-err > svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  color: var(--gasto);
+}
+
+.im-aviso-err p {
+  flex: 1;
+  margin: 0;
+}
+
+/* Ancho de su contenido: las 4 columnas iguales miden lo que la etiqueta más larga ("Con error
+   (298)"), así el texto no se sale de la píldora. Si no cabe (celular), la fila se desliza */
+.im-filtros .seg {
+  width: max-content;
+}
+
+.im-tabla td strong {
+  display: block;
+  font-weight: 700;
+}
+
+.im-tabla .sub {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.im-tabla tr.im-fila-mal td {
+  background: color-mix(in srgb, var(--gasto-tint) 55%, transparent);
+}
+
+.im-fecha {
+  white-space: nowrap;
+}
+
+.im-estado {
+  max-width: 340px;
+  font-size: 13px;
+}
+
+.im-ok,
+.im-mal,
+.im-ojo {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.im-ok svg,
+.im-mal svg,
+.im-ojo svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+}
+
+.im-ok {
+  color: var(--ingreso);
+}
+
+.im-mal {
+  color: var(--gasto);
+}
+
+.im-ojo {
+  color: var(--ink);
+}
+
+.im-ojo svg {
+  color: #b38600;
+}
+
+.im-vacio {
+  margin: 0;
+  padding: 24px;
+  text-align: center;
+}
+
+/* Lista móvil */
+.im-lista {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.im-lista li {
+  display: grid;
+  gap: 4px;
+  padding: 12px 16px;
+}
+
+.im-lista li + li {
+  border-top: 1px solid var(--line);
+}
+
+.im-lista li.im-fila-mal {
+  background: color-mix(in srgb, var(--gasto-tint) 55%, transparent);
+}
+
+.im-lista-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.im-lista small {
+  font-size: 13px;
+}
+
+/* Barra para confirmar: queda pegada abajo mientras se revisa la lista */
+.im-barra {
+  position: sticky;
+  bottom: 16px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding: 14px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-card);
+}
+
+.im-barra p {
+  margin: 0;
+}
+
+/* ---------- Hecho ---------- */
+.im-hecho {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 40px 24px;
+  text-align: center;
+}
+
+.im-hecho h2,
+.im-hecho p {
+  margin: 0;
+}
+
+.im-hecho .im-acts {
+  justify-content: center;
+  margin-top: 8px;
+}
+
+/* ---------- Historial ---------- */
+.im-historial .card-head h2 {
+  margin: 0;
+}
+
+.im-historial .sub {
+  display: block;
+  font-size: 12px;
+}
+
+/* Fecha arriba y hora abajo, sin partir la fecha */
+.im-h-fecha span {
+  white-space: nowrap;
+}
+
+/* Nombre de archivo y formato en una línea, con "…" si no caben */
+.im-h-archivo {
+  max-width: 340px;
+}
+
+.im-h-archivo .im-archivo {
+  display: flex;
+}
+
+.im-h-archivo .sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.im-historial tr.flash td {
+  animation: flashRow 1.6s ease-out 0.15s both;
+}
+
+.im-historial .btn-text svg {
+  width: 15px;
+  height: 15px;
+}
+
+.im-confirmar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.im-vacio-card p {
+  margin: 0;
+}
+
+/* ---------- Plantilla recomendada ---------- */
+.im-plantilla-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.im-plantilla .hint {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* ---------- Mapeo de una planilla propia ---------- */
+.im-mapeo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  margin-top: 16px;
+}
+
+.im-mapeo-izq {
+  display: grid;
+  gap: 16px;
+}
+
+.im-mapeo-der {
+  position: sticky;
+  top: 16px;
+}
+
+.im-bloque {
+  display: grid;
+  gap: 14px;
+}
+
+.im-bloque h2,
+.im-bloque p {
+  margin: 0;
+}
+
+.im-campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 14px;
+}
+
+.im-modos {
+  display: grid;
+  gap: 8px;
+}
+
+.im-modo {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-m);
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.im-modo.on {
+  border-color: var(--brand);
+  background: var(--brand-tint);
+}
+
+.im-modo input {
+  margin-top: 3px;
+  accent-color: var(--brand);
+}
+
+.im-formatos summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.im-formatos .im-campos {
+  margin-top: 12px;
+}
+
+.im-catmap {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  overflow: hidden;
+}
+
+.im-catmap li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+}
+
+.im-catmap li + li {
+  border-top: 1px solid var(--line);
+}
+
+.im-catmap li.falta {
+  background: color-mix(in srgb, var(--gasto-tint) 55%, transparent);
+}
+
+.im-catmap li > span {
+  display: grid;
+  min-width: 0;
+}
+
+.im-catmap strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.im-catmap svg {
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  transform: rotate(90deg);
+}
+
+.im-catmap .input {
+  min-height: 38px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.im-faltan {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.im-faltan li {
+  display: flex;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.im-faltan svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--gasto);
+}
+
+.im-previa-lista {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  overflow: hidden;
+}
+
+.im-previa-lista li {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.im-previa-lista li + li {
+  border-top: 1px solid var(--line);
+}
+
+.im-previa-lista li.mal {
+  background: color-mix(in srgb, var(--gasto-tint) 55%, transparent);
+}
+
+.im-previa-lista .cat-chip {
+  justify-self: start;
+}
+
+.im-previa-lista .im-mal {
+  font-size: 13px;
+}
+
+.im-tip {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.im-tip svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--brand);
+}
+
+.im-tip a {
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.im-recordar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.im-recordar input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand);
+}
+
+.im-recordar .input {
+  width: 240px;
+  min-height: 38px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+.im-barra .err {
+  margin: 0;
+  color: var(--gasto);
+  font-weight: 700;
+}
+
+/* ---------- Revisión de una planilla propia ---------- */
+.im-rev-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+
+.im-formato {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.im-formato > svg {
+  width: 16px;
+  height: 16px;
+  color: var(--brand);
+}
+
+.im-ignoradas {
+  font-size: 14px;
+}
+
+.im-ignoradas summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.im-ignoradas ul {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.im-nota {
+  display: block;
+  margin-top: 2px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.im-recordado {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.im-recordado svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: var(--ingreso);
+}
+
+/* ---------- Formatos guardados ---------- */
+.im-formatos-guardados ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.im-formatos-guardados li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+
+.im-formato-ic {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--mint);
+  color: var(--brand);
+}
+
+.im-formato-ic svg {
+  width: 20px;
+  height: 20px;
+}
+
+.im-formato-txt {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.im-formato-txt small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+/* ---------- Pasos visibles (Subir → Revisar → Listo) ---------- */
+.im-stepper {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 4px;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.im-stepper li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.im-stepper li + li::before {
+  content: '';
+  width: 28px;
+  height: 2px;
+  margin-right: 0;
+  border-radius: 2px;
+  background: var(--line);
+}
+
+.im-step-ic {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1.5px solid var(--line);
+  border-radius: 99px;
+  font-size: 13px;
+}
+
+.im-step-ic svg {
+  width: 14px;
+  height: 14px;
+}
+
+.im-stepper li.actual {
+  color: var(--ink);
+}
+
+.im-stepper li.actual .im-step-ic {
+  border-color: var(--brand);
+  background: var(--brand);
+  color: #fff;
+}
+
+.im-stepper li.ok .im-step-ic {
+  border-color: var(--brand);
+  background: var(--brand-tint);
+  color: var(--brand);
+}
+
+.page-head h1:focus {
+  outline: none;
+}
+
+.im-cargando {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  max-width: 720px;
+}
+
+.im-cargando > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+}
+
+/* ---------- Rechazo con instrucción ---------- */
+.im-rechazo {
+  display: flex;
+  gap: 14px;
+  border-color: var(--gasto);
+  background: color-mix(in srgb, var(--gasto-tint) 60%, var(--surface));
+}
+
+.im-rechazo h2,
+.im-rechazo p {
+  margin: 0 0 4px;
+}
+
+.im-rechazo-ic {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--gasto);
+}
+
+.im-rechazo-ic svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ---------- Así entendimos tu planilla ---------- */
+.im-entendimos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.im-ent-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.im-ent-head > div {
+  flex: 1 1 240px;
+  min-width: 0;
+}
+
+.im-ent-head h2 {
+  margin: 0 0 8px;
+}
+
+.im-ent-meta,
+.im-ent-hoja {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  font-size: 14px;
+}
+
+.im-ent-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.im-ent-select .input {
+  width: auto;
+  min-height: 36px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.im-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.im-check input,
+.im-col-check input,
+.im-lista-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--brand);
+}
+
+.im-campos-ent {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  overflow: hidden;
+}
+
+.im-campos-ent li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  padding: 9px 12px;
+  font-size: 14px;
+}
+
+.im-campos-ent li + li {
+  border-top: 1px solid var(--line);
+}
+
+.im-campos-ent li.dudoso {
+  background: color-mix(in srgb, var(--warn-tint) 60%, transparent);
+}
+
+.im-campo-nombre {
+  min-width: 96px;
+  font-weight: 700;
+}
+
+.im-campo-col {
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.im-muestras {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.im-muestras span {
+  padding: 1px 7px;
+  border-radius: var(--r-s);
+  background: var(--mint);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.im-revisa {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 99px;
+  background: var(--warn-tint);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.im-avisos {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+
+.im-avisos li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.im-avisos svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+}
+
+.im-avisos li.ok svg {
+  color: var(--ingreso);
+}
+
+.im-avisos li.ojo svg {
+  color: #b38600;
+}
+
+/* ---------- Categorías por asociar ---------- */
+.im-pendientes {
+  display: grid;
+  gap: 12px;
+  border-color: color-mix(in srgb, #b38600 45%, var(--line));
+  background: color-mix(in srgb, var(--warn-tint) 45%, var(--surface));
+}
+
+.im-pendientes h2,
+.im-pendientes p {
+  margin: 0;
+}
+
+.im-pendientes ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.im-pendientes li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.im-pendientes li > span {
+  display: grid;
+}
+
+.im-pendientes li > svg {
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  transform: rotate(90deg);
+}
+
+.im-cat-inline {
+  min-width: 180px;
+  min-height: 34px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  font-size: 13px;
+}
+
+/* ---------- Resumen y filas ---------- */
+
+/* Pantalla de revisión: el mismo espacio entre todos sus bloques */
+.im-revision {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.im-col-check {
+  width: 36px;
+}
+
+.im-tabla tr.im-fila-fuera td {
+  opacity: 0.55;
+}
+
+.im-lista li.im-fila-fuera {
+  opacity: 0.6;
+}
+
+.im-lista-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.im-actualizando {
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.im-barra-izq {
+  display: grid;
+  gap: 8px;
+}
+
+/* ---------- Mapeo mínimo ---------- */
+.im-mapeo-min {
+  display: grid;
+  gap: 16px;
+  max-width: 880px;
+  margin-top: 16px;
+}
+
+.im-modos {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.im-modos legend {
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.im-modo span {
+  display: grid;
+  gap: 2px;
+}
+
+.im-mas summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.im-mas[open] summary {
+  margin-bottom: 6px;
+}
+
+.im-nota-ambigua {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--r-m);
+  background: var(--warn-tint);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.im-nota-ambigua svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Nombres de archivo largos: se cortan con "…" en vez de ensanchar la tarjeta */
+.im-entendimos,
+.im-ent-meta {
+  min-width: 0;
+}
+
+.im-archivo-chip {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.im-archivo-chip strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.im-filtros {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.im-filtros .seg button {
+  white-space: nowrap;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 1080px) {
+
+  .im-mapeo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .im-mapeo-der {
+    position: static;
+  }
+}
+
+@media (max-width: 860px) {
+  .im-pendientes li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .im-pendientes li > svg {
+    display: none;
+  }
+
+  .im-stepper li + li::before {
+    width: 14px;
+  }
+
+  .im-grid,
+  .im-campos,
+  .im-formatos-guardados ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .im-catmap li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .im-catmap li > svg {
+    display: none;
+  }
+
+  .im-recordar .input {
+    width: 100%;
+  }
+
+  .im-tabla {
+    display: none;
+  }
+
+  .im-lista {
+    display: block;
+  }
+
+  .im-aviso-err {
+    flex-wrap: wrap;
+  }
+
+  /* En el celular la barra queda fija sobre el menú inferior, solo con los botones */
+  .im-barra {
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    padding: 8px;
+    border-radius: var(--r-m);
+  }
+
+  .im-barra-izq:not(:has(p:not(.solo-pc))) {
+    display: none;
+  }
+
+  .im-barra .im-acts {
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+
+  .im-barra .btn {
+    padding-inline: 14px;
+    font-size: 14px;
+  }
+
+  .im-barra .btn-ghost {
+    flex: 0 0 auto;
+  }
+
+  .im-barra .btn-primary {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  /* Resumen compacto: 2 x 2 sin las notas */
+  .im-tiles {
+    gap: var(--gap-s);
+  }
+
+  .im-tile {
+    padding: 10px 12px;
+  }
+
+  .im-tile strong {
+    font-size: 20px;
+  }
+
+  .im-tile small {
+    display: none;
+  }
+}
+
+@media (max-width: 460px) {
+  .im-plantilla-cols li {
+    grid-template-columns: 88px minmax(0, 1fr);
+  }
+
+  .im-plantilla-cols small {
+    display: none;
+  }
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .im-historial tr.flash td,
+  .im-pasos li.ok .im-paso-ic {
+    animation: none;
+  }
+}
+
+/* Historial en el celular: cada importación es una tarjeta
+   archivo / fecha · hora · quién / filas + estado + anular */
+@media (max-width: 860px) {
+  .im-hist-tabla thead {
+    display: none;
+  }
+
+  .im-hist-tabla,
+  .im-hist-tabla tbody {
+    display: block;
+  }
+
+  .im-hist-tabla tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      'archivo archivo archivo'
+      'fecha fecha fecha'
+      'filas estado acc';
+    align-items: center;
+    gap: 6px 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .im-hist-tabla tr:last-child {
+    border-bottom: 0;
+  }
+
+  .im-hist-tabla td {
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+
+  .im-h-archivo {
+    grid-area: archivo;
+    max-width: none;
+  }
+
+  .im-h-fecha {
+    grid-area: fecha;
+    min-width: 0;
+    overflow: hidden;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .im-h-fecha .sub {
+    display: inline;
+    margin-left: 6px;
+    font-size: 13px;
+  }
+
+  /* Quién importó va en la línea de la fecha: "07-11-2026 00:35 · Carmen Rojas" */
+  .im-h-quien {
+    display: none;
+  }
+
+  .im-h-estado {
+    grid-area: estado;
+    justify-self: end;
+  }
+
+  .im-h-filas {
+    grid-area: filas;
+    font-size: 13px;
+  }
+
+  .im-h-filas .sub {
+    display: inline;
+    margin-left: 8px;
+  }
+
+  .im-h-acc {
+    grid-area: acc;
+    justify-self: end;
+  }
+
+  .im-h-acc:empty {
+    display: none;
+  }
+
+  /* Formatos guardados: el nombre en máximo 2 líneas */
+  .im-formato-txt strong {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* Dentro de Cargar en el celular (Subir.jsx) */
+.im-nota-movil {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.im-nota-movil svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--brand);
+}

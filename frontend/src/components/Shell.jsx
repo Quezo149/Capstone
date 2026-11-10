@@ -37,8 +37,8 @@ export default function Shell({ ruta, onNuevo, children, pie }) {
   const { perfil, salir, puede } = useSesion()
   const secciones = SECCIONES.filter((s) => !s.permiso || puede(s.permiso))
   // En el celular la barra inferior lleva 4 secciones y el botón "+" al centro. El contador no
-  // carga boletas: en su lugar va Categorías (cuando exista Importar, irá Importar).
-  const tercera = puede('movimientos.registrar') ? 'cargar' : 'categorias'
+  // carga boletas: en su lugar va Importar. (Quien registra importa desde Cargar → Planilla.)
+  const tercera = puede('movimientos.registrar') ? 'cargar' : puede('importaciones.realizar') ? 'importar' : 'categorias'
   const movil = ['inicio', 'movimientos', tercera, 'reportes'].map((id) => SECCIONES.find((s) => s.id === id))
 
   return (
