@@ -210,7 +210,6 @@ export default function Equipo() {
     <section className="eq-page rise">
       <div className="page-head">
         <div>
-          <span className="eyebrow">Configuración</span>
           <h1>Equipo</h1>
         </div>
         {admin && (
@@ -221,7 +220,7 @@ export default function Equipo() {
         )}
       </div>
 
-      {!admin && <p className="muted">Solo el administrador puede invitar personas o cambiar roles.</p>}
+      {!admin && <p className="muted">Solo el dueño puede invitar personas o cambiar roles.</p>}
       {error && <p className="acceso-aviso">{error}</p>}
 
       <div className="card">

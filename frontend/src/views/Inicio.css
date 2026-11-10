@@ -6,7 +6,7 @@
 .kpis {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: var(--gap);
 }
 
 .kpi {
@@ -14,7 +14,7 @@
   flex-direction: column;
   gap: 6px;
   min-width: 0;
-  padding: 20px 22px;
+  padding: var(--pad-card);
   border: 1px solid var(--line);
   border-radius: var(--r-l);
   background: var(--surface);
@@ -78,7 +78,7 @@
 .kpi-deep {
   border: 0;
   background: var(--deep);
-  padding: 20px 22px;
+  padding: var(--pad-card);
 }
 
 .kpi-deep .kpi-l,
@@ -90,11 +90,16 @@
   color: var(--highlight);
 }
 
+/* Inicio conserva el título grande; las vistas internas usan el h1 de app.css (máx. 30px) */
+.inicio-head h1 {
+  font-size: clamp(28px, 3.4vw, 38px);
+}
+
 /* ---------- Grilla ---------- */
 .grid-2 {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px;
+  gap: var(--gap);
 }
 
 .cats {
@@ -249,7 +254,7 @@
 }
 
 .quick h2 {
-  font-size: 24px;
+  font-size: 20px;
 }
 
 .quick p {
@@ -265,19 +270,11 @@
 @media (max-width: 720px) {
   .kpis {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 10px;
+    gap: var(--gap-m);
   }
 
   .kpi-deep {
     grid-column: 1 / -1;
-  }
-
-  .kpi {
-    padding: 16px;
-  }
-
-  .card {
-    padding: 18px;
   }
 }
 
@@ -360,16 +357,45 @@
   background: var(--surface);
 }
 
+/* Flechas redondas como el contenedor. Activa: fondo de marca y flecha gruesa; desactivada:
+   sin fondo y apagada, para que no se confundan */
 .mes-nav .icon-btn {
   width: 34px;
   height: 34px;
-  font-size: 22px;
-  line-height: 1;
+  border-color: transparent;
+  border-radius: 50%;
+  background: var(--brand-tint);
+  color: var(--brand);
+}
+
+.mes-nav .icon-btn:not(:disabled):hover {
+  border-color: transparent;
+  background: var(--brand);
+  color: var(--brand-ink);
 }
 
 .mes-nav .icon-btn:disabled {
-  opacity: 0.35;
+  background: transparent;
+  color: var(--muted);
+  opacity: 0.3;
   cursor: default;
+}
+
+/* Chevron dibujado con bordes: más nítido y grueso que los caracteres ‹ › */
+.mes-flecha {
+  width: 9px;
+  height: 9px;
+  border-top: 2.5px solid currentColor;
+  border-right: 2.5px solid currentColor;
+  border-radius: 1px;
+}
+
+.mes-flecha.izq {
+  transform: translateX(2px) rotate(-135deg);
+}
+
+.mes-flecha.der {
+  transform: translateX(-2px) rotate(45deg);
 }
 
 .mes-nav-l {

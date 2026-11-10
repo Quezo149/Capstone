@@ -42,13 +42,13 @@ h3 {
 }
 
 h1 {
-  font-size: clamp(28px, 3.4vw, 38px);
+  font-size: clamp(24px, 2.6vw, 30px);
   line-height: 1.06;
   font-weight: 800;
 }
 
 h2 {
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.2;
   font-weight: 700;
 }
@@ -282,7 +282,7 @@ svg,
 /* ---------- Tarjetas ---------- */
 .card {
   min-width: 0;
-  padding: 24px;
+  padding: var(--pad-card);
   border: 1px solid var(--line);
   border-radius: var(--r-l);
   background: var(--surface);
@@ -293,8 +293,8 @@ svg,
   align-items: baseline;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--gap-m);
+  margin-bottom: var(--gap-m);
 }
 
 .page-head {
@@ -302,12 +302,12 @@ svg,
   align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: var(--gap);
 }
 
 .page-head > div {
   display: grid;
-  gap: 8px;
+  gap: var(--gap-s);
   min-width: 0;
 }
 
@@ -315,7 +315,7 @@ svg,
 .deep-card {
   position: relative;
   overflow: hidden;
-  padding: 24px;
+  padding: var(--pad-card);
   border-radius: var(--r-l);
   background: var(--deep);
   color: var(--on-deep);
@@ -596,4 +596,25 @@ tfoot td {
 .link-politica {
   color: var(--brand);
   font-weight: 700;
+}
+
+/* Mostrar solo en escritorio / solo en el celular (mismo corte que el menú inferior) */
+@media (max-width: 860px) {
+  .solo-pc {
+    display: none !important;
+  }
+}
+
+@media (min-width: 861px) {
+  .solo-movil {
+    display: none !important;
+  }
+}
+
+/* Zona para subir la boleta: más baja en el celular, donde no se arrastra.
+   .card + la clase: gana a los estilos de la vista, que se cargan después */
+@media (max-width: 860px) {
+  .card.cg-drop {
+    padding: 24px 16px;
+  }
 }
