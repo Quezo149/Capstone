@@ -1,23 +1,23 @@
 # Runtime de Azure Functions
-azure-functions
+azure-functions==2.3.0
 
 # API
-fastapi
-python-multipart          # necesario para recibir uploads (foto/PDF de comprobantes)
+fastapi==0.141.1
+python-multipart==0.0.32          # necesario para recibir uploads (foto/PDF de comprobantes)
 
 # Base de datos (Azure SQL)
-pyodbc
-sqlalchemy
+pyodbc==5.3.0
+sqlalchemy==2.1.1
 
 # Validación de tokens (Microsoft Entra External ID / MSAL)
-python-jose[cryptography]
+python-jose[cryptography]==3.5.0
 
 # Storage y AI Document Intelligence
-azure-storage-blob
-azure-ai-documentintelligence
+azure-storage-blob==12.30.3
+azure-ai-documentintelligence==1.0.2
 
 # Config vía variables de entorno
-pydantic-settings
+pydantic-settings==2.15.0
 
 # Zona horaria de Chile para el resumen mensual (por si la imagen de Azure no trae la base de zonas)
-tzdata
+tzdata==2026.6
