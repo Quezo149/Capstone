@@ -148,7 +148,7 @@ db/migrations/      migraciones SQL 0001…0009, en orden
 frontend/           app web
 landing/            sitio público
 Prototipo/          prototipo navegable con datos de ejemplo
-Fase1/, Fase 2/     documentos y evidencias del Capstone por fase
+Fase1/, Fase 2.1/, Fase 2.2/  documentos y evidencias del Capstone por fase
 .github/workflows/  pruebas y deploy del backend
 ```
 
