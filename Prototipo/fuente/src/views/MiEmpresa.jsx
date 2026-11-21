@@ -86,6 +86,16 @@ export default function MiEmpresa() {
           <small className="muted">{esAdmin ? 'Crea y ordena las categorías de tus movimientos' : 'Las categorías que usa tu empresa'}</small>
         </span>
       </a>
+      {/* PROTOTIPO Sprint 5: presupuestos (HU15) */}
+      {puede('presupuestos.ver') && (
+        <a className="card empresa-link" href="#/presupuestos">
+          <Icon name="target" />
+          <span>
+            <strong>Presupuestos</strong>
+            <small className="muted">{esAdmin ? 'Define cuánto gastar como máximo en cada categoría' : 'Los límites de gasto de cada mes'}</small>
+          </span>
+        </a>
+      )}
       {puede('usuarios.ver') && (
         <a className="card empresa-link" href="#/equipo">
           <Icon name="users" />

@@ -82,8 +82,32 @@ function documentoDe(origen, item, { proveedor, fecha, monto }) {
   return null
 }
 
+// Sprint 5 (HU15): presupuestos de ejemplo para los últimos 3 meses y el actual. Los montos están
+// elegidos contra PLANTILLA para que se vean los estados: holgado (Servicios, Transporte),
+// cerca (Marketing en el mes completo), justo (Arriendo, al 100 %) y excedido (Insumos pasa los $ 380.000).
+const PRESUPUESTOS_DEMO = [
+  ['arriendo', 420000],
+  ['insumos', 380000],
+  ['servicios', 180000],
+  ['marketing', 50000],
+  ['transporte', 40000],
+]
+
+export function presupuestosDemo() {
+  if (esProduccion) return []
+  const mesActual = hoyISO().slice(0, 7)
+  return [-3, -2, -1, 0].flatMap((delta) =>
+    PRESUPUESTOS_DEMO.map(([cat, monto]) => ({
+      id: nuevoId(),
+      categoria_id: `c-${cat}`,
+      mes: moverMes(mesActual, delta),
+      monto,
+    })),
+  )
+}
+
 // Producción: sin empresa (la primera sesión pasa por "Registra tu empresa") y sin movimientos
-const vacia = () => ({ empresa: null, usuarios: [], categorias: PREDEFINIDAS, movimientos: [], invitaciones: [] })
+const vacia = () => ({ empresa: null, usuarios: [], categorias: PREDEFINIDAS, movimientos: [], invitaciones: [], presupuestos: [] })
 
 function semilla() {
   if (esProduccion) return vacia()
@@ -122,6 +146,7 @@ function semilla() {
     categorias: PREDEFINIDAS,
     movimientos,
     invitaciones: [],
+    presupuestos: presupuestosDemo(),
   }
 }
 

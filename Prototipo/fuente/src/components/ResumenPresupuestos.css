@@ -1,0 +1,144 @@
+/* PROTOTIPO Sprint 5: tarjeta de presupuestos en Inicio. Se abre como las tarjetas de Mi empresa (flecha ›) */
+.rp {
+  position: relative;
+  display: grid;
+  gap: var(--gap-s);
+  padding-right: calc(var(--pad-card) + 20px);
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    transform 0.15s,
+    box-shadow 0.2s;
+}
+
+.rp::after {
+  content: '›';
+  position: absolute;
+  top: 50%;
+  right: var(--pad-card);
+  color: var(--muted);
+  font-size: 26px;
+  line-height: 1;
+  transform: translateY(-50%);
+  transition: transform 0.15s, color 0.15s;
+}
+
+.rp:hover,
+.rp:active {
+  border-color: color-mix(in srgb, var(--brand) 45%, var(--line));
+  box-shadow: var(--shadow-card);
+}
+
+.rp:hover::after {
+  color: var(--brand);
+  transform: translate(3px, -50%);
+}
+
+.rp:active {
+  transform: scale(0.99);
+}
+
+.rp-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--gap-s);
+}
+
+.rp-head strong {
+  font-size: 16px;
+}
+
+.rp-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap-m);
+  font-size: 14px;
+}
+
+.rp-total .muted {
+  font-weight: 500;
+}
+
+.rp-pct {
+  font-weight: 700;
+}
+
+.rp-pct.mal {
+  color: var(--gasto);
+}
+
+.rp-barra {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.rp-barra i {
+  display: block;
+  width: var(--w);
+  height: 100%;
+  border-radius: 99px;
+  background: var(--brand);
+  transform-origin: left;
+  animation: growX 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.05) 0.25s both;
+}
+
+.rp-barra.mal i {
+  background: repeating-linear-gradient(-45deg, var(--gasto) 0 6px, color-mix(in srgb, var(--gasto) 62%, var(--surface)) 6px 12px);
+}
+
+.rp-avisos {
+  display: grid;
+  gap: 6px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.rp-avisos li {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+  min-width: 0;
+}
+
+.rp-cat {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.rp-txt {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rp-avisos li.mal .rp-txt {
+  color: var(--gasto);
+  font-weight: 700;
+}
+
+.rp-avisos li.cerca .rp-txt {
+  color: var(--muted);
+}
+
+.rp-ok {
+  color: var(--brand);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.rp-vacio span {
+  display: grid;
+  gap: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rp-barra i {
+    animation: none;
+  }
+}

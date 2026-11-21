@@ -37,7 +37,10 @@ export default function Shell({ ruta, onNuevo, children, pie }) {
   // En el celular la barra inferior lleva 4 secciones y el botón "+" al centro
   // El contador no carga boletas: en su lugar ve Importar planilla (PROTOTIPO Sprint 4)
   const tercera = puede('movimientos.registrar') ? 'cargar' : puede('importaciones.realizar') ? 'importar' : 'categorias'
-  const movil = ['inicio', 'movimientos', tercera, 'reportes'].map((id) =>
+  // PROTOTIPO Sprint 5 (21-11-2026): la cuarta es Categorías para todos los roles, en el lugar
+  // que dejó Reportes. Presupuestos se abre desde la tarjeta de Inicio y desde Mi empresa.
+  const cuarta = 'categorias'
+  const movil = ['inicio', 'movimientos', tercera, cuarta].map((id) =>
     SECCIONES.find((s) => s.id === id),
   )
 

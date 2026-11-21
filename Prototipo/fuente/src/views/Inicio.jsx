@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Icon from '../components/Icon'
 import Mark from '../components/Mark'
 import Numero from '../components/Numero'
+import ResumenPresupuestos from '../components/ResumenPresupuestos'
 import { clp, clpNeto, clpSigno, fechaCorta, fechaLarga, hoyISO, mesLargo, moverMes, nombreMes } from '../lib/format'
 import { useCategorias } from '../state/Categorias'
 import { totales, useMovimientos } from '../state/Movimientos'
@@ -106,7 +107,7 @@ function clpCorto(n) {
 
 // onNuevo / onEditar en null: el rol no registra movimientos (contador, HU03)
 export default function Inicio({ onNuevo, onEditar }) {
-  const { perfil } = useSesion()
+  const { perfil, puede } = useSesion()
   const { movs } = useMovimientos()
   const { categoria } = useCategorias()
   const hoy = hoyISO()
@@ -190,6 +191,11 @@ export default function Inicio({ onNuevo, onEditar }) {
           </span>
         </div>
       </section>
+
+      {/* PROTOTIPO Sprint 5: acceso a Presupuestos (en el celular, el camino corto) */}
+      {puede('presupuestos.ver') && (
+        <ResumenPresupuestos mes={mes} cerrado={!esActual} gestiona={puede('presupuestos.gestionar')} version={movs} />
+      )}
 
       <section className="grid-2" key={`g-${mes}`}>
         <div className="card rise" style={{ '--d': '200ms' }}>

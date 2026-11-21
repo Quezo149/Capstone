@@ -69,6 +69,10 @@ ACCIONES = {
     ),
     # Sin importaciones previas: el admin y el contador llegan al 404, el empleado se queda en el 403
     "importaciones.anular": lambda c, t: _como_ok_si_404(c.post(f"/importaciones/{uuid.uuid4()}/anular", headers=auth(t))),
+    "presupuestos.ver": lambda c, t: c.get("/presupuestos", headers=auth(t)),
+    "presupuestos.gestionar": lambda c, t: c.post(
+        "/presupuestos", json={"categoria_id": _categoria_gasto(c, t), "mes": "2026-12", "monto": 500000}, headers=auth(t)
+    ),
 }
 
 

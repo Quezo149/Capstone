@@ -6,7 +6,7 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 
 from app.core.db import es_transitorio, get_db
-from app.routers import auth, categorias, documentos, empresas, expenses, importaciones, invitaciones, piloto, usuarios
+from app.routers import auth, categorias, documentos, empresas, expenses, importaciones, invitaciones, piloto, presupuestos, usuarios
 
 app = FastAPI(title="KontadorIA API")
 
@@ -36,6 +36,7 @@ app.include_router(categorias.router, prefix="/categorias", tags=["categorias"])
 app.include_router(expenses.router, prefix="/movimientos", tags=["movimientos"])
 app.include_router(documentos.router, prefix="/documentos", tags=["documentos"])
 app.include_router(importaciones.router, prefix="/importaciones", tags=["importaciones"])
+app.include_router(presupuestos.router, prefix="/presupuestos", tags=["presupuestos"])
 app.include_router(usuarios.router, prefix="/usuarios", tags=["usuarios"])
 app.include_router(invitaciones.router, prefix="/invitaciones", tags=["invitaciones"])
 app.include_router(piloto.router, prefix="/piloto", tags=["piloto"])

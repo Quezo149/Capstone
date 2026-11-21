@@ -6,8 +6,10 @@ export const SECCIONES = [
   { id: 'cargar', label: 'Cargar boleta', corto: 'Cargar', icon: 'camera', listo: true, permiso: 'movimientos.registrar' },
   // PROTOTIPO Sprint 4: importación masiva (HU10–HU13), solo admin y contador
   { id: 'importar', label: 'Importar planilla', corto: 'Importar', icon: 'sheet', listo: true, permiso: 'importaciones.realizar' },
-  { id: 'revisar', label: 'Por revisar', icon: 'checkc' },
-  { id: 'reportes', label: 'Reportes', icon: 'chart' },
+  // PROTOTIPO Sprint 5: presupuestos por categoría y mes (HU15), dueño y contador.
+  // Sin «Por revisar» (sin historia: la IA se confirma al momento) ni «Reportes» (HU16 = exportar
+  // desde Movimientos): decisión del 21-11-2026.
+  { id: 'presupuestos', label: 'Presupuestos', corto: 'Presup.', icon: 'target', listo: true, permiso: 'presupuestos.ver' },
   { id: 'categorias', label: 'Categorías', icon: 'tag', listo: true },
   { id: 'equipo', label: 'Equipo', icon: 'users', listo: true, permiso: 'usuarios.ver' },
 ]
