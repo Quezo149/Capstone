@@ -1,4 +1,4 @@
-# KontadorIA — Prototipo (Sprints 3 y 4)
+# KontadorIA — Prototipo (Sprints 3, 4 y 5)
 
 Copia de la app real (`/frontend`) **con datos falsos**, para mostrar cómo se verán las historias
 del Sprint 3 antes de construirlas. No llama al backend, no pide iniciar sesión con Microsoft y
@@ -50,6 +50,29 @@ Con un archivo propio, el prototipo muestra tu imagen pero propone datos de mues
 sembrado (movimientos de meses anteriores) usa boletas dibujadas con comercios, RUT y personas
 inventados.
 
+### Sprint 5: presupuestos y exportación
+
+| Historia | Qué muestra el prototipo |
+|---|---|
+| **HU15** Gestión de presupuestos | Selector de mes (hasta 12 meses hacia adelante) y resumen: presupuesto, gastado y disponible (o excedido). Por categoría: lo gastado contra el límite, barra de avance, «Cerca del límite» desde el 80 %, «Llegaste al límite» y «Te pasaste por $ X» (barra roja con franjas). El **Dueño** crea (solo categorías de gasto sin presupuesto ese mes), edita el monto y elimina; el **Contador** solo consulta; el **Colaborador** no tiene la sección. |
+| **Gastos sin presupuesto** (propuesta) | Debajo de la lista, las categorías con gastos en el mes y sin límite, con su total. El dueño crea el presupuesto desde ahí con la categoría ya elegida. |
+| **Copiar del mes anterior** (propuesta) | Un mes sin presupuestos ofrece «Copiar los de octubre (5)». Con el backend actual son varios `POST`; si se aprueba, conviene un endpoint que lo haga en una transacción. |
+| **HU16** Consultar y exportar | Sin pantalla de Reportes (habría repetido Movimientos e Inicio): en **Movimientos**, el botón **Exportar** descarga lo filtrado en pantalla (búsqueda, tipo, categoría, persona y mes, o el nuevo **Rango de fechas…**) en Excel (.xlsx) o CSV (;). El menú dice cuántos movimientos y con qué filtros. El archivo usa las columnas de la plantilla, así que se vuelve a importar tal cual. Solo Dueño y Contador (permiso `movimientos.exportar`); el Colaborador no ve el botón. |
+
+Mismo contrato que `backend/app/routers/presupuestos.py`: un presupuesto por categoría y mes, se
+edita solo el monto, y `GET /presupuestos?mes=AAAA-MM` trae lo `gastado` (gastos vigentes de todo el
+equipo). La demo trae presupuestos de ejemplo para los últimos 4 meses. Se llega desde el menú
+lateral, desde **Mi empresa** y, sobre todo en el celular (sin menú lateral y con la barra inferior
+completa), desde la tarjeta **Presupuestos** de Inicio: avance total del mes y hasta 3 avisos
+(excedidas, al límite o sobre el 80 %). Sigue al mes elegido en Inicio; el colaborador no la ve y, si
+no hay presupuestos, el dueño ve una invitación a definirlos.
+
+Menú (21-11-2026): sin **Por revisar** (no tiene historia: la lectura con IA se confirma en el momento)
+ni **Reportes**. En el celular, el lugar de Reportes en la barra es **Categorías** para todos los roles
+(Inicio · Movim. · + · Cargar · Categorías; contador: Inicio · Movim. · Importar · Categorías);
+Presupuestos se abre desde la tarjeta de Inicio y desde Mi empresa. El selector de mes de
+Movimientos ya no dice «Todos Los Meses» (hallazgo H6).
+
 ## Controles del prototipo
 
 Barra amarilla abajo a la izquierda (sobre la barra inferior en el celular):
@@ -86,7 +109,7 @@ npm run build    # compila y copia el resultado a Prototipo/
 
 Archivos propios del prototipo: `src/lib/proto.js` (datos falsos), `src/lib/api.js` (API simulada),
 `src/auth/msal.js` (sesión simulada), `src/lib/documentos.js` (documentos y lectura simulada),
-`src/views/Cargar.jsx`, `src/views/Importar.jsx`, `src/lib/importacion.js`, `src/components/VisorDocumento.jsx` y `src/components/ProtoBar.jsx`.
+`src/views/Cargar.jsx`, `src/views/Importar.jsx`, `src/views/Presupuestos.jsx`, `src/components/ResumenPresupuestos.jsx`, `src/lib/exportar.js`, `src/lib/importacion.js`, `src/components/VisorDocumento.jsx` y `src/components/ProtoBar.jsx`.
 Los cambios a `MovimientoForm.jsx`, `Inicio.jsx`, `Movimientos.jsx` y `App.jsx` están marcados con
 `PROTOTIPO`.
 

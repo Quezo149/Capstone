@@ -1,14 +1,20 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import Numero from '../components/Numero'
 import Seg from '../components/Seg'
 import { nombreDocumento } from '../data/categorias'
+import { exportarCsv, exportarXlsx, filasExportables } from '../lib/exportar'
 import { clpNeto, clpSigno, fechaCorta, hoyISO, mesLargo } from '../lib/format'
 import { useCategorias } from '../state/Categorias'
 import { totales, useMovimientos } from '../state/Movimientos'
 import { useSesion } from '../state/Sesion'
+import { useToast } from '../state/Toasts'
 import Bienvenida from './Bienvenida'
 import './Movimientos.css'
+
+// Solo la primera letra: «Noviembre 2026». Con text-transform: capitalize el selector mostraba
+// «Todos Los Meses» (hallazgo H6 de las pruebas del 27-10)
+const mayuscula = (s) => s.charAt(0).toUpperCase() + s.slice(1)
 
 const TIPOS = [
   { id: 'todos', label: 'Todos' },
@@ -16,7 +22,88 @@ const TIPOS = [
   { id: 'gasto', label: 'Gastos' },
 ]
 
-const filtrosIniciales = () => ({ q: '', tipo: 'todos', cat: 'todas', usuario: 'todos', mes: hoyISO().slice(0, 7) })
+// mes: 'AAAA-MM', 'todos' o 'rango' (PROTOTIPO Sprint 5, HU16: desde/hasta, ambos incluidos)
+const filtrosIniciales = () => {
+  const hoy = hoyISO()
+  return { q: '', tipo: 'todos', cat: 'todas', usuario: 'todos', mes: hoy.slice(0, 7), desde: `${hoy.slice(0, 7)}-01`, hasta: hoy }
+}
+
+// Fila de la exportación: qué se filtró, para el nombre del archivo y el resumen del menú
+function describirFiltros(f, categoria, usuarios) {
+  const partes = []
+  if (f.mes === 'rango') partes.push(`${fechaCorta(f.desde)} al ${fechaCorta(f.hasta)}`)
+  else partes.push(f.mes === 'todos' ? 'Todos los meses' : mesLargo(f.mes))
+  if (f.tipo !== 'todos') partes.push(f.tipo === 'gasto' ? 'Gastos' : 'Ingresos')
+  if (f.cat !== 'todas') partes.push(categoria(f.cat).nombre)
+  if (f.usuario !== 'todos') partes.push(usuarios.find((u) => u.id === f.usuario)?.nombre ?? '')
+  if (f.q.trim()) partes.push(`«${f.q.trim()}»`)
+  return partes
+}
+
+const nombreArchivo = (f) =>
+  `kontadoria-movimientos-${f.mes === 'rango' ? `${f.desde}_al_${f.hasta}` : f.mes === 'todos' ? 'todos' : f.mes}`
+
+// PROTOTIPO Sprint 5 — HU16 (KONTADORIA-80): exportar lo que está filtrado, en Excel o CSV.
+// Solo dueño y contador (movimientos.exportar); el archivo usa las columnas de la plantilla.
+function Exportar({ filas, filtros, onExportar }) {
+  const [abierto, setAbierto] = useState(false)
+  const caja = useRef(null)
+  const boton = useRef(null)
+  useEffect(() => {
+    if (!abierto) return
+    const fuera = (e) => !caja.current?.contains(e.target) && setAbierto(false)
+    const esc = (e) => e.key === 'Escape' && (setAbierto(false), boton.current?.focus())
+    document.addEventListener('pointerdown', fuera)
+    document.addEventListener('keydown', esc)
+    return () => {
+      document.removeEventListener('pointerdown', fuera)
+      document.removeEventListener('keydown', esc)
+    }
+  }, [abierto])
+  const elegir = (formato) => {
+    setAbierto(false)
+    onExportar(formato)
+  }
+  return (
+    <div className="exp" ref={caja}>
+      <button
+        ref={boton}
+        type="button"
+        className="btn btn-ghost"
+        onClick={() => setAbierto((x) => !x)}
+        aria-expanded={abierto}
+        aria-controls="exp-menu"
+        disabled={!filas}
+      >
+        <Icon name="download" />
+        Exportar
+      </button>
+      {abierto && (
+        <div className="exp-menu" id="exp-menu">
+          <p className="exp-resumen">
+            <strong>
+              {filas} {filas === 1 ? 'movimiento' : 'movimientos'}
+            </strong>
+            <span className="muted">{filtros.join(' · ')}</span>
+          </p>
+          <button type="button" onClick={() => elegir('xlsx')}>
+            <Icon name="sheet" />
+            <span>
+              Excel <small className="muted">.xlsx</small>
+            </span>
+          </button>
+          <button type="button" onClick={() => elegir('csv')}>
+            <Icon name="list" />
+            <span>
+              CSV <small className="muted">separado por ;</small>
+            </span>
+          </button>
+          <p className="exp-nota muted">Mismas columnas de la plantilla: puedes volver a importarlo.</p>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // Texto sin tildes ni mayúsculas, para que "mantencion" encuentre "Mantención"
 const normalizar = (s) =>
@@ -33,6 +120,8 @@ export default function Movimientos({ onNuevo, onEditar }) {
   const { puede } = useSesion()
   // El empleado solo recibe sus movimientos (RLS), así que no tiene filtro por usuario
   const porUsuario = puede('movimientos.filtrar_usuario')
+  const exporta = puede('movimientos.exportar')
+  const { aviso } = useToast()
   const [f, setF] = useState(filtrosIniciales)
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }))
 
@@ -56,7 +145,7 @@ export default function Movimientos({ onNuevo, onEditar }) {
         (f.tipo === 'todos' || m.tipo === f.tipo) &&
         (f.cat === 'todas' || m.categoria_id === f.cat) &&
         (f.usuario === 'todos' || m.usuario_id === f.usuario) &&
-        (f.mes === 'todos' || m.fecha.startsWith(f.mes)) &&
+        (f.mes === 'todos' || (f.mes === 'rango' ? m.fecha >= f.desde && m.fecha <= f.hasta : m.fecha.startsWith(f.mes))) &&
         (!q || normalizar(`${m.descripcion} ${m.proveedor} ${categoria(m.categoria_id).nombre}`).includes(q)),
     )
   }, [movs, f, categoria])
@@ -64,7 +153,15 @@ export default function Movimientos({ onNuevo, onEditar }) {
   const t = useMemo(() => totales(filas), [filas])
   const hayFiltros = f.q || f.tipo !== 'todos' || f.cat !== 'todas' || f.usuario !== 'todos'
   // Cambia cuando cambian los filtros: reinicia la animación escalonada de las filas
-  const claveLista = `${f.tipo}|${f.cat}|${f.usuario}|${f.mes}`
+  const claveLista = `${f.tipo}|${f.cat}|${f.usuario}|${f.mes}|${f.desde}|${f.hasta}`
+
+  function exportar(formato) {
+    const datos = filasExportables([...filas].sort((a, b) => a.fecha.localeCompare(b.fecha)), categoria)
+    const nombre = nombreArchivo(f)
+    if (formato === 'xlsx') exportarXlsx(nombre, datos)
+    else exportarCsv(nombre, datos)
+    aviso(`Descargamos ${datos.length} ${datos.length === 1 ? 'movimiento' : 'movimientos'} en ${formato === 'xlsx' ? 'Excel' : 'CSV'}`)
+  }
 
   if (!movs.length) return <Bienvenida onNuevo={onNuevo} />
 
@@ -86,13 +183,16 @@ export default function Movimientos({ onNuevo, onEditar }) {
         <div>
           <h1>Movimientos</h1>
         </div>
-        {onNuevo && (
-          // En el celular ya está el botón + del menú inferior
-          <button type="button" className="btn btn-primary solo-pc" onClick={onNuevo}>
-            <Icon name="plus" />
-            Nuevo movimiento
-          </button>
-        )}
+        <div className="movs-acts">
+          {exporta && <Exportar filas={filas.length} filtros={describirFiltros(f, categoria, usuarios)} onExportar={exportar} />}
+          {onNuevo && (
+            // En el celular ya está el botón + del menú inferior
+            <button type="button" className="btn btn-primary solo-pc" onClick={onNuevo}>
+              <Icon name="plus" />
+              Nuevo movimiento
+            </button>
+          )}
+        </div>
       </div>
 
       <section className="sum" aria-label="Totales de lo filtrado">
@@ -154,15 +254,41 @@ export default function Movimientos({ onNuevo, onEditar }) {
             ))}
           </select>
         )}
-        <select className="input cap-sel" value={f.mes} onChange={(e) => set('mes', e.target.value)} aria-label="Mes">
+        <select className="input" value={f.mes} onChange={(e) => set('mes', e.target.value)} aria-label="Mes">
           {meses.map((m) => (
             <option key={m} value={m}>
-              {mesLargo(m)}
+              {mayuscula(mesLargo(m))}
             </option>
           ))}
           <option value="todos">Todos los meses</option>
+          <option value="rango">Rango de fechas…</option>
         </select>
         </div>
+        {/* PROTOTIPO Sprint 5 (HU16): rango de fechas libre, para exportar un período */}
+        {f.mes === 'rango' && (
+          <div className="rango">
+            <label>
+              <span>Desde</span>
+              <input
+                className="input"
+                type="date"
+                value={f.desde}
+                max={f.hasta}
+                onChange={(e) => e.target.value && set('desde', e.target.value)}
+              />
+            </label>
+            <label>
+              <span>Hasta</span>
+              <input
+                className="input"
+                type="date"
+                value={f.hasta}
+                min={f.desde}
+                onChange={(e) => e.target.value && set('hasta', e.target.value)}
+              />
+            </label>
+          </div>
+        )}
       </div>
 
       {filas.length === 0 ? (
@@ -172,7 +298,7 @@ export default function Movimientos({ onNuevo, onEditar }) {
           </span>
           <h2>No hay movimientos con esos filtros</h2>
           <p className="muted">
-            {f.mes !== 'todos' && !hayFiltros ? `Aún no registras nada en ${mesLargo(f.mes)}.` : 'Prueba con otra búsqueda o limpia los filtros.'}
+            {f.mes !== 'todos' && f.mes !== 'rango' && !hayFiltros ? `Aún no registras nada en ${mesLargo(f.mes)}.` : 'Prueba con otra búsqueda o limpia los filtros.'}
           </p>
           <div className="nores-acts">
             {hayFiltros && (

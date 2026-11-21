@@ -1,7 +1,7 @@
 // PROTOTIPO: misma firma que frontend/src/lib/api.js, pero responde desde lib/proto.js en vez
 // de llamar a func-kontadoria. Imita las reglas del backend que se notan en pantalla:
 // permisos por rol (app/core/permisos.py), RLS del empleado e idempotencia.
-import { leerDb, guardarDb, nuevoId, PERSONAS, rolActual, usuarioSesion } from './proto'
+import { leerDb, guardarDb, nuevoId, PERSONAS, presupuestosDemo, rolActual, usuarioSesion } from './proto'
 import { aliasNuevos, analizar, faltantesMapeo, huella, interpretarHojas, MAX_FILAS } from './importacion'
 
 export class ApiError extends Error {
@@ -21,6 +21,8 @@ const PERMISOS = {
   'movimientos.ver': ['admin', 'contador', 'empleado'],
   'movimientos.registrar': ['admin', 'empleado'],
   'movimientos.filtrar_usuario': ['admin', 'contador'],
+  // Exportar lo filtrado en CSV/XLSX (HU16, Sprint 5): el empleado no tiene acceso
+  'movimientos.exportar': ['admin', 'contador'],
   'usuarios.ver': ['admin', 'contador'],
   'usuarios.gestionar': ['admin'],
   // Importación masiva (HU10–HU13, Sprint 4): el contador importa aunque no registre a mano (D1)
@@ -28,6 +30,9 @@ const PERMISOS = {
   'importaciones.ver': ['admin', 'contador'],
   // Solo en el prototipo por ahora: si pasa a producción se decide con el equipo
   'importaciones.anular': ['admin', 'contador'],
+  // Presupuestos (HU15, Sprint 5): el admin define los límites; el contador los consulta
+  'presupuestos.ver': ['admin', 'contador'],
+  'presupuestos.gestionar': ['admin'],
 }
 const permisosDe = (rol) => Object.keys(PERMISOS).filter((p) => PERMISOS[p].includes(rol)).sort()
 
@@ -146,6 +151,8 @@ export async function api(ruta, { method = 'GET', body } = {}) {
     const borrada = db.categorias.find((x) => x.id === p.id)
     if (borrada && ultimaVisible(borrada)) throw errorUltima(borrada)
     db.categorias = db.categorias.filter((x) => x.id !== p.id)
+    // Sus presupuestos se van con ella (ON DELETE CASCADE en 0015_presupuestos.sql)
+    if (db.presupuestos) db.presupuestos = db.presupuestos.filter((x) => x.categoria_id !== p.id)
     return fin(null)
   }
 
@@ -312,6 +319,58 @@ export async function api(ruta, { method = 'GET', body } = {}) {
     for (const m of db.movimientos) if (m.importacion_id === imp.id) m.eliminado = false
     Object.assign(imp, { anulada_en: null, anulada_por: null })
     return fin(imp)
+  }
+
+  // ---------- Presupuestos (HU15, Sprint 5) ----------
+  // Mismo contrato que backend/app/routers/presupuestos.py: un solo presupuesto por categoría y mes,
+  // solo categorías de gasto, se edita solo el monto, y cada uno trae lo `gastado` en el mes (gastos
+  // vigentes de esa categoría, de todo el equipo). Las bases guardadas antes del Sprint 5 no tienen
+  // presupuestos: la demo recibe los de ejemplo la primera vez.
+  const presupuestos = () => (db.presupuestos ??= presupuestosDemo())
+  const conGastado = (x) => {
+    const c = db.categorias.find((k) => k.id === x.categoria_id)
+    const gastado = db.movimientos
+      .filter((m) => !m.eliminado && m.tipo === 'gasto' && m.categoria_id === x.categoria_id && m.fecha.startsWith(x.mes))
+      .reduce((s, m) => s + m.monto, 0)
+    return { ...x, categoria: c?.nombre ?? 'Sin categoría', color: c?.color ?? '#7d8d87', gastado }
+  }
+  const montoValido = (monto) => Number.isInteger(monto) && monto > 0 && monto <= 999_999_999_999
+  const errorMonto = () => new ApiError(422, 'monto_invalido', 'Escribe un monto entre $ 1 y $ 999.999.999.999.')
+  if (r('/presupuestos')) {
+    exigir(rol, 'presupuestos.ver')
+    const mes = new URLSearchParams(ruta.split('?')[1] ?? '').get('mes')
+    const lista = presupuestos()
+      .filter((x) => !mes || x.mes === mes)
+      .map(conGastado)
+      .sort((a, b) => b.mes.localeCompare(a.mes) || a.categoria.localeCompare(b.categoria, 'es'))
+    return copia(lista)
+  }
+  if (r('/presupuestos', 'POST')) {
+    exigir(rol, 'presupuestos.gestionar')
+    const c = db.categorias.find((k) => k.id === body.categoria_id)
+    if (!c) throw new ApiError(422, 'categoria_invalida', 'La categoría no existe.')
+    if (c.tipo !== 'gasto') throw new ApiError(422, 'categoria_no_gasto', 'Los presupuestos son solo para categorías de gasto.')
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(body.mes ?? '')) throw new ApiError(422, 'mes_invalido', 'El mes no es válido.')
+    if (!montoValido(body.monto)) throw errorMonto()
+    if (presupuestos().some((x) => x.categoria_id === c.id && x.mes === body.mes))
+      throw new ApiError(409, 'presupuesto_repetido', 'Ya hay un presupuesto para esa categoría en ese mes.')
+    const nuevo = { id: nuevoId(), categoria_id: c.id, mes: body.mes, monto: body.monto }
+    presupuestos().push(nuevo)
+    return fin(conGastado(nuevo))
+  }
+  if ((p = r('/presupuestos/:id', 'PUT'))) {
+    exigir(rol, 'presupuestos.gestionar')
+    const x = presupuestos().find((k) => k.id === p.id)
+    if (!x) throw noEncontrado()
+    if (!montoValido(body.monto)) throw errorMonto()
+    x.monto = body.monto
+    return fin(conGastado(x))
+  }
+  if ((p = r('/presupuestos/:id', 'DELETE'))) {
+    exigir(rol, 'presupuestos.gestionar')
+    if (!presupuestos().some((k) => k.id === p.id)) throw noEncontrado()
+    db.presupuestos = presupuestos().filter((k) => k.id !== p.id)
+    return fin(null)
   }
 
   // ---------- Empresa (HU04) ----------
