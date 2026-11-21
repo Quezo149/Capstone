@@ -33,6 +33,10 @@ PERMISOS: dict[str, tuple[str, ...]] = {
     # Anular (y restaurar) una importación completa: quien importa corrige su propio error, por
     # ejemplo si subió la planilla equivocada. Anulación suave, como la de un movimiento (09-11-2026).
     "importaciones.anular": ("admin", "contador"),
+    # Presupuestos por categoría y mes (HU15, Sprint 5). Solo el admin define los límites de gasto;
+    # el contador los consulta porque revisa la información financiera de la empresa (como en HU16).
+    "presupuestos.ver": ("admin", "contador"),
+    "presupuestos.gestionar": ("admin",),
 }
 
 
