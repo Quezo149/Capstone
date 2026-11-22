@@ -39,7 +39,8 @@ export default function Shell({ ruta, onNuevo, children, pie }) {
   // En el celular la barra inferior lleva 4 secciones y el botón "+" al centro. El contador no
   // carga boletas: en su lugar va Importar. (Quien registra importa desde Cargar → Planilla.)
   const tercera = puede('movimientos.registrar') ? 'cargar' : puede('importaciones.realizar') ? 'importar' : 'categorias'
-  const movil = ['inicio', 'movimientos', tercera, 'reportes'].map((id) => SECCIONES.find((s) => s.id === id))
+  // La cuarta es Categorías para todos los roles, en el lugar que dejó Reportes (21-11-2026)
+  const movil = ['inicio', 'movimientos', tercera, 'categorias'].map((id) => SECCIONES.find((s) => s.id === id))
 
   return (
     <div className="app">

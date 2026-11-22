@@ -6,8 +6,8 @@ export const SECCIONES = [
   { id: 'cargar', label: 'Cargar boleta', corto: 'Cargar', icon: 'camera', listo: true, permiso: 'movimientos.registrar' },
   // HU10–HU13: importación masiva, solo admin y contador
   { id: 'importar', label: 'Importar planilla', corto: 'Importar', icon: 'sheet', listo: true, permiso: 'importaciones.realizar' },
-  { id: 'revisar', label: 'Por revisar', icon: 'checkc' },
-  { id: 'reportes', label: 'Reportes', icon: 'chart' },
+  // Sin "Por revisar" ni "Reportes" (21-11-2026): la IA ya se confirma al cargar y la exportación
+  // vive en Movimientos (HU16); un reporte aparte repetía lo de Inicio y Movimientos.
   { id: 'categorias', label: 'Categorías', icon: 'tag', listo: true },
   { id: 'equipo', label: 'Equipo', icon: 'users', listo: true, permiso: 'usuarios.ver' },
 ]

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Icon from '../components/Icon'
 import Numero from '../components/Numero'
 import Seg from '../components/Seg'
@@ -7,6 +7,8 @@ import { clpNeto, clpSigno, fechaCorta, hoyISO, mesLargo } from '../lib/format'
 import { useCategorias } from '../state/Categorias'
 import { totales, useMovimientos } from '../state/Movimientos'
 import { useSesion } from '../state/Sesion'
+import { descargar } from '../lib/api'
+import { useToast } from '../state/Toasts'
 import Bienvenida from './Bienvenida'
 import './Movimientos.css'
 
@@ -16,7 +18,115 @@ const TIPOS = [
   { id: 'gasto', label: 'Gastos' },
 ]
 
-const filtrosIniciales = () => ({ q: '', tipo: 'todos', cat: 'todas', usuario: 'todos', mes: hoyISO().slice(0, 7) })
+// Solo la primera letra: «Noviembre 2026». Con text-transform: capitalize el selector mostraba
+// «Todos Los Meses» (hallazgo H6 de las pruebas del 27-10)
+const mayuscula = (s) => s.charAt(0).toUpperCase() + s.slice(1)
+
+// mes: 'AAAA-MM', 'todos' o 'rango' (HU16: desde/hasta, ambos incluidos)
+const filtrosIniciales = () => {
+  const hoy = hoyISO()
+  return { q: '', tipo: 'todos', cat: 'todas', usuario: 'todos', mes: hoy.slice(0, 7), desde: `${hoy.slice(0, 7)}-01`, hasta: hoy }
+}
+
+// Último día del mes 'AAAA-MM' (el día 0 del mes siguiente)
+const finDeMes = (mes) => {
+  const [y, m] = mes.split('-').map(Number)
+  return `${mes}-${String(new Date(y, m, 0).getDate()).padStart(2, '0')}`
+}
+
+// Los mismos filtros de la pantalla, como los recibe GET /movimientos/exportar
+function parametrosExportacion(f, formato) {
+  const p = new URLSearchParams({ formato })
+  if (f.tipo !== 'todos') p.set('tipo', f.tipo)
+  if (f.cat !== 'todas') p.set('categoria_id', f.cat)
+  if (f.usuario !== 'todos') p.set('usuario_id', f.usuario)
+  if (f.mes === 'rango') {
+    p.set('desde', f.desde)
+    p.set('hasta', f.hasta)
+  } else if (f.mes !== 'todos') {
+    p.set('desde', `${f.mes}-01`)
+    p.set('hasta', finDeMes(f.mes))
+  }
+  if (f.q.trim()) p.set('q', f.q.trim())
+  return p
+}
+
+// Qué se filtró, para el resumen del menú
+function describirFiltros(f, categoria, usuarios) {
+  const partes = []
+  if (f.mes === 'rango') partes.push(`${fechaCorta(f.desde)} al ${fechaCorta(f.hasta)}`)
+  else partes.push(f.mes === 'todos' ? 'Todos los meses' : mayuscula(mesLargo(f.mes)))
+  if (f.tipo !== 'todos') partes.push(f.tipo === 'gasto' ? 'Gastos' : 'Ingresos')
+  if (f.cat !== 'todas') partes.push(categoria(f.cat).nombre)
+  if (f.usuario !== 'todos') partes.push(usuarios.find((u) => u.id === f.usuario)?.nombre ?? '')
+  if (f.q.trim()) partes.push(`«${f.q.trim()}»`)
+  return partes
+}
+
+const nombreArchivo = (f) =>
+  `kontadoria-movimientos-${f.mes === 'rango' ? `${f.desde}_al_${f.hasta}` : f.mes === 'todos' ? 'todos' : f.mes}`
+
+// HU16 — KONTADORIA-80: exportar lo que está filtrado, en Excel o CSV. Solo dueño y contador
+// (movimientos.exportar). El archivo lo arma el backend con las columnas de la plantilla.
+function Exportar({ filas, filtros, ocupado, onExportar }) {
+  const [abierto, setAbierto] = useState(false)
+  const caja = useRef(null)
+  const boton = useRef(null)
+  useEffect(() => {
+    if (!abierto) return
+    const fuera = (e) => !caja.current?.contains(e.target) && setAbierto(false)
+    const esc = (e) => e.key === 'Escape' && (setAbierto(false), boton.current?.focus())
+    document.addEventListener('pointerdown', fuera)
+    document.addEventListener('keydown', esc)
+    return () => {
+      document.removeEventListener('pointerdown', fuera)
+      document.removeEventListener('keydown', esc)
+    }
+  }, [abierto])
+  const elegir = (formato) => {
+    setAbierto(false)
+    onExportar(formato)
+  }
+  return (
+    <div className="exp" ref={caja}>
+      <button
+        ref={boton}
+        type="button"
+        className="btn btn-ghost"
+        onClick={() => setAbierto((x) => !x)}
+        aria-expanded={abierto}
+        aria-controls="exp-menu"
+        disabled={!filas || ocupado}
+      >
+        <Icon name="download" />
+        {ocupado ? 'Preparando…' : 'Exportar'}
+      </button>
+      {abierto && (
+        <div className="exp-menu" id="exp-menu">
+          <p className="exp-resumen">
+            <strong>
+              {filas} {filas === 1 ? 'movimiento' : 'movimientos'}
+            </strong>
+            <span className="muted">{filtros.join(' · ')}</span>
+          </p>
+          <button type="button" onClick={() => elegir('xlsx')}>
+            <Icon name="sheet" />
+            <span>
+              Excel <small className="muted">.xlsx</small>
+            </span>
+          </button>
+          <button type="button" onClick={() => elegir('csv')}>
+            <Icon name="list" />
+            <span>
+              CSV <small className="muted">separado por ;</small>
+            </span>
+          </button>
+          <p className="exp-nota muted">Mismas columnas de la plantilla: puedes volver a importarlo.</p>
+        </div>
+      )}
+    </div>
+  )
+}
 
 // Texto sin tildes ni mayúsculas, para que "mantencion" encuentre "Mantención"
 const normalizar = (s) =>
@@ -33,6 +143,9 @@ export default function Movimientos({ onNuevo, onEditar, onVer }) {
   const { puede } = useSesion()
   // El empleado solo recibe sus movimientos (RLS), así que no tiene filtro por usuario
   const porUsuario = puede('movimientos.filtrar_usuario')
+  const exporta = puede('movimientos.exportar')
+  const { aviso } = useToast()
+  const [exportando, setExportando] = useState(false)
   const [f, setF] = useState(filtrosIniciales)
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }))
 
@@ -56,7 +169,7 @@ export default function Movimientos({ onNuevo, onEditar, onVer }) {
         (f.tipo === 'todos' || m.tipo === f.tipo) &&
         (f.cat === 'todas' || m.categoria_id === f.cat) &&
         (f.usuario === 'todos' || m.usuario_id === f.usuario) &&
-        (f.mes === 'todos' || m.fecha.startsWith(f.mes)) &&
+        (f.mes === 'todos' || (f.mes === 'rango' ? m.fecha >= f.desde && m.fecha <= f.hasta : m.fecha.startsWith(f.mes))) &&
         (!q || normalizar(`${m.descripcion} ${m.proveedor} ${categoria(m.categoria_id).nombre}`).includes(q)),
     )
   }, [movs, f, categoria])
@@ -64,7 +177,19 @@ export default function Movimientos({ onNuevo, onEditar, onVer }) {
   const t = useMemo(() => totales(filas), [filas])
   const hayFiltros = f.q || f.tipo !== 'todos' || f.cat !== 'todas' || f.usuario !== 'todos'
   // Cambia cuando cambian los filtros: reinicia la animación escalonada de las filas
-  const claveLista = `${f.tipo}|${f.cat}|${f.usuario}|${f.mes}`
+  const claveLista = `${f.tipo}|${f.cat}|${f.usuario}|${f.mes}|${f.desde}|${f.hasta}`
+
+  async function exportar(formato) {
+    setExportando(true)
+    try {
+      await descargar(`/movimientos/exportar?${parametrosExportacion(f, formato)}`, `${nombreArchivo(f)}.${formato}`)
+      aviso(`Descargamos ${filas.length} ${filas.length === 1 ? 'movimiento' : 'movimientos'} en ${formato === 'xlsx' ? 'Excel' : 'CSV'}`)
+    } catch (e) {
+      aviso(e.message || 'No pudimos exportar. Intenta de nuevo.', { error: true })
+    } finally {
+      setExportando(false)
+    }
+  }
 
   if (!movs.length) return <Bienvenida onNuevo={onNuevo} />
 
@@ -90,13 +215,18 @@ export default function Movimientos({ onNuevo, onEditar, onVer }) {
         <div>
           <h1>Movimientos</h1>
         </div>
-        {onNuevo && (
-          // En el celular ya está el botón + del menú inferior
-          <button type="button" className="btn btn-primary solo-pc" onClick={onNuevo}>
-            <Icon name="plus" />
-            Nuevo movimiento
-          </button>
-        )}
+        <div className="movs-acts">
+          {exporta && (
+            <Exportar filas={filas.length} filtros={describirFiltros(f, categoria, usuarios)} ocupado={exportando} onExportar={exportar} />
+          )}
+          {onNuevo && (
+            // En el celular ya está el botón + del menú inferior
+            <button type="button" className="btn btn-primary solo-pc" onClick={onNuevo}>
+              <Icon name="plus" />
+              Nuevo movimiento
+            </button>
+          )}
+        </div>
       </div>
 
       <section className="sum" aria-label="Totales de lo filtrado">
@@ -158,15 +288,41 @@ export default function Movimientos({ onNuevo, onEditar, onVer }) {
             ))}
           </select>
         )}
-        <select className="input cap-sel" value={f.mes} onChange={(e) => set('mes', e.target.value)} aria-label="Mes">
+        <select className="input" value={f.mes} onChange={(e) => set('mes', e.target.value)} aria-label="Mes">
           {meses.map((m) => (
             <option key={m} value={m}>
-              {mesLargo(m)}
+              {mayuscula(mesLargo(m))}
             </option>
           ))}
           <option value="todos">Todos los meses</option>
+          <option value="rango">Rango de fechas…</option>
         </select>
         </div>
+        {/* HU16: rango de fechas libre, para ver o exportar un período */}
+        {f.mes === 'rango' && (
+          <div className="rango">
+            <label>
+              <span>Desde</span>
+              <input
+                className="input"
+                type="date"
+                value={f.desde}
+                max={f.hasta}
+                onChange={(e) => e.target.value && set('desde', e.target.value)}
+              />
+            </label>
+            <label>
+              <span>Hasta</span>
+              <input
+                className="input"
+                type="date"
+                value={f.hasta}
+                min={f.desde}
+                onChange={(e) => e.target.value && set('hasta', e.target.value)}
+              />
+            </label>
+          </div>
+        )}
       </div>
 
       {filas.length === 0 ? (
@@ -176,11 +332,11 @@ export default function Movimientos({ onNuevo, onEditar, onVer }) {
           </span>
           <h2>No hay movimientos con esos filtros</h2>
           <p className="muted">
-            {f.mes !== 'todos' && !hayFiltros ? `Aún no registras nada en ${mesLargo(f.mes)}.` : 'Prueba con otra búsqueda o limpia los filtros.'}
+            {f.mes !== 'todos' && f.mes !== 'rango' && !hayFiltros ? `Aún no registras nada en ${mesLargo(f.mes)}.` : 'Prueba con otra búsqueda o limpia los filtros.'}
           </p>
           <div className="nores-acts">
             {hayFiltros && (
-              <button type="button" className="btn btn-ghost" onClick={() => setF((x) => ({ ...filtrosIniciales(), mes: x.mes }))}>
+              <button type="button" className="btn btn-ghost" onClick={() => setF((x) => ({ ...filtrosIniciales(), mes: x.mes, desde: x.desde, hasta: x.hasta }))}>
                 Limpiar filtros
               </button>
             )}
