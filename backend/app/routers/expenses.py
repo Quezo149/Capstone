@@ -1,4 +1,5 @@
 import datetime as dt
+import re
 import logging
 import uuid
 from typing import Annotated, Literal
@@ -185,6 +186,7 @@ def exportar_movimientos(
     desde: dt.date | None = None,
     hasta: dt.date | None = None,
     usuario_id: uuid.UUID | None = None,
+    q: Annotated[str | None, Query(max_length=100)] = None,
     user: CurrentUser = Depends(require_permiso("movimientos.exportar")),
     db: Session = Depends(get_db),
 ):
@@ -193,8 +195,17 @@ def exportar_movimientos(
     columnas de la plantilla de importación: el archivo se puede volver a importar tal cual.
     Solo dueño y contador; qué filas entran lo decide RLS, como en el listado.
     Van en orden cronológico (como se lee una planilla), no del más nuevo al más antiguo.
+
+    `q` es el buscador de la pantalla: descripción, proveedor o categoría que contengan el texto,
+    sin importar tildes ni mayúsculas ("mantencion" encuentra "Mantención").
     """
     condiciones, params = _condiciones(user, tipo, categoria_id, desde, hasta, usuario_id)
+    if q and q.strip():
+        condiciones.append(
+            "CONCAT(m.descripcion, ' ', m.proveedor, ' ', c.nombre) COLLATE Latin1_General_100_CI_AI LIKE :q ESCAPE '\\'"
+        )
+        # %, _ y [ son comodines de LIKE: se buscan como texto
+        params["q"] = "%" + re.sub(r"([\\%_\[])", r"\\\1", q.strip()) + "%"
     rows = db.execute(
         text(
             f"""

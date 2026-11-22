@@ -158,3 +158,28 @@ def test_textos_especiales(client, empresa):
     assert filas[1][4] == 'Bazar "La Esquina"; sucursal 2'
     assert filas[1][5] == '=HYPERLINK("http://x")'  # en el XLSX es texto (inlineStr), no fórmula
     assert filas[2][5] == "Dos\nlíneas <&>"
+
+
+def test_busqueda_como_en_la_pantalla(client, con_movimientos):
+    """q busca en descripción, proveedor y categoría, sin importar tildes ni mayúsculas."""
+    t = con_movimientos["token"]
+    descripciones = lambda **p: [f[5] for f in _xlsx(_exportar(client, t, **p).content)[1:]]  # noqa: E731
+    assert descripciones(q="ACEITE") == ["Papas y aceite"]
+    assert descripciones(q="trebol") == ["Papas y aceite"]  # proveedor "El Trébol"
+    assert descripciones(q="ventas") == ["Ventas del día"]  # descripción y categoría
+    assert descripciones(q="insumos", usuario_id=con_movimientos["empleado"]["usuario_id"]) == ["Del empleado"]
+    assert descripciones(q="  ") == descripciones()  # vacía = sin búsqueda
+
+
+def test_busqueda_con_comodines_de_sql(client, empresa):
+    """%, _ y [ se buscan como texto, no como comodines de LIKE."""
+    t = empresa["token"]
+    insumos = _categoria(client, t, "Insumos")
+    _mov(client, t, categoria_id=insumos, descripcion="Descuento 10% socio")
+    _mov(client, t, categoria_id=insumos, descripcion="Descuento 10 socio")
+    _mov(client, t, categoria_id=insumos, descripcion="Código A_B [lote]")
+    descripciones = lambda q: [f[5] for f in _xlsx(_exportar(client, t, q=q).content)[1:]]  # noqa: E731
+    assert descripciones("10%") == ["Descuento 10% socio"]
+    assert descripciones("a_b") == ["Código A_B [lote]"]
+    assert descripciones("[lote]") == ["Código A_B [lote]"]
+    assert descripciones("%") == ["Descuento 10% socio"]
