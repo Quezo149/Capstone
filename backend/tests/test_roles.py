@@ -51,6 +51,7 @@ ACCIONES = {
     "categorias.ver": lambda c, t: c.get("/categorias", headers=auth(t)),
     "categorias.gestionar": lambda c, t: c.post("/categorias", json={"nombre": f"Cat {t[-6:]}", "tipo": "gasto", "color": "#7a4fa0"}, headers=auth(t)),
     "movimientos.ver": lambda c, t: c.get("/movimientos", headers=auth(t)),
+    "movimientos.exportar": lambda c, t: c.get("/movimientos/exportar", headers=auth(t)),
     "movimientos.registrar": lambda c, t: c.post(
         "/movimientos",
         json={"tipo": "gasto", "fecha": "2026-10-10", "monto": 1000, "categoria_id": _categoria_gasto(c, t), "tipo_documento": "otro"},

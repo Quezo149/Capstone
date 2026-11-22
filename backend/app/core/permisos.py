@@ -22,6 +22,9 @@ PERMISOS: dict[str, tuple[str, ...]] = {
     "movimientos.ver": ("admin", "contador", "empleado"),
     "movimientos.registrar": ("admin", "empleado"),
     "movimientos.filtrar_usuario": ("admin", "contador"),
+    # Exportar lo filtrado a Excel o CSV (HU16, Sprint 5): quien revisa la información financiera
+    # de la empresa. El empleado no: solo ve lo suyo y no lleva la contabilidad.
+    "movimientos.exportar": ("admin", "contador"),
     # Usuarios de la empresa (HU02)
     "usuarios.ver": ("admin", "contador"),
     "usuarios.gestionar": ("admin",),
