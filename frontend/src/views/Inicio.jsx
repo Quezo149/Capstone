@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from 'react'
 import Icon from '../components/Icon'
 import Mark from '../components/Mark'
 import Numero from '../components/Numero'
+import ResumenPresupuestos from '../components/ResumenPresupuestos'
 import { resumen as pedirResumen } from '../data/movimientos'
 import { clp, clpNeto, clpSigno, fechaCorta, fechaLarga, hoyISO, mesLargo, moverMes, nombreMes } from '../lib/format'
 import { useCategorias } from '../state/Categorias'
@@ -169,7 +170,7 @@ function Dona({ tramos, total, activo, sel }) {
 // onNuevo / onEditar en null: el rol no registra movimientos (contador, HU03); a él le llega
 // onVer para abrir el comprobante de los movimientos con foto o PDF
 export default function Inicio({ onNuevo, onEditar, onVer }) {
-  const { perfil } = useSesion()
+  const { perfil, puede } = useSesion()
   // Los movimientos del contexto solo se usan para saber si la empresa está vacía (Bienvenida)
   // y para volver a pedir el resumen cuando se crea, edita o anula uno
   const { movs } = useMovimientos()
@@ -300,6 +301,11 @@ export default function Inicio({ onNuevo, onEditar, onVer }) {
             </span>
           </div>
         </section>
+
+        {/* HU15: acceso a Presupuestos (en el celular, el camino corto) */}
+        {puede('presupuestos.ver') && (
+          <ResumenPresupuestos mes={mes} cerrado={!esActual} gestiona={puede('presupuestos.gestionar')} version={movs} />
+        )}
 
         <section className="grid-2" key={`g-${r.mes}`}>
           <div className="card rise" style={{ '--d': '200ms' }}>

@@ -57,6 +57,25 @@ export async function api(ruta, { method = 'GET', body, publica = false, archivo
   return cuerpo
 }
 
+// Descarga un archivo de la API (GET con sesión) y lo guarda con `nombre`. El nombre se arma
+// aquí: Content-Disposition no llega al navegador entre dominios sin exponerlo en CORS.
+export async function descargar(ruta, nombre) {
+  const token = await obtenerToken()
+  let r
+  try {
+    r = await fetch(`${BASE}${ruta}`, { headers: { Authorization: `Bearer ${token}` } })
+  } catch {
+    throw new ApiError(0, 'sin_conexion', 'No pudimos conectarnos. Revisa tu conexión a internet.')
+  }
+  if (!r.ok) throw leerError(r.status, await r.json().catch(() => null))
+  const url = URL.createObjectURL(await r.blob())
+  const a = Object.assign(document.createElement('a'), { href: url, download: nombre })
+  document.body.append(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
 // Apenas carga la app, antes de saber si hay sesión: despierta la API (Function en frío) y la base
 // serverless (en pausa si nadie la usó) mientras la persona inicia sesión en Microsoft. Si falla
 // no importa: /auth/me reintenta igual (ver state/Sesion.jsx).

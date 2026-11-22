@@ -8,8 +8,6 @@ import './Pronto.css'
 // el rol no incluye (por ejemplo, el contador que abre #/cargar desde un link).
 const QUE_HARA = {
   cargar: 'Sacas una foto o subes el PDF de la boleta, la IA lee proveedor, fecha y montos, y tú confirmas antes de guardar. También podrás importar tu planilla Excel.',
-  revisar: 'Aquí quedan los documentos leídos por la IA que esperan tu confirmación. Solo lo confirmado cuenta en tus reportes.',
-  reportes: 'Estado de resultados simple del mes, IVA estimado y un botón para mandarle todo a tu contador.',
   equipo: 'Invita a tu contador y a quien te ayuda con la caja. Cada uno ve solo lo que su rol permite.',
 }
 
