@@ -1,0 +1,275 @@
+/* HU15 — Presupuestos. Reutiliza .kpi y .mes-nav (Inicio.css), .mf-* (MovimientoForm.css) */
+.pr-page {
+  display: grid;
+  gap: var(--gap-l);
+}
+
+.pr-page .page-head p {
+  margin: 0;
+}
+
+/* ---------- Resumen: presupuesto, gastado, disponible ---------- */
+.pr-resumen {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gap);
+}
+
+.pr-kpi-mal .kpi-v {
+  color: var(--gasto);
+}
+
+/* ---------- Lista por categoría ---------- */
+.pr-lista {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pr-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--gap-s) var(--gap-m);
+  padding: var(--gap-m) 0;
+  border-bottom: 1px solid var(--line);
+  animation: rise 0.5s ease-out var(--d) both;
+}
+
+.pr-fila:last-child {
+  border-bottom: 0;
+}
+
+.pr-nombre {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+  min-width: 0;
+  font-weight: 700;
+}
+
+.pr-nombre .dot {
+  color: var(--c);
+}
+
+.pr-nombre span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pr-montos {
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pr-montos .muted {
+  font-weight: 500;
+}
+
+.pr-acts {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-xs);
+}
+
+.pr-acts .btn-sm svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Barra de avance: color de la categoría; excedida, llena y en rojo */
+.pr-barra {
+  grid-column: 1 / -1;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.pr-barra i {
+  display: block;
+  width: var(--w);
+  height: 100%;
+  border-radius: 99px;
+  background: var(--c);
+  transform-origin: left;
+  animation: growX 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.05) var(--d) both;
+  transition: width 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.05);
+}
+
+/* Excedida: rojo con franjas, para no confundirla con una categoría que ya es roja (Transporte) */
+.pr-fila.excedido .pr-barra i {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--gasto) 0 6px,
+    color-mix(in srgb, var(--gasto) 62%, var(--surface)) 6px 12px
+  );
+}
+
+.pr-estado {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gap-s);
+  font-size: 13px;
+}
+
+.pr-estado .mono {
+  margin-left: auto;
+}
+
+.pr-fila.excedido .pr-estado > span:not(.muted) {
+  color: var(--gasto);
+  font-weight: 700;
+}
+
+/* ---------- Vacío ---------- */
+.pr-vacio {
+  display: grid;
+  gap: var(--gap);
+  justify-items: start;
+}
+
+.pr-vacio p {
+  margin: 0;
+}
+
+/* ---------- Gastos sin presupuesto ---------- */
+.pr-sin {
+  display: grid;
+  gap: var(--gap-s);
+  margin-top: var(--gap);
+  padding-top: var(--gap);
+  border-top: 1px dashed var(--line);
+}
+
+.pr-sin-l {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pr-sin ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-s);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pr-sin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-s);
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+button.pr-sin-btn {
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+button.pr-sin-btn:hover {
+  border-color: var(--brand);
+  transform: translateY(-1px);
+}
+
+.pr-sin-btn svg {
+  width: 14px;
+  height: 14px;
+  color: var(--brand);
+}
+
+/* ---------- Formulario ---------- */
+.pr-form-cat {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-s);
+  margin: 0;
+}
+
+.pr-monto > span {
+  color: var(--ink);
+}
+
+.pr-monto {
+  --tone: var(--brand);
+}
+
+/* ---------- Celular ---------- */
+@media (max-width: 640px) {
+  .pr-page .page-head > .mes-nav {
+    margin-left: auto;
+  }
+
+  /* Una sola tarjeta con tres filas (nombre · monto): tres columnas no caben con montos de millones */
+  .pr-resumen {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: var(--gap-xs) var(--pad-card);
+    border: 1px solid var(--line);
+    border-radius: var(--r-l);
+    background: var(--surface);
+  }
+
+  .pr-resumen .kpi {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: var(--gap-m) 0;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    background: none;
+  }
+
+  .pr-resumen .kpi:last-child {
+    border-bottom: 0;
+  }
+
+  .pr-resumen .kpi:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .pr-resumen .kpi-l {
+    font-size: 12px;
+  }
+
+  .pr-resumen .kpi-v {
+    font-size: 18px;
+  }
+
+  .pr-resumen .kpi-d {
+    display: none;
+  }
+
+  .pr-fila {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .pr-montos {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pr-fila,
+  .pr-barra i {
+    animation: none;
+  }
+}

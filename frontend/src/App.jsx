@@ -16,6 +16,7 @@ import Importar from './views/Importar'
 import Inicio from './views/Inicio'
 import MiEmpresa from './views/MiEmpresa'
 import Movimientos from './views/Movimientos'
+import Presupuestos from './views/Presupuestos'
 import Pronto from './views/Pronto'
 import Subir from './views/Subir'
 
@@ -88,6 +89,18 @@ export default function App() {
   if (ruta === 'empresa') vista = <MiEmpresa />
   else if (ruta === 'categorias') vista = <Categorias />
   else if (ruta === 'equipo' && puede('usuarios.ver')) vista = <Equipo />
+  // HU15: presupuestos, dueño y contador
+  else if (ruta === 'presupuestos' && puede('presupuestos.ver')) vista = <Presupuestos />
+  else if (ruta === 'presupuestos')
+    vista = (
+      <div className="card nores">
+        <h2>Tu rol no ve los presupuestos</h2>
+        <p className="muted">Los límites de gasto los define el dueño y los revisa el contador.</p>
+        <a className="btn btn-primary" href="#/inicio">
+          Volver al inicio
+        </a>
+      </div>
+    )
   else if (ruta === 'cargar' && registra) vista = <Subir proveedores={proveedores} importa={puede('importaciones.realizar')} />
   else if (ruta === 'importar' && puede('importaciones.realizar')) vista = <Importar />
   else if (cargando) vista = <p className="muted">Cargando movimientos…</p>

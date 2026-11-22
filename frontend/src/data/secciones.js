@@ -8,6 +8,8 @@ export const SECCIONES = [
   { id: 'importar', label: 'Importar planilla', corto: 'Importar', icon: 'sheet', listo: true, permiso: 'importaciones.realizar' },
   // Sin "Por revisar" ni "Reportes" (21-11-2026): la IA ya se confirma al cargar y la exportación
   // vive en Movimientos (HU16); un reporte aparte repetía lo de Inicio y Movimientos.
+  // HU15: presupuestos por categoría y mes, dueño y contador
+  { id: 'presupuestos', label: 'Presupuestos', corto: 'Presup.', icon: 'target', listo: true, permiso: 'presupuestos.ver' },
   { id: 'categorias', label: 'Categorías', icon: 'tag', listo: true },
   { id: 'equipo', label: 'Equipo', icon: 'users', listo: true, permiso: 'usuarios.ver' },
 ]
