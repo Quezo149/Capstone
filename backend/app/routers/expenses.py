@@ -1,4 +1,5 @@
 import datetime as dt
+import re
 import logging
 import uuid
 from typing import Annotated, Literal
@@ -11,7 +12,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.core import almacenamiento
+from app.core import almacenamiento, exportacion
 from app.core.auth import CurrentUser, require_permiso
 from app.core.db import get_db
 from app.core.permisos import PERMISOS
@@ -117,6 +118,28 @@ def _validar_categoria(db: Session, datos: DatosMovimiento) -> None:
         raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "categoria_invalida", "Elige una categoría del tipo correspondiente.")
 
 
+def _condiciones(user: CurrentUser, tipo, categoria_id, desde, hasta, usuario_id) -> tuple[list[str], dict]:
+    """Filtros del listado (HU07), compartidos con la exportación (HU16)."""
+    if usuario_id is not None and user.rol not in PERMISOS["movimientos.filtrar_usuario"]:
+        # RLS igual no le mostraría movimientos ajenos, pero el filtro no es para su rol.
+        raise _error(status.HTTP_403_FORBIDDEN, "rol_sin_permiso", "Tu rol no puede filtrar por usuario.")
+    if desde is not None and hasta is not None and desde > hasta:
+        raise _error(status.HTTP_422_UNPROCESSABLE_CONTENT, "rango_invalido", "La fecha de inicio es posterior a la de término.")
+
+    condiciones, params = [_VIGENTE], {}
+    for campo, valor, sql in (
+        ("tipo", tipo, "m.tipo = :tipo"),
+        ("categoria_id", categoria_id, "m.categoria_id = :categoria_id"),
+        ("desde", desde, "m.fecha >= :desde"),
+        ("hasta", hasta, "m.fecha <= :hasta"),
+        ("usuario_id", usuario_id, "m.usuario_id = :usuario_id"),
+    ):
+        if valor is not None:
+            condiciones.append(sql)
+            params[campo] = str(valor) if isinstance(valor, uuid.UUID) else valor
+    return condiciones, params
+
+
 @router.get("")
 def listar_movimientos(
     tipo: Literal["ingreso", "gasto"] | None = None,
@@ -132,23 +155,78 @@ def listar_movimientos(
     responsabilidad es de las políticas de RLS de Azure SQL, ya activadas sobre este `db` por
     get_current_user() vía SESSION_CONTEXT. Los filtros solo acotan dentro de lo permitido.
     """
-    if usuario_id is not None and user.rol not in PERMISOS["movimientos.filtrar_usuario"]:
-        # RLS igual no le mostraría movimientos ajenos, pero el filtro no es para su rol.
-        raise _error(status.HTTP_403_FORBIDDEN, "rol_sin_permiso", "Tu rol no puede filtrar por usuario.")
-
-    condiciones, params = [_VIGENTE], {}
-    for campo, valor, sql in (
-        ("tipo", tipo, "m.tipo = :tipo"),
-        ("categoria_id", categoria_id, "m.categoria_id = :categoria_id"),
-        ("desde", desde, "m.fecha >= :desde"),
-        ("hasta", hasta, "m.fecha <= :hasta"),
-        ("usuario_id", usuario_id, "m.usuario_id = :usuario_id"),
-    ):
-        if valor is not None:
-            condiciones.append(sql)
-            params[campo] = str(valor) if isinstance(valor, uuid.UUID) else valor
+    condiciones, params = _condiciones(user, tipo, categoria_id, desde, hasta, usuario_id)
     rows = db.execute(text(f"{_SELECT} WHERE {' AND '.join(condiciones)} ORDER BY m.fecha DESC, m.creado_en DESC"), params).mappings().all()
     return [dict(r) for r in rows]
+
+
+# ---------- Exportar (HU16 — KONTADORIA-79) ----------
+
+_TIPOS_EXPORTACION = {
+    "xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "csv": "text/csv; charset=utf-8",
+}
+
+
+def _nombre_exportacion(desde: dt.date | None, hasta: dt.date | None) -> str:
+    if desde and hasta:
+        periodo = f"{desde}_al_{hasta}"
+    elif desde or hasta:
+        periodo = f"desde_{desde}" if desde else f"hasta_{hasta}"
+    else:
+        periodo = "todos"
+    return f"kontadoria-movimientos-{periodo}"
+
+
+@router.get("/exportar")
+def exportar_movimientos(
+    formato: Literal["xlsx", "csv"] = "xlsx",
+    tipo: Literal["ingreso", "gasto"] | None = None,
+    categoria_id: uuid.UUID | None = None,
+    desde: dt.date | None = None,
+    hasta: dt.date | None = None,
+    usuario_id: uuid.UUID | None = None,
+    q: Annotated[str | None, Query(max_length=100)] = None,
+    user: CurrentUser = Depends(require_permiso("movimientos.exportar")),
+    db: Session = Depends(get_db),
+):
+    """
+    Descarga los movimientos vigentes con los mismos filtros del listado, en Excel o CSV y con las
+    columnas de la plantilla de importación: el archivo se puede volver a importar tal cual.
+    Solo dueño y contador; qué filas entran lo decide RLS, como en el listado.
+    Van en orden cronológico (como se lee una planilla), no del más nuevo al más antiguo.
+
+    `q` es el buscador de la pantalla: descripción, proveedor o categoría que contengan el texto,
+    sin importar tildes ni mayúsculas ("mantencion" encuentra "Mantención").
+    """
+    condiciones, params = _condiciones(user, tipo, categoria_id, desde, hasta, usuario_id)
+    if q and q.strip():
+        condiciones.append(
+            "CONCAT(m.descripcion, ' ', m.proveedor, ' ', c.nombre) COLLATE Latin1_General_100_CI_AI LIKE :q ESCAPE '\\'"
+        )
+        # %, _ y [ son comodines de LIKE: se buscan como texto
+        params["q"] = "%" + re.sub(r"([\\%_\[])", r"\\\1", q.strip()) + "%"
+    rows = db.execute(
+        text(
+            f"""
+            SELECT m.fecha, m.monto, m.tipo, c.nombre AS categoria, m.proveedor, m.descripcion
+            FROM dbo.movimientos m JOIN dbo.categorias c ON c.id = m.categoria_id
+            WHERE {' AND '.join(condiciones)}
+            ORDER BY m.fecha, m.creado_en
+            """
+        ),
+        params,
+    ).all()
+    filas = [exportacion.fila(*r) for r in rows]
+    contenido = exportacion.xlsx_bytes(filas) if formato == "xlsx" else exportacion.csv_bytes(filas)
+    return Response(
+        content=contenido,
+        media_type=_TIPOS_EXPORTACION[formato],
+        headers={
+            "Content-Disposition": f'attachment; filename="{_nombre_exportacion(desde, hasta)}.{formato}"',
+            "Cache-Control": "no-store",
+        },
+    )
 
 
 # ---------- Resumen mensual (HU18 — KONTADORIA-62) ----------
