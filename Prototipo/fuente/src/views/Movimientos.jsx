@@ -9,6 +9,7 @@ import { useCategorias } from '../state/Categorias'
 import { totales, useMovimientos } from '../state/Movimientos'
 import { useSesion } from '../state/Sesion'
 import { useToast } from '../state/Toasts'
+import { useMedia } from '../hooks/useMedia'
 import Bienvenida from './Bienvenida'
 import './Movimientos.css'
 
@@ -120,6 +121,8 @@ export default function Movimientos({ onNuevo, onEditar }) {
   const { puede } = useSesion()
   // El empleado solo recibe sus movimientos (RLS), así que no tiene filtro por usuario
   const porUsuario = puede('movimientos.filtrar_usuario')
+  // En el celular los selectores van de a dos por fila: los textos largos se cortaban
+  const angosto = useMedia('(max-width: 720px)')
   const exporta = puede('movimientos.exportar')
   const { aviso } = useToast()
   const [f, setF] = useState(filtrosIniciales)
@@ -235,9 +238,10 @@ export default function Movimientos({ onNuevo, onEditar }) {
           onChange={(v) => setF((x) => ({ ...x, tipo: v, cat: v !== 'todos' && categoria(x.cat).tipo !== v ? 'todas' : x.cat }))}
         />
         {/* En el celular, los tres selectores van en una fila que se desliza */}
-        <div className="toolbar-sel">
+        {/* En el celular: grilla del ancho de la pantalla, con el mes arriba (PROTOTIPO 24-11-2026) */}
+        <div className={`toolbar-sel${porUsuario && usuarios.length > 1 ? ' con-personas' : ''}`}>
         <select className="input" value={f.cat} onChange={(e) => set('cat', e.target.value)} aria-label="Categoría">
-          <option value="todas">Todas las categorías</option>
+          <option value="todas">{angosto ? 'Categorías' : 'Todas las categorías'}</option>
           {cats.map((c) => (
             <option key={c.id} value={c.id}>
               {c.nombre}
@@ -246,7 +250,7 @@ export default function Movimientos({ onNuevo, onEditar }) {
         </select>
         {porUsuario && usuarios.length > 1 && (
           <select className="input" value={f.usuario} onChange={(e) => set('usuario', e.target.value)} aria-label="Registrado por">
-            <option value="todos">Todas las personas</option>
+            <option value="todos">{angosto ? 'Personas' : 'Todas las personas'}</option>
             {usuarios.map((u) => (
               <option key={u.id} value={u.id}>
                 {u.nombre}
@@ -254,7 +258,7 @@ export default function Movimientos({ onNuevo, onEditar }) {
             ))}
           </select>
         )}
-        <select className="input" value={f.mes} onChange={(e) => set('mes', e.target.value)} aria-label="Mes">
+        <select className="input sel-mes" value={f.mes} onChange={(e) => set('mes', e.target.value)} aria-label="Mes">
           {meses.map((m) => (
             <option key={m} value={m}>
               {mayuscula(mesLargo(m))}
@@ -263,8 +267,8 @@ export default function Movimientos({ onNuevo, onEditar }) {
           <option value="todos">Todos los meses</option>
           <option value="rango">Rango de fechas…</option>
         </select>
-        </div>
-        {/* PROTOTIPO Sprint 5 (HU16): rango de fechas libre, para exportar un período */}
+        {/* PROTOTIPO Sprint 5 (HU16): rango de fechas libre, para exportar un período. Va junto al mes
+            para que en el celular aparezca justo debajo de él (24-11-2026) */}
         {f.mes === 'rango' && (
           <div className="rango">
             <label>
@@ -289,6 +293,7 @@ export default function Movimientos({ onNuevo, onEditar }) {
             </label>
           </div>
         )}
+        </div>
       </div>
 
       {filas.length === 0 ? (
