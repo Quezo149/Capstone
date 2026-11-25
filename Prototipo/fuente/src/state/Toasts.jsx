@@ -3,6 +3,7 @@ import Icon from '../components/Icon'
 import './Toasts.css'
 
 // Avisos cortos abajo al centro. aviso('texto', { accion: { label, onClick }, festejo: true })
+// Con { error: true } lleva una ✕ en vez del ✓: un error no puede verse como algo que salió bien.
 // Los que traen acción (Deshacer) duran 10 s y no se cierran mientras el puntero o el foco
 // estén encima: si alguien va a tocar "Deshacer", no se le escapa.
 const Ctx = createContext(null)
@@ -25,10 +26,10 @@ export function ToastProvider({ children }) {
   }, [])
 
   const aviso = useCallback(
-    (texto, { accion, festejo = false, duracion = accion ? 10000 : 2800 } = {}) => {
+    (texto, { accion, festejo = false, error = false, duracion = accion ? 10000 : error ? 5000 : 2800 } = {}) => {
       const id = ++seq.current
       // Máximo dos a la vez: el más viejo se va
-      setItems((l) => [...l.slice(-1), { id, texto, accion, festejo }])
+      setItems((l) => [...l.slice(-1), { id, texto, accion, festejo, error }])
       timers.current[id] = setTimeout(() => cerrar(id), duracion)
     },
     [cerrar],
@@ -50,7 +51,7 @@ export function ToastProvider({ children }) {
         {items.map((t) => (
           <div
             key={t.id}
-            className={`toast${t.saliendo ? ' out' : ''}`}
+            className={`toast${t.error ? ' error' : ''}${t.saliendo ? ' out' : ''}`}
             {...(t.accion
               ? {
                   onMouseEnter: () => pausar(t.id),
@@ -61,7 +62,7 @@ export function ToastProvider({ children }) {
               : {})}
           >
             <span className="toast-ic">
-              <Icon name="checkc" />
+              <Icon name={t.error ? 'x' : 'checkc'} />
               {t.festejo &&
                 PIEZAS.map((p, i) => (
                   <i

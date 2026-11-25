@@ -8,8 +8,13 @@ import { COLUMNAS } from './importacion'
 const ENCABEZADO = COLUMNAS.map((c) => c.nombre)
 
 // [fecha DD-MM-AAAA, monto (número), tipo, categoría, proveedor, descripción]
+// Sin descripción va el proveedor o la categoría, igual que el backend (app/core/exportacion.py):
+// la plantilla la exige y sin esto esas filas darían error al volver a importarlas.
 export const filasExportables = (movs, categoria) =>
-  movs.map((m) => [fechaCorta(m.fecha), m.monto, m.tipo, categoria(m.categoria_id).nombre, m.proveedor ?? '', m.descripcion ?? ''])
+  movs.map((m) => {
+    const cat = categoria(m.categoria_id).nombre
+    return [fechaCorta(m.fecha), m.monto, m.tipo, cat, m.proveedor || '', m.descripcion || m.proveedor || cat]
+  })
 
 function bajar(nombre, partes, tipo) {
   const url = URL.createObjectURL(new Blob(partes, { type: tipo }))
