@@ -290,20 +290,47 @@ tr.row:focus-visible .row-edit {
     flex: 1 1 100%;
   }
 
+  /* PROTOTIPO 24-11-2026: antes era una tira que se deslizaba y se salía por la derecha (el mes
+     quedaba fuera de la pantalla). Ahora es una grilla alineada con el buscador: el mes arriba a
+     lo ancho (es el filtro principal) y debajo categoría y persona, una al lado de la otra. */
   .toolbar-sel {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     flex: 1 1 100%;
     gap: var(--gap-s);
-    margin-inline: -16px;
-    padding-inline: 16px;
-    overflow-x: auto;
-    scrollbar-width: none;
   }
 
   .toolbar .toolbar-sel select.input {
-    flex: 0 0 auto;
-    width: auto;
-    max-width: 70vw;
+    width: 100%;
+    text-overflow: ellipsis;
+  }
+
+  .toolbar-sel .sel-mes {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  /* El rango va justo debajo del mes: Desde y Hasta lado a lado, con la etiqueta arriba */
+  .toolbar-sel .rango {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  .toolbar-sel .rango label {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+
+  .toolbar-sel .rango .input {
+    width: 100%;
+  }
+
+  /* Sin el filtro por persona (colaborador, o un solo usuario), la categoría ocupa toda la fila */
+  .toolbar-sel:not(.con-personas) select:not(.sel-mes) {
+    grid-column: 1 / -1;
   }
 }
 

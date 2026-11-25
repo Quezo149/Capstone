@@ -13,10 +13,16 @@ import './Presupuestos.css'
 // PROTOTIPO Sprint 5 — HU15 (KONTADORIA-78): presupuestos de gasto por categoría y mes.
 // Dueño y contador los ven; solo el dueño crea, edita (el monto) y elimina. Mismo contrato que
 // backend/app/routers/presupuestos.py: GET /presupuestos?mes=AAAA-MM trae lo gastado en cada uno.
+// Igual a frontend/src/views/Presupuestos.jsx (orden por % usado y "Sin gastar", 22-11-2026).
 
 const MAX_MONTO = 999_999_999_999 // igual que ck_presupuestos_monto
 const MESES_ADELANTE = 12 // se puede planificar hasta un año hacia adelante
 const AVISO = 0.8 // desde el 80 % se marca "Cerca del límite" (sin alertas automáticas en v1)
+
+// Orden de la lista (22-11-2026): de mayor a menor % usado, así lo que pide atención queda
+// arriba. Los excedidos (más de 100 %) salen primero, del que más se pasó al que menos.
+// Con el mismo %, en orden alfabético (como llega de la API).
+const ordenar = (lista) => [...lista].sort((a, b) => b.gastado / b.monto - a.gastado / a.monto)
 
 // Estado de un presupuesto según lo gastado y si el mes ya terminó
 function estado(p, cerrado) {
@@ -24,7 +30,7 @@ function estado(p, cerrado) {
   if (resto < 0) return { clase: 'excedido', texto: `Te pasaste por ${clp(resto)}` }
   if (p.gastado === 0) return { clase: '', texto: cerrado ? 'Sin gastos' : 'Sin gastos aún' }
   if (resto === 0) return { clase: cerrado ? '' : 'cerca', texto: 'Llegaste al límite' }
-  if (cerrado) return { clase: '', texto: `Sobraron ${clp(resto)}` }
+  if (cerrado) return { clase: '', texto: `Quedaron ${clp(resto)} sin gastar` }
   if (p.gastado / p.monto >= AVISO) return { clase: 'cerca', texto: `Quedan ${clp(resto)}` }
   return { clase: '', texto: `Quedan ${clp(resto)}` }
 }
@@ -273,12 +279,12 @@ export default function Presupuestos() {
       aviso(`Eliminamos el presupuesto de ${p.categoria}`)
       cargar()
     } catch (e) {
-      aviso(e.message)
+      aviso(e.message, { error: true })
     }
   }
 
-  // PROTOTIPO (propuesta): repetir los montos del mes anterior en un clic. Con el backend actual
-  // son varios POST; si se aprueba, conviene un endpoint que lo haga en una transacción.
+  // Repetir los montos del mes anterior en un clic. Son varios POST: si uno falla, los anteriores
+  // quedan y la lista recargada muestra cuáles faltan (para hacerlo atómico haría falta un endpoint).
   async function copiarAnterior() {
     setCopiando(true)
     try {
@@ -286,7 +292,8 @@ export default function Presupuestos() {
       aviso(`Copiamos ${copiables.length} ${copiables.length === 1 ? 'presupuesto' : 'presupuestos'} de ${nombreMes(moverMes(mes, -1))}`)
       await cargar()
     } catch (e) {
-      aviso(e.message)
+      aviso(e.message, { error: true })
+      await cargar()
     } finally {
       setCopiando(false)
     }
@@ -343,7 +350,7 @@ export default function Presupuestos() {
             <span className="kpi-d">{totales.monto ? Math.round((totales.gastado / totales.monto) * 100) : 0} % del total</span>
           </div>
           <div className={`kpi${resto < 0 ? ' pr-kpi-mal' : ''}`}>
-            <span className="kpi-l">{resto < 0 ? 'Excedido' : cerrado ? 'Sobró' : 'Disponible'}</span>
+            <span className="kpi-l">{resto < 0 ? 'Excedido' : cerrado ? 'Sin gastar' : 'Disponible'}</span>
             <span className="kpi-v mono">
               <Numero valor={Math.abs(resto)} />
             </span>
@@ -389,7 +396,7 @@ export default function Presupuestos() {
             </div>
           ) : (
             <ul className="pr-lista">
-              {lista.map((p, i) => (
+              {ordenar(lista).map((p, i) => (
                 <Fila key={p.id} i={i} p={p} cerrado={cerrado} admin={admin} onEditar={() => setForm({ id: p.id })} onEliminar={() => quitar(p)} />
               ))}
             </ul>
