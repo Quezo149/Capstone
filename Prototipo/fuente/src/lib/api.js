@@ -390,6 +390,10 @@ export async function api(ruta, { method = 'GET', body } = {}) {
     exigir(rol, 'usuarios.gestionar')
     const u = db.usuarios.find((x) => x.id === p.id)
     if (!u) throw noEncontrado()
+    // Igual que _proteger_ultimo_admin del backend: la empresa no puede quedar sin dueño activo
+    const quitaDueno = u.rol === 'admin' && u.activo && (body.rol ? body.rol !== 'admin' : body.activo === false)
+    if (quitaDueno && db.usuarios.filter((x) => x.rol === 'admin' && x.activo).length <= 1)
+      throw new ApiError(409, 'ultimo_admin', 'Es el único administrador. Primero asigna a otra persona como administrador.')
     Object.assign(u, body)
     return fin(u)
   }
