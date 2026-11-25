@@ -116,7 +116,13 @@ function PresupuestoForm({ inicial, mes, opciones, categoriaInicial, onGuardar }
               autoComplete="off"
               placeholder="0"
               value={monto ? monto.toLocaleString('es-CL') : ''}
-              onChange={(e) => (setMonto(leerMonto(e.target.value)), setErrores((x) => ({ ...x, monto: undefined })))}
+              onChange={(e) => {
+                const m = leerMonto(e.target.value)
+                // Un dígito de más no se escribe: se avisa en el momento (H5, 24-11-2026)
+                if (m > MAX_MONTO) return setErrores((x) => ({ ...x, monto: 'El monto máximo es $ 999.999.999.999.' }))
+                setMonto(m)
+                setErrores((x) => ({ ...x, monto: undefined }))
+              }}
               aria-invalid={Boolean(errores.monto)}
             />
           </div>

@@ -70,7 +70,16 @@ function CategoriaForm({ inicial, onGuardar }) {
             onChange={(e) => set('nombre', e.target.value)}
             aria-invalid={Boolean(errores.nombre)}
           />
-          {errores.nombre && <span className="err">{errores.nombre}</span>}
+          {errores.nombre ? (
+            <span className="err">{errores.nombre}</span>
+          ) : (
+            // H7 (24-11-2026): el campo corta en 50 sin avisar; desde 40 se muestra cuánto queda
+            f.nombre.length >= 40 && (
+              <span className="hint">
+                {f.nombre.length} de 50 caracteres{f.nombre.length >= 50 ? ': no caben más' : ''}
+              </span>
+            )
+          )}
         </div>
         <div className="field">
           <span className="label" id="l-color">

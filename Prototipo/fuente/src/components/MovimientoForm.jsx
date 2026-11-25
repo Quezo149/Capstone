@@ -12,6 +12,8 @@ import { formatearRut } from '../lib/documentos'
 import './MovimientoForm.css'
 
 const MAX_MONTO = 999_999_999_999 // cabe en numeric(14,0)
+// H5 (24-11-2026): un dígito de más ya no se escribe; se avisa en el momento, no al guardar
+const TOPE_MONTO = 'El monto máximo es $ 999.999.999.999.'
 
 const SACUDIDA = [0, -5, 5, -5, 5, 0].map((x) => ({ transform: `translateX(${x}px)` }))
 const reducido = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -268,7 +270,11 @@ export default function MovimientoForm({ inicial, prellenado, ia, proveedores = 
               autoComplete="off"
               placeholder="0"
               value={f.monto ? f.monto.toLocaleString('es-CL') : ''}
-              onChange={(e) => set('monto', leerMonto(e.target.value))}
+              onChange={(e) => {
+                const m = leerMonto(e.target.value)
+                if (m > MAX_MONTO) setErrores((x) => ({ ...x, monto: TOPE_MONTO }))
+                else set('monto', m)
+              }}
               aria-invalid={Boolean(errores.monto)}
               aria-describedby={errores.monto ? 'e-monto' : 'h-monto'}
             />

@@ -29,7 +29,7 @@ function Kpi({ label, valor, anterior, tono, comparado, d }) {
           `Sin datos ${comparado}`
         ) : (
           <>
-            <span className={`delta ${v > 0 ? 'up' : v < 0 ? 'down' : 'flat'}`}>{`${v > 0 ? '↑' : v < 0 ? '↓' : '='} ${Math.abs(v)} %`}</span>
+            <span className={`delta ${v > 0 ? 'up' : v < 0 ? 'down' : 'flat'}`}>{`${v > 0 ? '↑' : v < 0 ? '↓' : '='} ${Math.abs(v).toLocaleString('es-CL')} %`}</span>
             {` ${comparado}`}
           </>
         )}
