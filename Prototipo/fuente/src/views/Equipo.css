@@ -64,6 +64,48 @@
   padding-block: 6px;
 }
 
+/* PROTOTIPO 24-11-2026: confirmación del cambio de rol, dentro de la fila */
+.eq-confirma {
+  display: flex;
+  flex-basis: 100%;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  background: var(--paper);
+  animation: pop 0.18s ease-out both;
+}
+
+.eq-confirma.fuerte {
+  border-color: color-mix(in srgb, var(--gasto) 45%, var(--line));
+  background: var(--gasto-tint);
+}
+
+.eq-confirma p {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 280px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.eq-confirma-aviso {
+  font-weight: 700;
+}
+
+.eq-confirma.fuerte .eq-confirma-aviso {
+  color: var(--gasto);
+}
+
+.eq-confirma-acts {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
 /* Panel: invitación creada */
 .inv-ok {
   display: flex;

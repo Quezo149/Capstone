@@ -24,6 +24,63 @@ function venceEn(iso) {
   return horas < 24 ? `Vence en ${horas} h` : `Vence el ${fechaHora(iso)}`
 }
 
+// 24-11-2026 (hallazgo H1+H2): cambiar un rol ya no se guarda al elegirlo en el selector.
+// Aparece esta confirmación en la misma fila, que dice qué podrá hacer la persona con su rol nuevo.
+// Es más clara cuando se quita el rol de dueño, y más aún si es el propio. Si es el único dueño
+// activo, no deja confirmar (el backend igual lo rechaza: 409 ultimo_admin).
+function ConfirmarRol({ u, rol, yo, unicoDueno, onConfirmar, onCancelar }) {
+  const [enviando, setEnviando] = useState(false)
+  const nuevo = ROLES.find((r) => r.id === rol)
+  const quitaDueno = u.rol === 'admin'
+  const daDueno = rol === 'admin'
+  const quien = yo ? 'ti' : u.nombre || u.email
+  const bloqueado = quitaDueno && unicoDueno
+
+  async function confirmar() {
+    setEnviando(true)
+    await onConfirmar()
+    setEnviando(false)
+  }
+
+  return (
+    <div className={`eq-confirma${quitaDueno ? ' fuerte' : ''}`} role="group" aria-label={`Confirmar el cambio de rol de ${quien}`}>
+      <p>
+        <strong>
+          ¿Cambiar {yo ? 'tu rol' : `a ${quien}`} de {NOMBRE_ROL[u.rol]} a {nuevo.label}?
+        </strong>
+        <span>{nuevo.ayuda}</span>
+        {bloqueado ? (
+          <span className="eq-confirma-aviso">
+            {yo ? 'Eres' : 'Es'} el único dueño de la empresa. Primero nombra a otra persona como dueño.
+          </span>
+        ) : quitaDueno && yo ? (
+          <span className="eq-confirma-aviso">
+            Perderás el acceso de dueño apenas confirmes: ya no podrás cambiar roles, invitar personas ni editar la
+            empresa. Para recuperarlo, otro dueño tendrá que devolvértelo.
+          </span>
+        ) : quitaDueno ? (
+          <span className="eq-confirma-aviso">Dejará de poder cambiar roles, invitar personas y editar la empresa.</span>
+        ) : daDueno ? (
+          <span className="eq-confirma-aviso">Tendrá los mismos permisos que tú, incluso cambiar tu rol o desactivarte.</span>
+        ) : null}
+      </p>
+      <span className="eq-confirma-acts">
+        <button type="button" className="btn btn-sm btn-ghost" onClick={onCancelar} disabled={enviando}>
+          Cancelar
+        </button>
+        <button
+          type="button"
+          className={`btn btn-sm ${quitaDueno ? 'btn-danger' : 'btn-primary'}`}
+          onClick={confirmar}
+          disabled={enviando || bloqueado}
+        >
+          {enviando ? 'Guardando…' : 'Cambiar rol'}
+        </button>
+      </span>
+    </div>
+  )
+}
+
 // Botón que pide un segundo clic dentro de 3 s (mismo patrón que eliminar categoría)
 function Confirmar({ children, pregunta, onConfirmar, className = 'btn-text' }) {
   const [armado, setArmado] = useState(false)
@@ -172,6 +229,8 @@ export default function Equipo() {
   const [error, setError] = useState(null)
   // null = cerrado · {} = nueva · { email, rol } = nuevo link para una existente
   const [panel, setPanel] = useState(null)
+  // Cambio de rol esperando confirmación: { id, rol }
+  const [cambioRol, setCambioRol] = useState(null)
 
   const cargar = useCallback(() => {
     api('/usuarios')
@@ -232,6 +291,8 @@ export default function Equipo() {
         <ul className="eq-lista">
           {usuarios?.map((u) => {
             const yo = u.id === perfil.usuario_id
+            const pendiente = cambioRol?.id === u.id ? cambioRol.rol : null
+            const duenos = usuarios.filter((x) => x.rol === 'admin' && x.activo).length
             return (
               <li key={u.id} className={u.activo ? '' : 'inactivo'}>
                 <span className="eq-quien">
@@ -246,9 +307,9 @@ export default function Equipo() {
                   <span className="eq-acts">
                     <select
                       className="input eq-rol"
-                      value={u.rol}
+                      value={pendiente ?? u.rol}
                       aria-label={`Rol de ${u.nombre || u.email}`}
-                      onChange={(e) => cambiar(u, 'rol', { rol: e.target.value }, 'Rol actualizado')}
+                      onChange={(e) => setCambioRol(e.target.value === u.rol ? null : { id: u.id, rol: e.target.value })}
                     >
                       {ROLES.map((r) => (
                         <option key={r.id} value={r.id}>
@@ -275,6 +336,20 @@ export default function Equipo() {
                   </span>
                 ) : (
                   <span className="chip line">{NOMBRE_ROL[u.rol]}</span>
+                )}
+                {pendiente && (
+                  <ConfirmarRol
+                    key={pendiente}
+                    u={u}
+                    rol={pendiente}
+                    yo={yo}
+                    unicoDueno={u.activo && duenos <= 1}
+                    onCancelar={() => setCambioRol(null)}
+                    onConfirmar={async () => {
+                      await cambiar(u, 'rol', { rol: pendiente }, `Rol actualizado: ${u.nombre || u.email} ahora es ${NOMBRE_ROL[pendiente]}`)
+                      setCambioRol(null)
+                    }}
+                  />
                 )}
               </li>
             )
